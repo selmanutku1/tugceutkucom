@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import InsurupEcosystemSection from './components/InsurupEcosystemSection';
 import ServicesSection from './components/ServicesSection';
+import PackagesSection from './components/PackagesSection';
 import RiskCalculator from './components/RiskCalculator';
 import MethodologySection from './components/MethodologySection';
-import PackagesSection from './components/PackagesSection';
 import AboutSection from './components/AboutSection';
 import CaseStudiesSection from './components/CaseStudiesSection';
 import FaqSection from './components/FaqSection';
@@ -13,7 +14,7 @@ import BookingContactModal from './components/BookingContactModal';
 
 export default function App() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [bookingTopic, setBookingTopic] = useState('Bireysel Portföy Check-Up');
+  const [bookingTopic, setBookingTopic] = useState('InsurUp CRM & Acente Dönüşümü');
   const [bookingNote, setBookingNote] = useState('');
 
   const scrollToSection = (id: string) => {
@@ -45,35 +46,42 @@ export default function App() {
           onScrollTo={scrollToSection}
         />
 
-        {/* 2. Detailed Professional Services */}
+        {/* 2. InsurUp Platform & Synergy Showcase (Core Brand Integration) */}
+        <InsurupEcosystemSection
+          onOpenBookingWithTopic={(topic) =>
+            handleOpenBooking(topic, `InsurUp Çözümü: ${topic}`)
+          }
+        />
+
+        {/* 3. Detailed Professional Services */}
         <ServicesSection
           onOpenBookingWithService={(serviceName) =>
             handleOpenBooking(serviceName, `Talep Edilen Hizmet: ${serviceName}`)
           }
         />
 
-        {/* 3. Interactive Digital Risk & Insurance Check-Up Tool */}
-        <RiskCalculator
-          onOpenBookingWithDetails={(topic, note) => handleOpenBooking(topic, note)}
-        />
-
-        {/* 4. 4-Step Methodology */}
-        <MethodologySection />
-
-        {/* 5. Consulting Packages */}
+        {/* 4. Consulting Packages ("Acentenizi Dijitalleştirin" InsurUp Destekli) */}
         <PackagesSection
           onOpenBookingWithPackage={(pkgName) =>
             handleOpenBooking(pkgName, `Seçilen Paket: ${pkgName}`)
           }
         />
 
-        {/* 6. About Tuğçe Utku & Traditional vs Independent Comparison */}
+        {/* 5. Interactive Digital Risk & Insurance Check-Up Tool */}
+        <RiskCalculator
+          onOpenBookingWithDetails={(topic, note) => handleOpenBooking(topic, note)}
+        />
+
+        {/* 6. 4-Step Methodology */}
+        <MethodologySection />
+
+        {/* 7. About Tuğçe Utku (InsurUp Digital Marketing Manager & InsurTech Consultant) */}
         <AboutSection />
 
-        {/* 7. Real-life Case Studies */}
+        {/* 8. Real-life Case Studies */}
         <CaseStudiesSection />
 
-        {/* 8. FAQ */}
+        {/* 9. FAQ */}
         <FaqSection />
       </main>
 

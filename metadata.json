@@ -1,6 +1,6 @@
 {
-  "name": "Tuğçe Utku - Dijital Sigortacılık & InsurTech Danışmanlığı",
-  "description": "Sigorta şirketleri, acenteler, brokerlar ve InsurTech girişimleri için dijital dönüşüm, yapay zekâ, teknoloji ve yeni nesil sigorta çözümleri.",
+  "name": "Tuğçe Utku - InsurUp Dijital Pazarlama Yöneticisi & InsurTech Danışmanı",
+  "description": "InsurUp bulut Sigorta CRM'i, online teklif altyapısı ve veri odaklı dijital pazarlama danışmanlığı ile acentenizi 7/24 büyüyen bir güç merkezine dönüştürün.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

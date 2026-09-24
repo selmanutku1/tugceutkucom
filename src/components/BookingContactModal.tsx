@@ -4,10 +4,10 @@ import {
   Calendar, 
   CheckCircle2, 
   Send,
-  ExternalLink,
   MessageSquare,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Laptop
 } from 'lucide-react';
 import { TUĞÇE_PROFILE } from '../data/consultingContent';
 
@@ -21,7 +21,7 @@ interface BookingContactModalProps {
 export default function BookingContactModal({
   isOpen,
   onClose,
-  prefilledTopic = 'Acente Dijital Dönüşüm Programı',
+  prefilledTopic = 'InsurUp CRM & Acente Dönüşümü',
   prefilledNote = '',
 }: BookingContactModalProps) {
   const [topic, setTopic] = useState(prefilledTopic);
@@ -57,7 +57,7 @@ export default function BookingContactModal({
 
   const openDirectWhatsApp = () => {
     const text = encodeURIComponent(
-      `Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum. "${topic}" konusuyla ilgili 30 dakikalık ücretsiz keşif görüşmesi planlamak istiyorum.`
+      `Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum. "${topic}" konusuyla ve InsurUp çözümleriyle ilgili 30 dakikalık keşif / demo görüşmesi planlamak istiyorum.`
     );
     window.open(`https://wa.me/905320000000?text=${text}`, '_blank');
   };
@@ -77,34 +77,37 @@ export default function BookingContactModal({
         {!isSubmitted ? (
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             
-            {/* Header */}
+            {/* Header with InsurUp branding */}
             <div>
-              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 inline-block">
-                Ücretsiz Keşif Görüşmesi
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-600" />
+                  InsurUp Demo & Büyüme Keşfi
+                </span>
+              </div>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 leading-tight">
-                Tuğçe Utku ile 30 Dk Danışmanlık Planlayın
+                Tuğçe Utku ile 30 Dk Keşif & InsurUp Demosu
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Acentenizin dijital dönüşümünü, yapay zekâ senaryolarını veya InsurTech projelerini değerlendirin.
+                InsurUp bulut CRM altyapısını, online teklif motorunu ve acentenizin dijital pazarlama yol haritasını birlikte planlayın.
               </p>
             </div>
 
             {/* Topic Select */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">
-                Görüşme Konusu:
+                Görüşme Konusu & Talep Edilen Çözüm:
               </label>
               <select
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 className="w-full p-2.5 sm:p-3 rounded-xl border border-slate-300 text-sm sm:text-xs text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium"
               >
-                <option value="Acente Dijital Dönüşüm Programı">Acentenizi Dijitalleştirin (Web + CRM + WhatsApp)</option>
-                <option value="Kurumsal AI & Doküman Otomasyonu">Kurumsal AI & Doküman Otomasyonu (LLM, OCR & NLP)</option>
-                <option value="InsurTech Girişim & Gömülü Sigorta">InsurTech Girişim & Gömülü Sigorta (Embedded / API)</option>
-                <option value="Dijital Ürün & Portal Deneyimi">Dijital Ürün & Portal Deneyimi (Web/Mobil/UX)</option>
-                <option value="Veri Analitiği & Churn Tahminleme">Veri Analitiği & Müşteri Kayıp (Churn) Modelleri</option>
+                <option value="InsurUp CRM & Online Teklif Demosu">InsurUp CRM & Online Karşılaştırmalı Teklif Demosu</option>
+                <option value="Acente Dijital Dönüşüm Programı (InsurUp Destekli)">Acentenizi Dijitalleştirin (InsurUp + Web + WhatsApp)</option>
+                <option value="Kurumsal AI & Doküman Otomasyonu">Kurumsal AI & Doküman Otomasyonu (LLM, OCR & Hasar)</option>
+                <option value="InsurTech Girişim & Gömülü Sigorta (API)">InsurTech Girişim & Gömülü Sigorta (Embedded / API)</option>
+                <option value="Dijital Pazarlama & Google Ads Lead Akışı">Dijital Pazarlama & Sigorta Müşteri Kazanımı (Lead)</option>
                 <option value="Genel Dijital Dönüşüm Danışmanlığı">Genel Dijital Dönüşüm & Süreç Danışmanlığı</option>
               </select>
             </div>
@@ -185,7 +188,7 @@ export default function BookingContactModal({
                   <input
                     type="email"
                     required
-                    placeholder="ornek@sirket.com"
+                    placeholder="ornek@acente.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-2.5 sm:p-3 rounded-xl border border-slate-300 text-base sm:text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
@@ -208,11 +211,11 @@ export default function BookingContactModal({
 
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Kurumunuz ve Proje Hedefiniz (Opsiyonel):
+                  Acenteniz / Kurumunuz ve Hedefiniz (Opsiyonel):
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Acentemiz için WhatsApp otomasyonu ve web sitesi kurmak istiyoruz..."
+                  placeholder="Acentemiz için InsurUp CRM demosu ve online satış web sitesi kurmak istiyoruz..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className="w-full p-2.5 sm:p-3 rounded-xl border border-slate-300 text-base sm:text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
@@ -227,7 +230,7 @@ export default function BookingContactModal({
                 className="w-full sm:flex-1 py-3.5 px-4 rounded-xl bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-700/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
                 <Send className="w-4 h-4" />
-                <span>Randevu Talebini Gönder</span>
+                <span>Randevu ve Demo Talebini Gönder</span>
               </button>
 
               <button
@@ -242,7 +245,7 @@ export default function BookingContactModal({
 
             <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-              <span>Görüşme öncesi ve sonrası tüm bilgileriniz NDA güvencesindedir.</span>
+              <span>InsurUp & AcerPro güvencesiyle tüm bilgileriniz NDA koruması altındadır.</span>
             </p>
 
           </form>
@@ -258,7 +261,7 @@ export default function BookingContactModal({
                 Talep Alındı
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                Keşif Görüşmesi Talebiniz İletildi!
+                InsurUp Demo & Keşif Talebiniz İletildi!
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
                 Sayın <strong>{name}</strong>, <strong>{topic}</strong> konulu görüşme talebiniz Tuğçe Utku'ya iletilmiştir. Toplantı bağlantısı <strong>{email}</strong> adresinize gönderilecektir.
@@ -268,6 +271,7 @@ export default function BookingContactModal({
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-w-sm mx-auto space-y-1">
               <p><strong>Tarih & Saat:</strong> {selectedDate} - {selectedSlot}</p>
               <p><strong>Platform:</strong> Google Meet / Zoom Online Görüşme</p>
+              <p><strong>Altyapı:</strong> InsurUp Bulut CRM & Çözümleri</p>
             </div>
 
             <div className="pt-2">
