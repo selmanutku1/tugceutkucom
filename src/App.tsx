@@ -99,6 +99,7 @@ export default function App() {
         prefilledTopic={bookingTopic}
         prefilledNote={bookingNote}
       />
+
       {/* WhatsApp Floating Contact Button */}
       <WhatsAppFloatingButton 
         phoneNumber="905468253597"
