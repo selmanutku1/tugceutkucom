@@ -1,5 +1,5 @@
-import { ArrowRight, CheckCircle2, Lock, Cpu, Sliders, Linkedin, GraduationCap, Building2, Bot, Sparkles, ExternalLink } from 'lucide-react';
-import { TUĞÇE_PROFILE, INSURUP_ECOSYSTEM } from '../data/consultingContent';
+import { ArrowRight, CheckCircle2, Lock, Sliders, Linkedin, Building2, Sparkles, Cpu } from 'lucide-react';
+import { TUĞÇE_PROFILE } from '../data/consultingContent';
 import ExecutivePortrait from './ExecutivePortrait';
 
 interface HeroProps {
@@ -25,10 +25,10 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
           {/* Left Column: Value Prop & CTAs */}
           <div className="lg:col-span-7 space-y-5 sm:space-y-6 text-center sm:text-left">
             
-            {/* Top Pill badge - InsurUp & AcerPro synergy */}
+            {/* Top Pill badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 text-[11px] sm:text-xs font-semibold shadow-xs max-w-full">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-              <span className="truncate">InsurUp Ekosistemi • AcerPro Güvencesiyle 20+ Yıllık InsurTech Mimarisi</span>
+              <span className="truncate">Bulut Sigorta CRM</span>
             </div>
 
             {/* Main Headline & Subtitle */}
@@ -36,12 +36,12 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.2]">
                 Dijital Sigortacılığın ve <br className="hidden sm:inline" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 block sm:inline">
-                  InsurTech'in Geleceği.
+                  Sigorta CRM Teknolojilerinin Geleceği.
                 </span>
               </h1>
               
               <p className="text-sm sm:text-lg text-slate-700 font-medium leading-relaxed max-w-2xl mx-auto sm:mx-0">
-                InsurUp’ın yeni nesil bulut CRM ve online teklif altyapısını, veri odaklı dijital pazarlama ve acente büyüme stratejisiyle birleştirerek acenteleri, brokerları ve sigorta şirketlerini dönüştürüyoruz.
+                Yeni nesil bulut CRM ve online teklif altyapısını, veri odaklı dijital pazarlama ve acente büyüme stratejisiyle birleştirerek acenteleri, brokerları ve sigorta şirketlerini dönüştürüyoruz.
               </p>
             </div>
 
@@ -49,7 +49,7 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-1 text-left">
               <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-700 font-medium">
                 <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>InsurUp Bulut CRM & Karşılaştırmalı Teklif</span>
+                <span>Bulut Sigorta CRM & Karşılaştırmalı Teklif</span>
               </div>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-700 font-medium">
                 <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
@@ -65,14 +65,14 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
               </div>
             </div>
 
-            {/* CTAs (Mobile-First Layout: Stacked Full-Width on Mobile, Inline on Tablet/Desktop) */}
+            {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2">
               <button
                 onClick={() => onScrollTo('insurup-teknolojisi')}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-slate-800 active:bg-slate-950 rounded-xl shadow-lg shadow-slate-900/25 transition-all cursor-pointer group"
               >
-                <Sparkles className="w-4 h-4 text-emerald-400" />
-                <span>InsurUp Teknolojisini İncele</span>
+                <Sliders className="w-4 h-4 text-emerald-400" />
+                <span>Bulut CRM'i İncele</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -95,11 +95,11 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
             <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-center sm:justify-start gap-y-2 gap-x-4 sm:gap-x-6 text-[11px] sm:text-xs text-slate-500">
               <div className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span className="font-semibold text-slate-700">InsurUp & AcerPro Ekosistemi</span>
+                <span className="font-semibold text-slate-700">Bulut CRM Mimarisi</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>8+ Yıl InsurTech Tecrübesi</span>
+                <span>8+ Yıl InsurTech & CRM Tecrübesi</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -108,7 +108,7 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
             </div>
           </div>
 
-          {/* Right Column: Executive Card & InsurUp Live Snapshot */}
+          {/* Right Column: Executive Card */}
           <div className="lg:col-span-5">
             <div className="relative bg-white rounded-2xl p-5 sm:p-7 shadow-xl shadow-slate-200/80 border border-slate-200">
               
@@ -121,16 +121,16 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
                       {TUĞÇE_PROFILE.name}
                     </h3>
                     <p className="text-xs font-bold text-blue-700">
-                      InsurUp Dijital Pazarlama Yöneticisi
+                      Sigorta CRM & InsurTech Danışmanı
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[10px] sm:text-[11px] text-slate-600">
                       <span className="flex items-center gap-1 text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         <Sparkles className="w-3 h-3 text-emerald-600" />
-                        InsurUp Platformu
+                        Bulut CRM Mimarisi
                       </span>
                       <span className="flex items-center gap-1 text-blue-800 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                         <Building2 className="w-3 h-3 text-blue-600" />
-                        AcerPro Ekosistemi
+                        InsurTech Ekosistemi
                       </span>
                     </div>
                   </div>
@@ -149,14 +149,14 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
               </div>
 
               {/* Core Impact Metrics */}
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 py-4 sm:py-5 border-b border-slate-100">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-4 sm:pt-5">
                 <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
                   <p className="text-lg sm:text-xl font-black text-slate-900">{TUĞÇE_PROFILE.digitalTransformationCount}</p>
                   <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 mt-0.5">Tamamlanan Dönüşüm</p>
                 </div>
                 <div className="p-2.5 sm:p-3 rounded-xl bg-blue-50/50 border border-blue-100">
-                  <p className="text-lg sm:text-xl font-black text-blue-700">InsurUp</p>
-                  <p className="text-[10px] sm:text-[11px] font-medium text-blue-800 mt-0.5">Bulut Sigorta CRM'i</p>
+                  <p className="text-lg sm:text-xl font-black text-blue-700">Bulut CRM</p>
+                  <p className="text-[10px] sm:text-[11px] font-medium text-blue-800 mt-0.5">Sigorta CRM Altyapısı</p>
                 </div>
                 <div className="p-2.5 sm:p-3 rounded-xl bg-indigo-50/50 border border-indigo-100">
                   <p className="text-lg sm:text-xl font-black text-indigo-700">{TUĞÇE_PROFILE.operationalEfficiencyGain}</p>
@@ -165,51 +165,6 @@ export default function Hero({ onOpenBooking, onScrollTo }: HeroProps) {
                 <div className="p-2.5 sm:p-3 rounded-xl bg-emerald-50/50 border border-emerald-100">
                   <p className="text-lg sm:text-xl font-black text-emerald-700">8+ Yıl</p>
                   <p className="text-[10px] sm:text-[11px] font-medium text-emerald-800 mt-0.5">InsurTech İcraatı</p>
-                </div>
-              </div>
-
-              {/* Live Interactive InsurUp & AI Snapshot */}
-              <div className="pt-3.5 sm:pt-4 space-y-2.5">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
-                  <span className="flex items-center gap-1.5 font-bold text-slate-900">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                    InsurUp Modülleri & Canlı Özellikler
-                  </span>
-                  <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold border border-emerald-200">
-                    Canlı Platform
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-900 text-slate-300 text-xs space-y-2 font-mono">
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span className="truncate pr-2">// InsurUp Karşılaştırmalı Teklif</span>
-                    <span className="text-emerald-400 shrink-0">Anlık Satış</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span className="truncate pr-2">// Otomatik WhatsApp Yenileme</span>
-                    <span className="text-blue-400 shrink-0">%93 Başarı</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                    <span className="truncate pr-2">// Çapraz Satış (Cross-Selling)</span>
-                    <span className="text-indigo-400 shrink-0">Aktif</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    onClick={() => onScrollTo('insurup-teknolojisi')}
-                    className="py-2.5 px-3 text-xs font-bold text-center text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-300 cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>InsurUp İncele →</span>
-                  </button>
-
-                  <button
-                    onClick={() => onScrollTo('risk-analizi')}
-                    className="py-2.5 px-3 text-xs font-bold text-center text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <Sliders className="w-3 h-3 shrink-0" />
-                    <span>Olgunluk Testi</span>
-                  </button>
                 </div>
               </div>
 

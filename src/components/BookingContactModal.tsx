@@ -24,7 +24,7 @@ interface BookingContactModalProps {
 export default function BookingContactModal({
   isOpen,
   onClose,
-  prefilledTopic = 'InsurUp CRM & Acente Dönüşümü',
+  prefilledTopic = 'Bulut Sigorta CRM & Acente Dönüşümü',
   prefilledNote = '',
 }: BookingContactModalProps) {
   const [topic, setTopic] = useState(prefilledTopic);
@@ -75,7 +75,7 @@ export default function BookingContactModal({
     if (note.trim()) {
       message += `📝 *Not:* ${note.trim()}\n`;
     }
-    message += `\nInsurUp CRM ve dijital büyüme danışmanlığı için randevu / demo görüşmesi planlamak istiyorum.`;
+    message += `\nBulut Sigorta CRM ve dijital büyüme danışmanlığı için randevu / demo görüşmesi planlamak istiyorum.`;
 
     const text = encodeURIComponent(message);
     window.open(`https://wa.me/905468253597?text=${text}`, '_blank');
@@ -96,7 +96,7 @@ export default function BookingContactModal({
           <div>
             <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded border border-emerald-200">
               <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
-              <span>InsurUp & Keşif Randevusu</span>
+              <span>CRM & Keşif Randevusu</span>
             </div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
               30 Dk Online Görüşme
@@ -128,8 +128,8 @@ export default function BookingContactModal({
                     onChange={(e) => setTopic(e.target.value)}
                     className="w-full pl-2.5 pr-7 py-2 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 focus:bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium appearance-none transition-all cursor-pointer"
                   >
-                    <option value="InsurUp CRM & Online Teklif Demosu">InsurUp CRM & Online Karşılaştırmalı Teklif Demosu</option>
-                    <option value="Acente Dijital Dönüşüm Programı (InsurUp Destekli)">Acentenizi Dijitalleştirin (InsurUp + Web + WhatsApp)</option>
+                    <option value="Bulut Sigorta CRM & Online Teklif Demosu">Bulut Sigorta CRM & Online Karşılaştırmalı Teklif Demosu</option>
+                    <option value="Acente Dijital Dönüşüm Programı (CRM Destekli)">Acentenizi Dijitalleştirin (CRM + Web + WhatsApp)</option>
                     <option value="Kurumsal AI & Doküman Otomasyonu">Kurumsal AI & Doküman Otomasyonu (LLM, OCR & Hasar)</option>
                     <option value="InsurTech Girişim & Gömülü Sigorta (API)">InsurTech Girişim & Gömülü Sigorta (Embedded / API)</option>
                     <option value="Dijital Pazarlama & Google Ads Lead Akışı">Dijital Pazarlama & Sigorta Müşteri Kazanımı (Lead)</option>

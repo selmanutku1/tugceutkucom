@@ -48,7 +48,7 @@ export default function BrandLogo({
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}
           >
-            InsurUp Pazarlama Yöneticisi • InsurTech
+            Sigorta CRM & InsurTech Danışmanı
           </span>
         )}
       </div>

@@ -9,11 +9,11 @@ import {
 
 export const TUĞÇE_PROFILE = {
   name: 'Tuğçe Utku',
-  title: 'InsurUp Dijital Pazarlama Yöneticisi & InsurTech Danışmanı',
-  company: 'InsurUp (AcerPro Ekosistemi)',
-  headline: 'Dijital Sigortacılığın ve InsurTech’in Geleceğini Birlikte Tasarlıyoruz.',
-  subheadline: 'InsurUp’ın yeni nesil bulut sigorta teknolojileri ve veri odaklı dijital büyüme stratejisiyle acenteleri, brokerları ve sigorta şirketlerini geleceğe taşıyoruz.',
-  positioningNotice: 'InsurUp teknolojisiyle desteklenen; sigorta CRM’i, yapay zekâ, online satış altyapısı ve dijital büyüme danışmanlığı.',
+  title: 'Sigorta CRM & InsurTech Danışmanı',
+  company: 'Sigorta Teknolojileri & CRM Ekosistemi',
+  headline: 'Dijital Sigortacılığın ve Sigorta CRM Teknolojilerinin Geleceğini Birlikte Tasarlıyoruz.',
+  subheadline: 'Yeni nesil bulut sigorta CRM altyapısı ve veri odaklı dijital büyüme stratejisiyle acenteleri, brokerları ve sigorta şirketlerini geleceğe taşıyoruz.',
+  positioningNotice: 'Bulut Sigorta CRM altyapısı, yapay zekâ, online teklif motoru ve dijital büyüme danışmanlığı.',
   experienceYears: 8,
   managedProjectsCount: '80+',
   digitalTransformationCount: '65+',
@@ -26,24 +26,24 @@ export const TUĞÇE_PROFILE = {
   insurupWebsite: 'https://www.insurup.com/',
   location: 'İstanbul / Hibrit & Online Danışmanlık',
   education: 'Sigortacılık & Finans Teknolojileri / InsurTech',
-  currentEcosystem: 'InsurUp & AcerPro Teknolojileri',
+  currentEcosystem: 'Bulut Sigorta CRM & InsurTech Teknolojileri',
   certifications: [
-    'InsurUp - Dijital Pazarlama & Büyüme Yöneticisi',
-    'Digital Insurance Agency Manager (AcerCrea / AcerPro)',
-    'InsurTech CRM & Karşılaştırmalı Teklif Mimarisi',
+    'Sigorta CRM Mimarisi & Dijital Büyüme',
+    'Dijital Sigorta Acentesi Yöneticiliği',
+    'Karşılaştırmalı Online Teklif & Satış Mimarisi',
     'Açık Sigortacılık (API) & Yapay Zekâ Entegrasyonları',
-    'Google Ads & Dijital Sigorta Lead Generation',
+    'Google Ads & Sigorta Müşteri (Lead) Kazanımı',
     'Sigortacılıkta Süreç Otomasyonu & CX Mimarisi',
   ],
-  bio: `AcerPro ve InsurUp ekosistemindeki 8+ yıllık sigorta teknolojileri tecrübemle; bugün InsurUp’ta Dijital Pazarlama Yöneticisi olarak Türkiye’deki sigorta acentelerinin, brokerların ve sigorta şirketlerinin dijitalleşme vizyonuna yön veriyorum. InsurUp’ın güçlü bulut CRM ve online teklif altyapısını; stratejik dijital pazarlama, yapay zekâ doküman otomasyonu ve büyüme kurgularıyla birleştirerek acentelerin portföylerini katlayarak büyütmelerini sağlıyorum.`,
+  bio: `Sigorta teknolojileri ve CRM alanındaki 8+ yıllık tecrübemle; Türkiye’deki sigorta acentelerinin, brokerların ve sigorta şirketlerinin dijitalleşme vizyonuna yön veriyorum. Yeni nesil bulut CRM ve online teklif altyapısını; veri odaklı dijital pazarlama, yapay zekâ doküman otomasyonu ve müşteri kazanım kurgularıyla birleştirerek acentelerin portföylerini katlayarak büyütmelerini sağlıyorum.`,
 };
 
-// INSURUP PLATFORM & HİZMETLERİ DETAYLI TANITIM VERİSİ
+// SİGORTA CRM & DİJİTAL SATIŞ PLATFORMU TANITIM VERİSİ
 export const INSURUP_ECOSYSTEM = {
-  brandName: 'InsurUp',
-  badge: 'AcerPro Güvencesiyle 20+ Yıllık InsurTech Deneyimi',
+  brandName: 'Bulut Sigorta CRM',
+  badge: 'Bulut Tabanlı InsurTech & CRM Çözümü',
   tagline: 'Sigorta Acenteleri ve Brokerlar İçin Yeni Nesil Bulut CRM & Dijital Satış Platformu',
-  description: 'InsurUp, Türkiye sigortacılık sektöründeki acente ve brokerların dijital dönüşümünü hızlandırmak için geliştirilmiş, kurulum gerektirmeyen bağımsız ve sektöre özel web tabanlı Sigorta CRM ve Online Satış platformudur.',
+  description: 'Türkiye sigortacılık sektöründeki acente ve brokerların dijital dönüşümünü hızlandırmak için geliştirilmiş, kurulum gerektirmeyen bağımsız ve sektöre özel web tabanlı Sigorta CRM ve Online Satış platformudur.',
   websiteUrl: 'https://www.insurup.com/',
   coreModules: [
     {
@@ -105,8 +105,8 @@ export const INSURUP_ECOSYSTEM = {
   ],
   synergyPillars: [
     {
-      title: 'InsurUp Teknolojisi',
-      desc: 'AcerPro destekli bulut CRM altyapısı, online teklif motoru, mobil uyum ve şirket API entegrasyonları.',
+      title: 'Bulut CRM Teknolojisi',
+      desc: 'Kurulum gerektirmeyen bulut CRM altyapısı, online teklif motoru, mobil uyum ve şirket API entegrasyonları.',
     },
     {
       title: 'Dijital Büyüme & Pazarlama Stratejisi',
@@ -119,7 +119,7 @@ export const INSURUP_ECOSYSTEM = {
   ],
 };
 
-// 6 ANA HİZMET (KULLANICININ İSTEDİĞİ EXACT BAŞLIKLAR VE SPOT METİNLER)
+// 6 ANA HİZMET
 export const CORE_6_SERVICES: FlagshipService[] = [
   {
     id: 'dijital-donusum',
@@ -147,12 +147,12 @@ export const CORE_6_SERVICES: FlagshipService[] = [
   },
   {
     id: 'insurtech',
-    title: 'InsurTech & InsurUp Çözümleri',
-    summary: 'InsurUp bulut CRM ve açık sigortacılık API’leri ile yeni nesil iş modelleri geliştiriyoruz.',
+    title: 'InsurTech & Bulut CRM',
+    summary: 'Bulut CRM ve açık sigortacılık API’leri ile yeni nesil iş modelleri geliştiriyoruz.',
     icon: 'Layers',
-    badge: 'InsurUp & API',
+    badge: 'CRM & API',
     keyBullets: [
-      'InsurUp CRM & Online Karşılaştırma altyapısı',
+      'Bulut CRM & Online Karşılaştırma altyapısı',
       'Gömülü sigorta (Embedded) & API çözümleri',
       'FinTech-InsurTech entegrasyon modelleri',
     ],
@@ -184,11 +184,11 @@ export const CORE_6_SERVICES: FlagshipService[] = [
   {
     id: 'acente-dijitallesmesi',
     title: 'Acenta Dijitalleşmesi',
-    summary: 'InsurUp CRM ve dijital pazarlama ile acentelerin satış, müşteri ve operasyon süreçlerini dönüştürüyoruz.',
+    summary: 'Sigorta CRM’i ve dijital pazarlama ile acentelerin satış, müşteri ve operasyon süreçlerini dönüştürüyoruz.',
     icon: 'Rocket',
-    badge: 'InsurUp Destekli',
+    badge: 'Bulut CRM Destekli',
     keyBullets: [
-      'InsurUp CRM & 7/24 online teklif motoru',
+      'Bulut CRM & 7/24 online teklif motoru',
       'WhatsApp otomasyonu & otomatik vade yenileme',
       'Dijital pazarlama & nitelikli müşteri (lead) akışı',
     ],
@@ -260,13 +260,13 @@ export const ALL_8_SERVICES: ServiceItem[] = [
   },
   {
     id: 'insurtech-ve-yeni-is-modelleri',
-    title: '3. InsurTech, InsurUp & Yeni İş Modelleri',
-    subtitle: 'InsurUp Teknolojisi, Gömülü Sigorta ve Açık API Mimarisi',
+    title: '3. InsurTech, Bulut CRM & Yeni İş Modelleri',
+    subtitle: 'Bulut CRM Mimarisi, Gömülü Sigorta ve Açık API Mimarisi',
     category: 'insurtech',
     icon: 'Layers',
-    summary: 'InsurUp platformunun gücüyle açık sigortacılık, gömülü sigorta (Embedded Insurance), API entegrasyonları ve FinTech işbirlikleri kurgulayarak yeni gelir kanalları oluşturuyoruz.',
+    summary: 'Bulut CRM platformunun gücüyle açık sigortacılık, gömülü sigorta (Embedded Insurance), API entegrasyonları ve FinTech işbirlikleri kurgulayarak yeni gelir kanalları oluşturuyoruz.',
     subCapabilities: [
-      'InsurUp CRM & Online Teklif Altyapı Entegrasyonu',
+      'Sigorta CRM & Online Teklif Altyapı Entegrasyonu',
       'Gömülü Sigorta (Embedded Insurance) stratejisi ve ürün tasarımı',
       'Açık sigortacılık (Open Insurance) ve API entegrasyon mimarisi',
       'InsurTech girişim danışmanlığı (Fikirden Canlıya)',
@@ -276,7 +276,7 @@ export const ALL_8_SERVICES: ServiceItem[] = [
       'SEDDK mevzuat ve regülasyon uyumluluk yol haritası',
     ],
     deliverables: [
-      'InsurUp Platform Entegrasyon Planı',
+      'Bulut CRM Entegrasyon Planı',
       'Gömülü Sigorta (Embedded) İş Modeli ve API Şartnamesi',
       'InsurTech MVP Ürün Gereksinim Dokümanı (PRD)',
       'Ekosistem İş Ortaklığı ve Gelir Paylaşım Modeli',
@@ -388,7 +388,7 @@ export const ALL_8_SERVICES: ServiceItem[] = [
     subtitle: 'Veri Odaklı Büyüme & Nitelikli Müşteri Edinimi Stratejisi',
     category: 'pazarlama',
     icon: 'Target',
-    summary: 'InsurUp Dijital Pazarlama Yöneticiliği tecrübesiyle, sigortacılıkta müşteri edinme maliyetlerini düşüren, Google Ads ve sosyal medyadan gelen talepleri doğrudan üretime çeviren büyüme kurguları.',
+    summary: 'Sigortacılıkta müşteri edinme maliyetlerini düşüren, Google Ads ve sosyal medyadan gelen talepleri doğrudan üretime ve poliçeye çeviren büyüme kurguları.',
     subCapabilities: [
       'Dijital müşteri kazanımı (Customer Acquisition) stratejisi',
       'Müşteri talep (lead) yönetimi ve anlık takip kurguları',
@@ -416,15 +416,15 @@ export const ALL_8_SERVICES: ServiceItem[] = [
   {
     id: 'sigorta-acenteleri-icin-dijitallesme',
     title: '8. Sigorta Acenteleri İçin Dijitalleşme',
-    subtitle: 'InsurUp CRM Destekli “Acentenizi Dijitalleştirin” Çözümü',
+    subtitle: 'Bulut CRM Destekli “Acentenizi Dijitalleştirin” Çözümü',
     category: 'acente',
     icon: 'Rocket',
-    summary: 'InsurUp bulut CRM ve online teklif altyapısıyla geleneksel acenteleri Excel ve defter takibinden kurtarıp, 7/24 teklif toplayan, WhatsApp ile vadesi gelen müşteriyi hatırlatan ve Google’dan müşteri çeken dijital işletmelere dönüştürüyoruz.',
+    summary: 'Bulut CRM ve online teklif altyapısıyla geleneksel acenteleri Excel ve defter takibinden kurtarıp, 7/24 teklif toplayan, WhatsApp ile vadesi gelen müşteriyi hatırlatan ve Google’dan müşteri çeken dijital işletmelere dönüştürüyoruz.',
     subCapabilities: [
       'Acenta dijital olgunluk analizi ve gelişim yol haritası',
-      'InsurUp Sigorta CRM sistemi kurulumu ve veri aktarımı',
+      'Bulut Sigorta CRM sistemi kurulumu ve veri aktarımı',
       'Mobil uyumlu, SEO odaklı profesyonel acente web sitesi',
-      'InsurUp üzerinden online teklif ve karşılaştırma motoru',
+      'Platform üzerinden online teklif ve karşılaştırma motoru',
       'WhatsApp otomasyonu ile hızlı teklif ve evrak paylaşımı',
       'Müşteri takip sistemi ve 360° portföy yaşam döngüsü yönetimi',
       'Portföy & sözleşme yenileme otomasyonu (Vadeye 30/15/7 gün kala otomatik SMS/WhatsApp)',
@@ -433,7 +433,7 @@ export const ALL_8_SERVICES: ServiceItem[] = [
       'Yönetim dashboard’u ve günlük/haftalık satış raporlama ekranları',
     ],
     deliverables: [
-      'InsurUp CRM Lisans & Kurulum Desteği',
+      'Bulut CRM Kurulum & Veri Aktarım Desteği',
       'Anahtar Teslim Acente Web Sitesi & Online Teklif Formları',
       'Otomatik WhatsApp & SMS Yenileme Şablonları',
       'Google İşletme & Arama Kampanyası Başlangıç Paketi',
@@ -449,25 +449,25 @@ export const ALL_8_SERVICES: ServiceItem[] = [
   },
 ];
 
-// ÖNE ÇIKAN DANIŞMANLIK PAKETLERİ (ÖZELLİKLE "ACENTENİZİ DİJİTALMEŞTİRİN" PAKETİ)
+// DANIŞMANLIK PAKETLERİ
 export const PACKAGES: ConsultingPackage[] = [
   {
     id: 'acente-dijitallesme-paketi',
-    name: 'Acentenizi Dijitalleştirin (InsurUp Gücüyle)',
-    tagline: 'InsurUp CRM ve Dijital Pazarlama Stratejisiyle Acentenizi 7/24 Büyüyen Güç Merkezine Dönüştürün',
-    badge: 'InsurUp Destekli Paket',
+    name: 'Acentenizi Dijitalleştirin (Bulut CRM Destekli)',
+    tagline: 'Bulut CRM ve Dijital Büyüme Stratejisiyle Acentenizi 7/24 Büyüyen Güç Merkezine Dönüştürün',
+    badge: 'En Popüler / Anahtar Teslim',
     popular: true,
-    priceNote: 'InsurUp CRM Kurulumu & 3 Ay Birebir Büyüme Danışmanlığı',
+    priceNote: 'Bulut CRM Kurulumu & 3 Ay Birebir Büyüme Danışmanlığı',
     features: [
-      'InsurUp Bulut CRM Kurulumu & Portföy Veri Aktarımı',
+      'Bulut Sigorta CRM Kurulumu & Portföy Veri Aktarımı',
       'Acenta Dijital Olgunluk Analizi & Süreç Haritası',
       'Modern, Mobil Uyumlu & SEO Odaklı Acente Web Sitesi',
-      'InsurUp Karşılaştırmalı Online Teklif Toplama Motoru',
+      'Karşılaştırmalı Online Teklif Toplama Motoru',
       'WhatsApp Otomasyonu (Teklif & Hasar Süreç Bildirimi)',
       'Otomatik Müşteri & Portföy Yenileme Hatırlatmaları (30/15/7 gün)',
       'Yapay Zekâ (AI) Destekli 7/24 Müşteri Asistanı',
       'Google Haritalar & Yerel Sigorta Arama Reklamları Kurgusu',
-      'InsurUp Çapraz Satış (Cross-Sell) ve Komisyon Mutabakat Modülü',
+      'Akıllı Çapraz Satış (Cross-Sell) ve Mutabakat Modülü',
       'Acente Ekibine Birebir Sistem Kullanım ve Satış Eğitimi',
     ],
     suitableFor: 'Portföyünü korumak, müşteri kaybetmemek ve dijitalden yeni üretim hacmi yaratmak isteyen tüm sigorta acenteleri ve brokerlar.',
@@ -498,7 +498,7 @@ export const PACKAGES: ConsultingPackage[] = [
     features: [
       'InsurTech Girişim Değer Önerisi & MVP Kapsam Belirleme',
       'SEDDK Mevzuat & Lisanslama Uyumluluk Yol Haritası',
-      'InsurUp ve Sigorta Şirketleri ile API Entegrasyon Köprüsü',
+      'Sigorta Şirketleri ile API Entegrasyon Köprüsü',
       'Gömülü Sigorta (Embedded Insurance) B2B2C Ürün Kurgusu',
       'Kullanıcı Deneyimi (UX) & Satın Alma Akışı Doğrulaması',
       'Büyüme (Growth) & Dijital Müşteri Kazanım Hunisi Kurgusu',
@@ -507,14 +507,14 @@ export const PACKAGES: ConsultingPackage[] = [
   },
 ];
 
-// GERÇEKÇİ KURUMSAL VE ACENTE VAKA ANALİZLERİ
+// VAKA ANALİZLERİ
 export const CASE_STUDIES: CaseStudy[] = [
   {
     id: 'vaka-acente-dijitallesme',
     clientType: 'Sigorta Acentesi (İstanbul & Ankara)',
-    title: 'InsurUp CRM & “Acentenizi Dijitalleştirin” ile Yenileme Oranının %93’e Yükseltilmesi',
+    title: 'Bulut Sigorta CRM & “Acentenizi Dijitalleştirin” ile Yenileme Oranının %93’e Yükseltilmesi',
     challenge: 'Excel tablolarında kaybolan yenileme tarihleri, mesai saatleri dışında kaçırılan teklif talepleri ve sadece geleneksel referanslara dayalı yavaş büyüme.',
-    solution: 'InsurUp Bulut CRM altyapısı kuruldu, web sitesi üzerinden online teklif toplama başlatıldı ve vadeye 30 gün kala devreye giren otomatik WhatsApp hatırlatma botu entegre edildi.',
+    solution: 'Bulut Sigorta CRM altyapısı kuruldu, web sitesi üzerinden online teklif toplama başlatıldı ve vadeye 30 gün kala devreye giren otomatik WhatsApp hatırlatma botu entegre edildi.',
     results: [
       { label: 'Portföy Yenileme Oranı', value: '%93' },
       { label: 'Kaçırılan Müşteri Oranında Düşüş', value: '%78' },
@@ -538,7 +538,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     clientType: 'FinTech & B2B E-Ticaret Platformu',
     title: 'Gömülü Sigorta (Embedded Insurance) & API Entegrasyonu ile Yeni Gelir Kanalı',
     challenge: 'Platform üzerinden ticaret yapan 12.000 KOBİ’ye sipariş anında mikro-lojistik ve alacak sigortası sunma ihtiyacı.',
-    solution: 'InsurUp API mimarisi tasarlandı, sigorta şirketi entegrasyonu tamamlandı ve ödeme adımına tek tıkla güvence seçeneği yerleştirildi.',
+    solution: 'Açık sigortacılık API mimarisi tasarlandı, sigorta şirketi entegrasyonu tamamlandı ve ödeme adımına tek tıkla güvence seçeneği yerleştirildi.',
     results: [
       { label: 'Pazara Çıkış Süresi', value: '45 Gün' },
       { label: 'Sepet İçi Mikro-Sigorta Satın Alma', value: '%24' },
@@ -556,40 +556,40 @@ export const METHODOLOGY_STEPS = [
   },
   {
     step: '02',
-    title: 'InsurUp Mimarisi & Büyüme Stratejisi',
-    description: 'InsurUp bulut CRM altyapısı, online teklif motoru ve yapay zekâ senaryolarını içeren uygulanabilir adımları projelendiriyoruz.',
+    title: 'Bulut CRM Mimarisi & Büyüme Stratejisi',
+    description: 'Bulut CRM altyapısı, online teklif motoru ve yapay zekâ senaryolarını içeren uygulanabilir büyüme adımlarını projelendiriyoruz.',
   },
   {
     step: '03',
     title: 'Uygulama, Entegrasyon & Otomasyon',
-    description: 'InsurUp CRM kurulumu, web sitesi, WhatsApp botları, API bağlantıları ve Google Ads kurgularını anahtar teslim devreye alıyoruz.',
+    description: 'Sigorta CRM kurulumu, web sitesi, WhatsApp botları, API bağlantıları ve Google Ads kurgularını anahtar teslim devreye alıyoruz.',
   },
   {
     step: '04',
     title: 'Eğitim, Büyüme & Sürekli Destek',
-    description: 'Acente ekibinize InsurUp ve dijital araçlar için birebir eğitim veriyor, satış ve dönüşüm metriklerini sürekli optimize ediyoruz.',
+    description: 'Acente ekibinize CRM ve dijital araçlar için birebir eğitim veriyor, satış ve dönüşüm metriklerini sürekli optimize ediyoruz.',
   },
 ];
 
-// SSS (GÜÇLENDİRİLMİŞ KONUMLANDIRMA VE DİJİTAL SİGORTACILIK)
+// SSS
 export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'f1',
-    category: 'Danışmanlık & InsurUp',
-    question: 'Tuğçe Utku kimdir ve InsurUp ile bağlantısı nedir?',
-    answer: 'Tuğçe Utku, sigorta teknolojileri ve dijital büyüme alanında 8+ yıllık tecrübeye sahiptir. Halen Türkiye’nin öncü sigorta teknolojileri platformu InsurUp’ta (AcerPro ekosistemi) Dijital Pazarlama Yöneticisi olarak görev yapmakta ve aynı zamanda sigorta aracılarına, brokerlara ve şirketlere dijital büyüme ve teknoloji danışmanlığı sunmaktadır.',
+    category: 'Danışmanlık',
+    question: 'Tuğçe Utku kimdir ve danışmanlık yaklaşımı nasıldır?',
+    answer: 'Tuğçe Utku, sigorta teknolojileri, bulut CRM sistemleri ve dijital büyüme alanında 8+ yıllık tecrübeye sahip bir InsurTech danışmanıdır. Sigorta aracılarına, brokerlara ve sigorta şirketlerine uçtan uca dijital dönüşüm, bulut CRM entegrasyonu ve veri odaklı büyüme danışmanlığı sunmaktadır.',
   },
   {
     id: 'f2',
-    category: 'InsurUp CRM',
-    question: 'InsurUp nedir ve acenteme ne kazandırır?',
-    answer: 'InsurUp, AcerPro’nun 20+ yıllık tecrübesiyle geliştirilmiş bulut tabanlı yeni nesil Sigorta CRM ve Online Satış platformudur. Kurulum gerektirmez; tek ekrandan çoklu şirketten karşılaştırmalı teklif alma, otomatik WhatsApp/SMS vade hatırlatma, poliçe & hasar yönetimi, çapraz satış ve ön muhasebe modülleriyle acentenizi 7/24 çalışan bir satış gücüne dönüştürür.',
+    category: 'Sigorta CRM',
+    question: 'Bulut Sigorta CRM sistemi acenteme ne kazandırır?',
+    answer: 'Bulut tabanlı Sigorta CRM; kurulum gerektirmeyen yapısıyla tek ekrandan çoklu şirketten teklif alma, otomatik WhatsApp/SMS vade hatırlatma, poliçe & hasar takibi, çapraz satış ve ön muhasebe modülleriyle acentenizi 7/24 çalışan bir dijital satış gücüne dönüştürür.',
   },
   {
     id: 'f3',
     category: 'Acenteler',
     question: '“Acentenizi Dijitalleştirin” paketi tam olarak neleri içerir?',
-    answer: 'InsurUp CRM lisanslama ve kurulumu, müşteri portföy aktarımı, mobil uyumlu modern web sitesi, 7/24 online teklif toplama motoru, 30/15 gün kala otomatik WhatsApp bildirimleri, yapay zekâ müşteri asistanı, Google yerel reklam kurgusu ve 3 ay kesintisiz danışmanlık desteğini içerir.',
+    answer: 'Bulut CRM lisanslama ve kurulumu, müşteri portföy aktarımı, mobil uyumlu modern web sitesi, 7/24 online teklif toplama motoru, 30/15 gün kala otomatik WhatsApp bildirimleri, yapay zekâ müşteri asistanı, Google yerel reklam kurgusu ve 3 ay kesintisiz danışmanlık desteğini içerir.',
   },
   {
     id: 'f4',
@@ -601,27 +601,27 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: 'f5',
     category: 'Süreç',
     question: 'Danışmanlık süreci ne kadar sürer ve nasıl başlar?',
-    answer: 'İlk olarak 30 dakikalık ücretsiz online keşif toplantısında ihtiyaçlarınızı ve acentenizin dijital olgunluğunu dinliyoruz. InsurUp CRM ve Acente dijitalleşme paketleri 3-4 hafta içerisinde anahtar teslim devreye alınır.',
+    answer: 'İlk olarak 30 dakikalık ücretsiz online keşif toplantısında ihtiyaçlarınızı ve acentenizin dijital olgunluğunu dinliyoruz. Bulut CRM ve acente dijitalleşme paketleri 3-4 hafta içerisinde anahtar teslim devreye alınır.',
   },
 ];
 
-// WEB SİTESİ PLANLAMA & STRATEJİK MİMARİ BÖLÜMÜ
+// WEB SİTESİ PLANLAMA
 export const WEBSITE_PLANNING_SECTIONS: WebsiteSectionPlan[] = [
   {
     id: 'hero-konumlandirma',
     title: '1. Hero & Net Konumlandırma Bölümü',
-    purpose: 'InsurUp Dijital Pazarlama Yöneticiliği ve bağımsız stratejist gücünü birleştirmek.',
+    purpose: 'Bulut Sigorta CRM ve stratejik danışmanlık gücünü öne çıkarmak.',
     mustHaveElements: [
-      'InsurUp Gücüyle Desteklenen Dijital Sigortacılık Danışmanlığı.',
+      'Bulut CRM Destekli Dijital Sigortacılık Danışmanlığı.',
       'Acenteler, brokerlar ve kurumlar için teknoloji ve büyüme çözümleri.',
-      'InsurUp CRM Demo & 30 Dk Keşif Aksiyonları.',
+      'CRM Demo & 30 Dk Keşif Aksiyonları.',
     ],
-    recommendedCopyPrompt: 'Tuğçe Utku ve InsurUp sinerjisi vurgulanmalı; acentelere güven ve teknolojik güç sunulmalı.',
-    trustFactor: 'InsurUp & AcerPro 20+ Yıllık Altyapı Güvencesi',
+    recommendedCopyPrompt: 'Tuğçe Utku liderliğinde acentelere güven ve teknolojik güç sunulmalı.',
+    trustFactor: 'Bulut Sigorta CRM Mimarisi',
   },
 ];
 
-// Compatibility aliases for legacy modal references
+// Compatibility aliases
 export const FAQ_LIST = FAQ_ITEMS;
 export const WEBSITE_BLUEPRINT = WEBSITE_PLANNING_SECTIONS;
 export const SERVICES = ALL_8_SERVICES;

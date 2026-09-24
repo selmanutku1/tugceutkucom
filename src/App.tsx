@@ -11,6 +11,7 @@ import CaseStudiesSection from './components/CaseStudiesSection';
 import FaqSection from './components/FaqSection';
 import Footer from './components/Footer';
 import BookingContactModal from './components/BookingContactModal';
+import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 
 export default function App() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -97,6 +98,11 @@ export default function App() {
         onClose={() => setBookingModalOpen(false)}
         prefilledTopic={bookingTopic}
         prefilledNote={bookingNote}
+      />
+      {/* WhatsApp Floating Contact Button */}
+      <WhatsAppFloatingButton 
+        phoneNumber="905468253597"
+        defaultMessage="Merhaba Tuğçe Hanım, Sigorta CRM ve InsurTech danışmanlık hizmetleriniz hakkında bilgi almak ve görüşme planlamak istiyorum."
       />
     </div>
   );

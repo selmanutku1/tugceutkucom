@@ -7,16 +7,13 @@ import {
   FileSpreadsheet, 
   Layers, 
   BarChart3, 
-  ExternalLink, 
   Calendar, 
   Sparkles, 
-  CheckCircle2,
-  ArrowRight,
-  ShieldCheck,
-  Building2,
-  Laptop
+  ArrowRight, 
+  ShieldCheck, 
+  Laptop 
 } from 'lucide-react';
-import { INSURUP_ECOSYSTEM, TUĞÇE_PROFILE } from '../data/consultingContent';
+import { INSURUP_ECOSYSTEM } from '../data/consultingContent';
 
 interface InsurupEcosystemSectionProps {
   onOpenBookingWithTopic: (topic: string) => void;
@@ -55,7 +52,7 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
         
-        {/* Section Header: InsurUp Brand & Synergy Intro */}
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-900/60 border border-blue-500/40 text-blue-300 text-[11px] sm:text-xs font-bold">
             <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
@@ -63,7 +60,7 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
           </div>
 
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            InsurUp Teknolojisi & <br className="hidden sm:inline" />
+            Bulut Sigorta CRM & <br className="hidden sm:inline" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">
               Yeni Nesil Dijital Büyüme Stratejisi
             </span>
@@ -74,27 +71,17 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
           </p>
 
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3 text-xs">
-            <a
-              href={INSURUP_ECOSYSTEM.websiteUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all cursor-pointer"
-            >
-              <span>Resmi Site: insurup.com</span>
-              <ExternalLink className="w-3.5 h-3.5 text-blue-300" />
-            </a>
-
             <button
-              onClick={() => onOpenBookingWithTopic('InsurUp CRM & Online Satış Demosu')}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+              onClick={() => onOpenBookingWithTopic('Bulut Sigorta CRM & Online Satış Demosu')}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer text-xs sm:text-sm"
             >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Öncelikli InsurUp Demosu Talep Et</span>
+              <Calendar className="w-4 h-4" />
+              <span>Öncelikli CRM Demosu Talep Et</span>
             </button>
           </div>
         </div>
 
-        {/* 3 Pillars of Synergy (Why This Combination Wins) */}
+        {/* 3 Pillars of Synergy */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           {INSURUP_ECOSYSTEM.synergyPillars.map((pillar, idx) => (
             <div 
@@ -114,7 +101,7 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
           ))}
         </div>
 
-        {/* InsurUp 8 Core Modules Grid */}
+        {/* CRM 8 Core Modules Grid */}
         <div className="space-y-6 sm:space-y-8 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
             <div>
@@ -122,7 +109,7 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
                 Bulut Tabanlı Modüler Altyapı
               </span>
               <h3 className="text-xl sm:text-3xl font-extrabold text-white mt-1">
-                InsurUp CRM Platformunun 8 Temel Modülü
+                Sigorta CRM Platformunun 8 Temel Modülü
               </h3>
             </div>
             <p className="text-xs text-slate-400 max-w-sm">
@@ -157,9 +144,9 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-slate-700/50 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">InsurUp Modülü</span>
+                  <span className="text-[11px] text-slate-400">CRM Modülü</span>
                   <button
-                    onClick={() => onOpenBookingWithTopic(`InsurUp: ${mod.title}`)}
+                    onClick={() => onOpenBookingWithTopic(`Sigorta CRM: ${mod.title}`)}
                     className="text-xs font-bold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1 cursor-pointer"
                   >
                     <span>Bilgi Al</span>
@@ -171,34 +158,24 @@ export default function InsurupEcosystemSection({ onOpenBookingWithTopic }: Insu
           </div>
         </div>
 
-        {/* InsurUp Brand Banner / Fast Demo Callout */}
+        {/* CRM Fast Demo Callout */}
         <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-900/70 via-indigo-900/60 to-slate-900 p-6 sm:p-10 border border-blue-700/40 flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-700/60">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Acentenizi InsurUp ile Dönüştürün</span>
+              <span>Acentenizi Dijitalleştirin</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-white">
-              InsurUp CRM ve Online Satış Altyapısını Canlı İnceleyin
+              Sigorta CRM ve Online Satış Altyapısını Canlı İnceleyin
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-              Acentenizin portföy yapısına özel InsurUp CRM demosunu ve dijital büyüme yol haritasını birlikte planlayın.
+              Acentenizin portföy yapısına özel Bulut CRM demosunu ve dijital büyüme yol haritasını birlikte planlayın.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
-            <a
-              href="https://www.insurup.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/20 flex items-center justify-center gap-2 transition-colors text-center"
-            >
-              <span>insurup.com’u Keşfet</span>
-              <ExternalLink className="w-4 h-4 text-slate-300" />
-            </a>
-
             <button
-              onClick={() => onOpenBookingWithTopic('InsurUp CRM & Online Teklif Demo Talebi')}
+              onClick={() => onOpenBookingWithTopic('Sigorta CRM & Online Teklif Demo Talebi')}
               className="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer transition-all text-center"
             >
               <Calendar className="w-4 h-4" />

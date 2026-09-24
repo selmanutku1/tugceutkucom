@@ -1,5 +1,5 @@
-import { TUĞÇE_PROFILE, INSURUP_ECOSYSTEM } from '../data/consultingContent';
-import { Award, Linkedin, Mail, MapPin, ExternalLink, GraduationCap, Building2, Sparkles, Laptop } from 'lucide-react';
+import { TUĞÇE_PROFILE } from '../data/consultingContent';
+import { Award, Linkedin, Mail, MapPin, ExternalLink, Building2, Sparkles, Laptop } from 'lucide-react';
 import ExecutivePortrait from './ExecutivePortrait';
 
 export default function AboutSection() {
@@ -16,7 +16,7 @@ export default function AboutSection() {
               <div className="space-y-1">
                 <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-0.5 rounded-full border border-blue-200/70">
                   <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                  InsurUp Dijital Pazarlama Yöneticisi
+                  Sigorta CRM & InsurTech Danışmanı
                 </span>
                 <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
                   {TUĞÇE_PROFILE.name}
@@ -27,7 +27,7 @@ export default function AboutSection() {
                 <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] sm:text-xs">
                   <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded border border-emerald-200">
                     <Laptop className="w-3.5 h-3.5 text-emerald-700" />
-                    InsurUp (AcerPro Ekosistemi)
+                    Bulut Sigorta CRM Mimarisi
                   </span>
                   <span className="inline-flex items-center gap-1 font-semibold text-blue-800 bg-blue-100/70 px-2 py-0.5 rounded border border-blue-200">
                     <Award className="w-3.5 h-3.5 text-blue-600" />
@@ -40,8 +40,8 @@ export default function AboutSection() {
             {/* Quick Metrics (Mobile-Optimized) */}
             <div className="flex items-center gap-3 sm:gap-4 bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 text-center w-full sm:w-auto justify-around sm:justify-start">
               <div>
-                <div className="text-base sm:text-lg font-black text-slate-900">InsurUp</div>
-                <div className="text-[10px] sm:text-[11px] font-medium text-slate-500">Pazarlama Lideri</div>
+                <div className="text-base sm:text-lg font-black text-slate-900">Bulut CRM</div>
+                <div className="text-[10px] sm:text-[11px] font-medium text-slate-500">Mimarisi</div>
               </div>
               <div className="w-px h-6 sm:h-8 bg-slate-200"></div>
               <div>
@@ -59,36 +59,26 @@ export default function AboutSection() {
           {/* Bio Text */}
           <div className="space-y-2.5 sm:space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Hakkında & InsurUp ile Büyüme Vizyonu
+              Hakkında & Dijital Büyüme Vizyonu
             </h3>
             <p className="text-xs sm:text-base text-slate-700 leading-relaxed font-normal">
               {TUĞÇE_PROFILE.bio}
             </p>
           </div>
 
-          {/* InsurUp Brand Synergy Box */}
+          {/* CRM Platform Synergy Box */}
           <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-blue-950 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-1 text-center sm:text-left">
               <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
-                Resmi InsurTech Platformu
+                Bulut Tabanlı Altyapı
               </span>
               <h4 className="text-base font-bold text-white">
-                InsurUp CRM & Karşılaştırmalı Teklif Platformu
+                Sigorta CRM & Karşılaştırmalı Teklif Platformu
               </h4>
               <p className="text-xs text-slate-300 max-w-xl">
-                AcerPro güvencesiyle acentelerin tüm teklif, poliçe, hasar, çapraz satış ve mutabakat süreçlerini tek çatı altında toplayan bulut çözümü.
+                Acentelerin tüm teklif, poliçe, hasar, çapraz satış ve mutabakat süreçlerini tek çatı altında toplayan yeni nesil bulut çözümü.
               </p>
             </div>
-
-            <a
-              href="https://www.insurup.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 shrink-0 inline-flex items-center gap-1.5 transition-colors"
-            >
-              <span>insurup.com’u Ziyaret Et</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
           </div>
 
           {/* Certifications and Licences */}

@@ -1,5 +1,5 @@
-import { Mail, MapPin, Linkedin, Sparkles, Lock, ExternalLink, Laptop, Phone, MessageSquare } from 'lucide-react';
-import { TUĞÇE_PROFILE, INSURUP_ECOSYSTEM } from '../data/consultingContent';
+import { Mail, MapPin, Linkedin, Sparkles, Lock, MessageSquare } from 'lucide-react';
+import { TUĞÇE_PROFILE } from '../data/consultingContent';
 import BrandLogo from './BrandLogo';
 
 interface FooterProps {
@@ -17,32 +17,22 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-800/60">
               <Sparkles className="w-3 h-3 text-emerald-400" />
-              <span>InsurUp Teknolojisi & Büyüme Mimarisi</span>
+              <span>Bulut CRM & Büyüme Mimarisi</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-white">
-              Acentenizi InsurUp Teknolojisiyle Büyütmeye Hazır Mısınız?
+              Acentenizi Bulut CRM Teknolojisiyle Büyütmeye Hazır Mısınız?
             </h3>
             <p className="text-slate-400 text-xs sm:text-sm">
-              InsurUp CRM demosu ve ilk 30 dakikalık dijital olgunluk değerlendirme görüşmesi tamamen ücretsizdir.
+              Sigorta CRM demosu ve ilk 30 dakikalık dijital olgunluk değerlendirme görüşmesi tamamen ücretsizdir.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-            <a
-              href="https://www.insurup.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>insurup.com</span>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-            </a>
-
             <button
               onClick={onOpenBooking}
               className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer text-center"
             >
-              InsurUp CRM Demosu Al
+              Sigorta CRM Demosu Al
             </button>
           </div>
         </div>
@@ -57,20 +47,20 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
             <BrandLogo theme="dark" size="md" />
 
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              InsurUp’ın yeni nesil bulut CRM ve online satış altyapısını, sektörel büyüme ve dijital pazarlama danışmanlığıyla birleştirerek sigorta acentelerini, brokerları ve şirketleri geleceğin dijital sigortacılığına taşıyoruz.
+              Yeni nesil bulut Sigorta CRM ve online satış altyapısını, sektörel büyüme ve veri odaklı dijital pazarlama danışmanlığıyla birleştirerek acenteleri, brokerları ve şirketleri geleceğe taşıyoruz.
             </p>
 
             <div className="pt-2 text-xs text-slate-500 space-y-1">
-              <p>• InsurUp Dijital Pazarlama Yöneticiliği</p>
-              <p>• AcerPro 20+ Yıllık InsurTech Deneyimi</p>
-              <p>• Sigorta Teknolojileri & Dijital Büyüme</p>
+              <p>• Sigorta CRM Mimarisi & Entegrasyon</p>
+              <p>• 8+ Yıllık InsurTech Deneyimi</p>
+              <p>• Veri Odaklı Dijital Büyüme</p>
             </div>
           </div>
 
-          {/* Col 3: InsurUp & Hızlı Menü */}
+          {/* Col 3: Hızlı Menü */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              InsurUp & Navigasyon
+              Navigasyon
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
@@ -78,7 +68,7 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
                   onClick={() => onScrollTo('insurup-teknolojisi')}
                   className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors cursor-pointer"
                 >
-                  InsurUp Teknolojisi
+                  Bulut Sigorta CRM
                 </button>
               </li>
               <li>
@@ -124,10 +114,10 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
             </ul>
           </div>
 
-          {/* Col 4: InsurUp Platform Modülleri */}
+          {/* Col 4: Platform Modülleri */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              InsurUp Modülleri
+              CRM Modülleri
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>360° Müşteri & Portföy CRM</li>
@@ -150,7 +140,7 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
                 <span className="text-slate-300">{TUĞÇE_PROFILE.email}</span>
               </div>
               <a
-                href={`https://wa.me/905468253597?text=${encodeURIComponent('Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum. InsurUp CRM ve dijital büyüme danışmanlığı hakkında bilgi almak istiyorum.')}`}
+                href={`https://wa.me/905468253597?text=${encodeURIComponent('Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum. Bulut Sigorta CRM ve dijital büyüme danışmanlığı hakkında bilgi almak istiyorum.')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-semibold"
@@ -171,21 +161,12 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
                 <Linkedin className="w-4 h-4 shrink-0" />
                 <span>LinkedIn'de Bağlantı Kur</span>
               </a>
-              <a
-                href="https://www.insurup.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-semibold pt-1"
-              >
-                <ExternalLink className="w-4 h-4 shrink-0" />
-                <span>insurup.com Resmi Sitesi</span>
-              </a>
             </div>
 
             <div className="pt-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>InsurUp Demosu İçin Müsait</span>
+                <span>CRM Demosu İçin Müsait</span>
               </span>
             </div>
           </div>
@@ -194,14 +175,14 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
 
         {/* Bottom Legal & Copyright Bar */}
         <div className="pt-10 mt-10 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} Tuğçe Utku • InsurUp Dijital Pazarlama Yöneticisi.</p>
+          <p>© {new Date().getFullYear()} Tuğçe Utku • Sigorta CRM & InsurTech Danışmanı.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
             <span className="flex items-center gap-1">
               <Lock className="w-3 h-3 text-slate-500" />
               KVKK & Gizlilik Uyumlu
             </span>
             <span>•</span>
-            <span>InsurUp CRM & AcerPro Teknolojileri</span>
+            <span>Bulut CRM & InsurTech Mimarisi</span>
           </div>
         </div>
       </div>
