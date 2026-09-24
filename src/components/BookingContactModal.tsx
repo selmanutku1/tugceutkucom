@@ -60,10 +60,25 @@ export default function BookingContactModal({
   };
 
   const openDirectWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum. "${topic}" konusu ve InsurUp çözümleri için randevu / demo planlamak istiyorum.`
-    );
-    window.open(`https://wa.me/905320000000?text=${text}`, '_blank');
+    let message = `Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum.\n\n`;
+    if (name.trim()) {
+      message += `👤 *Ad Soyad:* ${name.trim()}\n`;
+    }
+    message += `🎯 *Görüşme Konusu:* ${topic}\n`;
+    message += `⏰ *Tercih Edilen Zaman:* ${selectedDate}\n`;
+    if (phone.trim()) {
+      message += `📞 *Telefon:* ${phone.trim()}\n`;
+    }
+    if (email.trim()) {
+      message += `✉️ *E-Posta:* ${email.trim()}\n`;
+    }
+    if (note.trim()) {
+      message += `📝 *Not:* ${note.trim()}\n`;
+    }
+    message += `\nInsurUp CRM ve dijital büyüme danışmanlığı için randevu / demo görüşmesi planlamak istiyorum.`;
+
+    const text = encodeURIComponent(message);
+    window.open(`https://wa.me/905468253597?text=${text}`, '_blank');
   };
 
   return (

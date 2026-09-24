@@ -1,4 +1,4 @@
-import { Mail, MapPin, Linkedin, Sparkles, Lock, ExternalLink, Laptop } from 'lucide-react';
+import { Mail, MapPin, Linkedin, Sparkles, Lock, ExternalLink, Laptop, Phone, MessageSquare } from 'lucide-react';
 import { TUĞÇE_PROFILE, INSURUP_ECOSYSTEM } from '../data/consultingContent';
 import BrandLogo from './BrandLogo';
 
@@ -149,6 +149,15 @@ export default function Footer({ onOpenBooking, onScrollTo }: FooterProps) {
                 <Mail className="w-4 h-4 text-blue-400 shrink-0" />
                 <span className="text-slate-300">{TUĞÇE_PROFILE.email}</span>
               </div>
+              <a
+                href={`https://wa.me/905468253597?text=${encodeURIComponent('Merhaba Tuğçe Hanım, web siteniz üzerinden ulaşıyorum. InsurUp CRM ve dijital büyüme danışmanlığı hakkında bilgi almak istiyorum.')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-semibold"
+              >
+                <MessageSquare className="w-4 h-4 shrink-0" />
+                <span>WhatsApp: {TUĞÇE_PROFILE.whatsapp}</span>
+              </a>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>{TUĞÇE_PROFILE.location}</span>
