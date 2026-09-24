@@ -428,7 +428,7 @@ export default function RiskCalculator({ onOpenBookingWithDetails }: RiskCalcula
               <div className="p-4 sm:p-5 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2.5 sm:space-y-3">
                 <h4 className="text-xs sm:text-sm font-bold text-blue-900 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                  Tuğçe Utku Danışmanlığında Önerilen 3 Aşamalı Yol Haritası:
+                  Önerilen 3 Aşamalı Dijital Büyüme Yol Haritası:
                 </h4>
                 <ul className="space-y-2 text-xs sm:text-sm text-blue-950">
                   {result.recommendedSteps.map((st, idx) => (
