@@ -1,7 +1,21 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowRight, CheckCircle2, Linkedin, MessageCircle, Send } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Linkedin,
+  Loader2,
+  Mail,
+  MessageCircle,
+  Send,
+} from 'lucide-react';
 import { getSiteContent } from '../data/siteContentEn';
 import { useLanguage } from '../context/LanguageContext';
+
+const CONTACT_RECIPIENTS = [
+  'tugce.utku@insurup.com',
+  'tugce.utku@acerpro.com.tr',
+];
 
 export default function ContactPage() {
   const { lang } = useLanguage();
@@ -13,7 +27,12 @@ export default function ContactPage() {
   const [email, setEmail] = useState('');
   const [topicIndex, setTopicIndex] = useState(0);
   const [message, setMessage] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorState, setErrorState] = useState<'none' | 'not_configured' | 'failed'>(
+    'none'
+  );
 
   const selectedTopic = contactCategories[topicIndex] || contactCategories[0];
 
@@ -23,10 +42,45 @@ export default function ContactPage() {
     }
   }, [contactCategories.length, topicIndex]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) return;
-    setSubmitted(true);
+    if (!name.trim() || !email.trim() || !message.trim() || submitting) return;
+
+    setSubmitting(true);
+    setErrorState('none');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          company: company.trim(),
+          email: email.trim(),
+          topic: selectedTopic,
+          message: message.trim(),
+          website: honeypot,
+          lang,
+        }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        code?: string;
+      };
+
+      if (response.ok && data.ok) {
+        setSubmitted(true);
+      } else if (data.code === 'MAIL_NOT_CONFIGURED') {
+        setErrorState('not_configured');
+      } else {
+        setErrorState('failed');
+      }
+    } catch {
+      setErrorState('failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -35,7 +89,9 @@ export default function ContactPage() {
     setEmail('');
     setTopicIndex(0);
     setMessage('');
+    setHoneypot('');
     setSubmitted(false);
+    setErrorState('none');
   };
 
   const buildWhatsAppUrl = () => {
@@ -60,6 +116,31 @@ export default function ContactPage() {
     return `https://wa.me/${brand.whatsappNumber}?text=${encodeURIComponent(
       lines.join('\n')
     )}`;
+  };
+
+  const buildDirectMailtoUrl = () => {
+    const subject = `${selectedTopic} — ${name.trim() || 'Web İletişim'}`;
+    const bodyLines = isEn
+      ? [
+          `Full Name: ${name.trim()}`,
+          company.trim() ? `Company / Organization: ${company.trim()}` : null,
+          `Email: ${email.trim()}`,
+          `Topic: ${selectedTopic}`,
+          '',
+          message.trim(),
+        ].filter((line): line is string => line !== null)
+      : [
+          `Ad Soyad: ${name.trim()}`,
+          company.trim() ? `Şirket / Kurum: ${company.trim()}` : null,
+          `E-posta: ${email.trim()}`,
+          `Konu: ${selectedTopic}`,
+          '',
+          message.trim(),
+        ].filter((line): line is string => line !== null);
+
+    return `mailto:${CONTACT_RECIPIENTS.join(',')}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
   };
 
   return (
@@ -212,6 +293,18 @@ export default function ContactPage() {
                       </p>
                     </div>
 
+                    {/* Honeypot field for spam bots */}
+                    <input
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                      className="hidden"
+                      aria-hidden="true"
+                    />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label
@@ -267,9 +360,7 @@ export default function ContactPage() {
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder={
-                            isEn ? 'name@company.com' : 'ornek@kurum.com'
-                          }
+                          placeholder={isEn ? 'name@company.com' : 'ornek@kurum.com'}
                           className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
                         />
                       </div>
@@ -319,21 +410,66 @@ export default function ContactPage() {
                       />
                     </div>
 
+                    {errorState !== 'none' && (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3 text-sm text-amber-900">
+                        <div className="flex items-start gap-2.5">
+                          <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                          <p className="leading-relaxed">
+                            {errorState === 'not_configured'
+                              ? isEn
+                                ? 'Automatic email dispatch is pending mail server setup. You can send your message right away via your email app or WhatsApp.'
+                                : 'Otomatik e-posta gönderim servisi henüz etkinleştirilmedi. Mesajınızı aşağıdan e-posta uygulamanızla veya WhatsApp üzerinden hemen iletebilirsiniz.'
+                              : isEn
+                                ? 'A temporary error occurred while sending your message. Please try again or send directly via email / WhatsApp.'
+                                : 'Mesaj gönderilirken geçici bir sorun oluştu. Tekrar deneyebilir veya doğrudan e-posta / WhatsApp ile iletebilirsiniz.'}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2.5 pl-6">
+                          <a
+                            href={buildDirectMailtoUrl()}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-950 hover:bg-amber-100/60 transition-colors"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>
+                              {isEn ? 'Open in Email App' : 'E-posta Uygulamasıyla Gönder'}
+                            </span>
+                          </a>
+                          <a
+                            href={buildWhatsAppUrl()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#25D366] hover:bg-[#1ebe5d] text-xs font-semibold text-white transition-colors"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>
+                              {isEn ? 'Send via WhatsApp' : 'WhatsApp ile Gönder'}
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer"
+                        disabled={submitting}
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 disabled:opacity-60 rounded-xl transition-colors cursor-pointer"
                       >
-                        <Send className="w-4 h-4" />
-                        <span>{isEn ? 'Send Message' : 'Mesaj Gönder'}</span>
+                        {submitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>{isEn ? 'Sending...' : 'Gönderiliyor...'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            <span>{isEn ? 'Send Message' : 'Mesaj Gönder'}</span>
+                          </>
+                        )}
                       </button>
 
                       <a
-                        href={`https://wa.me/${brand.whatsappNumber}?text=${encodeURIComponent(
-                          isEn
-                            ? `Hello Tuğçe, I would like to discuss "${selectedTopic}".`
-                            : `Merhaba Tuğçe Hanım, "${selectedTopic}" konusu hakkında görüşmek istiyorum.`
-                        )}`}
+                        href={buildWhatsAppUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/70 rounded-xl transition-colors"

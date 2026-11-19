@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from 'react';
 
 interface RouterState {
   pathname: string;
@@ -15,12 +22,24 @@ const RouterContext = createContext<RouterContextValue>({
   navigate: () => {},
 });
 
+function normalizePath(rawPath: string): string {
+  const withoutQuery = rawPath.split('?')[0] || '/';
+  let decoded = withoutQuery;
+  try {
+    decoded = decodeURIComponent(withoutQuery);
+  } catch {
+    decoded = withoutQuery;
+  }
+  const trimmed = decoded.replace(/\/+$/, '');
+  if (!trimmed || trimmed === '/index.html') return '/';
+  const lower = trimmed.toLowerCase();
+  return lower.startsWith('/') ? lower : `/${lower}`;
+}
+
 function parseLocation(): RouterState {
   const rawPath = window.location.pathname || '/';
-  const normalizedPath =
-    rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
   return {
-    pathname: normalizedPath,
+    pathname: normalizePath(rawPath),
     hash: window.location.hash || '',
   };
 }
@@ -42,11 +61,14 @@ export function RouterProvider({ children }: { children: ReactNode }) {
 
   const navigate = useCallback((to: string) => {
     const [rawPath, rawHash] = to.split('#');
-    const nextPath = rawPath || '/';
+    const nextPath = normalizePath(rawPath || '/');
     const nextHash = rawHash ? `#${rawHash}` : '';
     const fullUrl = `${nextPath}${nextHash}`;
 
-    if (window.location.pathname !== nextPath || window.location.hash !== nextHash) {
+    if (
+      normalizePath(window.location.pathname) !== nextPath ||
+      window.location.hash !== nextHash
+    ) {
       window.history.pushState({}, '', fullUrl);
     }
     setLocation({ pathname: nextPath, hash: nextHash });

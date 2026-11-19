@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import type { Request, Response } from 'express';
+import nodemailer from 'nodemailer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer as createViteServer } from 'vite';
@@ -16,6 +17,154 @@ const DEFAULT_PROFILE_URL =
 const DEFAULT_ACTIVITY_URL = DEFAULT_PROFILE_URL.endsWith('/')
   ? `${DEFAULT_PROFILE_URL}recent-activity/all/`
   : `${DEFAULT_PROFILE_URL}/recent-activity/all/`;
+
+const DEFAULT_CONTACT_RECIPIENTS = [
+  'tugce.utku@insurup.com',
+  'tugce.utku@acerpro.com.tr',
+];
+
+function getContactRecipients(): string[] {
+  const configured = process.env.CONTACT_TO_EMAILS?.trim();
+  if (!configured) return DEFAULT_CONTACT_RECIPIENTS;
+  const list = configured
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return list.length > 0 ? list : DEFAULT_CONTACT_RECIPIENTS;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+interface ContactFormPayload {
+  name: string;
+  company?: string;
+  email: string;
+  topic: string;
+  message: string;
+  lang?: 'tr' | 'en';
+}
+
+async function sendContactEmail(payload: ContactFormPayload): Promise<string[]> {
+  const recipients = getContactRecipients();
+  const subject = `[tugceutku.com] ${payload.topic} — ${payload.name}`;
+
+  const textLines = [
+    'Web sitenizdeki iletişim formundan yeni bir mesaj geldi:',
+    '',
+    `Ad Soyad: ${payload.name}`,
+    `Şirket / Kurum: ${payload.company || '-'}`,
+    `E-posta: ${payload.email}`,
+    `İletişim Konusu: ${payload.topic}`,
+    '',
+    'Mesaj:',
+    payload.message,
+  ];
+  const textBody = textLines.join('\n');
+
+  const htmlBody = `
+    <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; color: #0f172a; line-height: 1.6;">
+      <div style="padding: 20px 24px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.04em;">
+          Yeni İletişim Formu Mesajı
+        </p>
+        <h2 style="margin: 0 0 18px; font-size: 20px; color: #0f172a;">
+          ${escapeHtml(payload.topic)}
+        </h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 18px;">
+          <tr>
+            <td style="padding: 6px 0; color: #64748b; width: 140px;">Ad Soyad:</td>
+            <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${escapeHtml(payload.name)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Şirket / Kurum:</td>
+            <td style="padding: 6px 0; color: #0f172a;">${escapeHtml(payload.company || '-')}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">E-posta:</td>
+            <td style="padding: 6px 0;"><a href="mailto:${escapeHtml(payload.email)}" style="color: #1d4ed8;">${escapeHtml(payload.email)}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">Konu:</td>
+            <td style="padding: 6px 0; color: #0f172a;">${escapeHtml(payload.topic)}</td>
+          </tr>
+        </table>
+        <div style="padding: 14px 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #334155; white-space: pre-wrap;">${escapeHtml(payload.message)}</div>
+      </div>
+    </div>
+  `;
+
+  // Option A: Resend API
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
+  if (resendApiKey) {
+    const from = process.env.CONTACT_FROM_EMAIL?.trim() || 'Tuğçe Utku Web <onboarding@resend.dev>';
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: recipients,
+        reply_to: payload.email,
+        subject,
+        text: textBody,
+        html: htmlBody,
+      }),
+      signal: AbortSignal.timeout(12000),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`Resend error (${response.status}): ${errorText}`);
+    }
+
+    return recipients;
+  }
+
+  // Option B: SMTP (Google Workspace, Microsoft 365, corporate mail server)
+  const smtpHost = process.env.SMTP_HOST?.trim();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim();
+  if (smtpHost && smtpUser && smtpPass) {
+    const smtpPort = Number(process.env.SMTP_PORT || 587);
+    const smtpSecure =
+      process.env.SMTP_SECURE === 'true' || smtpPort === 465;
+    const from = process.env.CONTACT_FROM_EMAIL?.trim() || smtpUser;
+
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+
+    await transporter.sendMail({
+      from,
+      to: recipients,
+      replyTo: payload.email,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    });
+
+    return recipients;
+  }
+
+  const err = new Error('MAIL_NOT_CONFIGURED');
+  err.name = 'MAIL_NOT_CONFIGURED';
+  throw err;
+}
 
 interface LiveLinkedInPost {
   id: string;
@@ -444,6 +593,74 @@ async function resolveLinkedInFeed(forceRefresh = false): Promise<LinkedInFeedPa
 async function startServer() {
   const app = express();
   app.use(express.json());
+
+  // Contact Form Email Endpoint -> delivers to both tugce.utku@insurup.com & tugce.utku@acerpro.com.tr
+  app.post('/api/contact', async (req: Request, res: Response) => {
+    try {
+      const body = (req.body || {}) as Partial<ContactFormPayload> & {
+        website?: string;
+      };
+
+      // Silent honeypot check against bots
+      if (body.website && body.website.trim() !== '') {
+        res.json({ ok: true, recipients: getContactRecipients() });
+        return;
+      }
+
+      const name = String(body.name || '').trim();
+      const company = String(body.company || '').trim();
+      const email = String(body.email || '').trim();
+      const topic = String(body.topic || 'İletişim').trim();
+      const message = String(body.message || '').trim();
+
+      if (!name || !email || !message) {
+        res.status(400).json({
+          ok: false,
+          code: 'VALIDATION_ERROR',
+          error: 'Lütfen ad soyad, e-posta ve mesaj alanlarını doldurun.',
+        });
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        res.status(400).json({
+          ok: false,
+          code: 'INVALID_EMAIL',
+          error: 'Lütfen geçerli bir e-posta adresi girin.',
+        });
+        return;
+      }
+
+      const recipients = await sendContactEmail({
+        name,
+        company,
+        email,
+        topic,
+        message,
+        lang: body.lang === 'en' ? 'en' : 'tr',
+      });
+
+      res.json({ ok: true, recipients });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'MAIL_NOT_CONFIGURED') {
+        res.status(503).json({
+          ok: false,
+          code: 'MAIL_NOT_CONFIGURED',
+          recipients: getContactRecipients(),
+          error: 'E-posta gönderim servisi henüz yapılandırılmadı.',
+        });
+        return;
+      }
+
+      console.error('Contact form delivery error:', error);
+      res.status(502).json({
+        ok: false,
+        code: 'DELIVERY_FAILED',
+        recipients: getContactRecipients(),
+        error: 'Mesaj gönderilirken geçici bir hata oluştu.',
+      });
+    }
+  });
 
   // Live LinkedIn Posts API endpoint
   app.get('/api/linkedin-posts', async (req: Request, res: Response) => {

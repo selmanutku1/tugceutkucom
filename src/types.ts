@@ -46,6 +46,7 @@ export interface BlogPost {
   spot: string;
   categoryKey: BlogCategoryKey;
   categoryLabel: string;
+  tags: string[];
   publishedAt: string;
   publishedIso: string;
   readingTime: string;
