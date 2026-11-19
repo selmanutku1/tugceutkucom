@@ -10,7 +10,7 @@ interface WhatsAppFloatingButtonProps {
 
 export default function WhatsAppFloatingButton({
   phoneNumber = '905468253597',
-  defaultMessage = 'Merhaba Tuğçe Hanım, Sigorta CRM ve dijital danışmanlık hizmetleriniz hakkında bilgi almak istiyorum.',
+  defaultMessage = 'Merhaba Tuğçe Hanım, dijital dönüşüm, strateji ve danışmanlık çalışmaları hakkında bilgi almak istiyorum.',
 }: WhatsAppFloatingButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [customMsg, setCustomMsg] = useState('');
@@ -18,9 +18,9 @@ export default function WhatsAppFloatingButton({
   const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
 
   const quickMessages = [
-    'Sigorta CRM kurulumu hakkında bilgi almak istiyorum.',
-    'Acente / broker dijitalleşmesi için görüşmek istiyorum.',
-    'Ücretsiz ön görüşme planlamak istiyorum.',
+    'Dijital büyüme ve ürün stratejisi hakkında görüşmek istiyorum.',
+    'Sigortacılık teknolojileri ve CRM dönüşümü için bilgi almak istiyorum.',
+    'Danışmanlık veya iş birliği talebi paylaşmak istiyorum.',
   ];
 
   const getWhatsAppUrl = (messageToSend?: string) => {
@@ -29,7 +29,7 @@ export default function WhatsAppFloatingButton({
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end print:hidden">
+    <div className="fixed bottom-20 right-4 md:bottom-5 md:right-5 z-50 flex flex-col items-end print:hidden">
       {isOpen && (
         <div className="mb-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           {/* Header */}

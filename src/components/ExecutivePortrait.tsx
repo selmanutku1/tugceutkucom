@@ -26,7 +26,7 @@ export default function ExecutivePortrait({
       {!imgError ? (
         <img
           src={TUGCE_PHOTO}
-          alt="Tuğçe Utku — Dijital Sigortacılık ve Sigorta CRM Danışmanı"
+          alt="Tuğçe Utku — Dijital Dönüşüm, Teknoloji ve Strateji"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-top select-none"
           onError={() => setImgError(true)}
