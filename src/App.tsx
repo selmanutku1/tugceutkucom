@@ -19,7 +19,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 
 const ROUTE_TITLES: Record<'tr' | 'en', Record<string, string>> = {
   tr: {
-    '/': 'Tuğçe Utku — Dijital Dönüşüm, Teknoloji ve Strateji',
+    '/': 'Tuğçe Utku | Dijital Dönüşüm, Strateji ve Sigorta Teknolojileri',
     '/hakkimda': 'Hakkımda | Tuğçe Utku',
     '/uzmanlik-alanlarim': 'Uzmanlık Alanlarım | Tuğçe Utku',
     '/deneyim': 'Deneyim | Tuğçe Utku',
@@ -31,7 +31,7 @@ const ROUTE_TITLES: Record<'tr' | 'en', Record<string, string>> = {
     '/dashboard': 'Blog Yönetim Paneli | Tuğçe Utku',
   },
   en: {
-    '/': 'Tuğçe Utku — Digital Transformation, Technology & Strategy',
+    '/': 'Tuğçe Utku | Digital Transformation, Strategy & Insurance Technologies',
     '/hakkimda': 'About | Tuğçe Utku',
     '/uzmanlik-alanlarim': 'Expertise | Tuğçe Utku',
     '/deneyim': 'Experience | Tuğçe Utku',
