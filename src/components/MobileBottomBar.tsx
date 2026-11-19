@@ -1,9 +1,12 @@
 import { BookOpen, CalendarCheck, LayoutGrid, Linkedin } from 'lucide-react';
 import { BRAND_PROFILE } from '../data/siteContent';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function MobileBottomBar() {
   const { pathname, navigate } = useRouter();
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
 
   const isExpertise = pathname === '/uzmanlik-alanlarim';
   const isBlog = pathname === '/blog' || pathname.startsWith('/blog/');
@@ -11,11 +14,11 @@ export default function MobileBottomBar() {
 
   return (
     <nav
-      aria-label="Mobil hızlı erişim"
+      aria-label={isEn ? 'Mobile quick access' : 'Mobil hızlı erişim'}
       className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-2px_12px_rgba(15,23,42,0.06)] pb-[env(safe-area-inset-bottom)] print:hidden"
     >
       <div className="grid grid-cols-4 items-center h-16 px-1.5 gap-1">
-        {/* 1. Uzmanlık */}
+        {/* 1. Expertise */}
         <button
           type="button"
           onClick={() => navigate('/uzmanlik-alanlarim')}
@@ -27,7 +30,7 @@ export default function MobileBottomBar() {
         >
           <LayoutGrid className="w-5 h-5" />
           <span className="text-[10px] font-medium tracking-tight whitespace-nowrap">
-            Uzmanlık
+            {isEn ? 'Expertise' : 'Uzmanlık'}
           </span>
         </button>
 
@@ -47,7 +50,7 @@ export default function MobileBottomBar() {
           </span>
         </button>
 
-        {/* 3. İletişim / Görüşme */}
+        {/* 3. Contact */}
         <button
           type="button"
           onClick={() => navigate('/iletisim')}
@@ -59,7 +62,7 @@ export default function MobileBottomBar() {
         >
           <CalendarCheck className="w-5 h-5" />
           <span className="text-[10px] font-semibold tracking-tight whitespace-nowrap">
-            İletişim
+            {isEn ? 'Contact' : 'İletişim'}
           </span>
         </button>
 

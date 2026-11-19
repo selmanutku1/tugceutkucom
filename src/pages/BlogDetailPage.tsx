@@ -10,9 +10,10 @@ import {
   Linkedin,
   List,
 } from 'lucide-react';
-import { BLOG_POSTS } from '../data/blogPosts';
-import { BRAND_PROFILE } from '../data/siteContent';
+import { getBlogData } from '../data/blogPostsEn';
+import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import ExecutivePortrait from '../components/ExecutivePortrait';
 
@@ -22,26 +23,30 @@ interface BlogDetailPageProps {
 
 export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   const { navigate } = useRouter();
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
+  const { posts } = getBlogData(lang);
+  const { brand } = getSiteContent(lang);
+
   const [copied, setCopied] = useState(false);
 
-  const post = useMemo(() => BLOG_POSTS.find((item) => item.slug === slug), [slug]);
+  const post = useMemo(() => posts.find((item) => item.slug === slug), [posts, slug]);
 
   const relatedPosts = useMemo(() => {
     if (!post) return [];
-    const sameCategory = BLOG_POSTS.filter(
+    const sameCategory = posts.filter(
       (item) => item.slug !== post.slug && item.categoryKey === post.categoryKey
     );
-    const others = BLOG_POSTS.filter(
+    const others = posts.filter(
       (item) => item.slug !== post.slug && item.categoryKey !== post.categoryKey
     );
     return [...sameCategory, ...others].slice(0, 3);
-  }, [post]);
+  }, [post, posts]);
 
-  // Dynamic SEO title + BlogPosting & BreadcrumbList JSON-LD
   useEffect(() => {
     if (!post) return;
 
-    document.title = `${post.title} | ${BRAND_PROFILE.name}`;
+    document.title = `${post.title} | ${brand.name}`;
 
     const origin =
       typeof window !== 'undefined' ? window.location.origin : 'https://tugceutku.com';
@@ -56,19 +61,19 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           description: post.spot,
           datePublished: post.publishedIso,
           dateModified: post.publishedIso,
-          inLanguage: 'tr-TR',
+          inLanguage: isEn ? 'en-US' : 'tr-TR',
           mainEntityOfPage: {
             '@type': 'WebPage',
             '@id': canonicalUrl,
           },
           author: {
             '@type': 'Person',
-            name: BRAND_PROFILE.name,
+            name: brand.name,
             url: origin,
           },
           publisher: {
             '@type': 'Person',
-            name: BRAND_PROFILE.name,
+            name: brand.name,
           },
           articleSection: post.categoryLabel,
         },
@@ -78,7 +83,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             {
               '@type': 'ListItem',
               position: 1,
-              name: 'Ana Sayfa',
+              name: isEn ? 'Home' : 'Ana Sayfa',
               item: origin,
             },
             {
@@ -98,6 +103,9 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
       ],
     };
 
+    const existing = document.getElementById('blog-detail-jsonld');
+    if (existing) existing.remove();
+
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.id = 'blog-detail-jsonld';
@@ -105,10 +113,10 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     document.head.appendChild(script);
 
     return () => {
-      const existing = document.getElementById('blog-detail-jsonld');
-      if (existing) existing.remove();
+      const el = document.getElementById('blog-detail-jsonld');
+      if (el) el.remove();
     };
-  }, [post]);
+  }, [post, brand.name, isEn]);
 
   if (!post) {
     return (
@@ -116,11 +124,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
         <div className="max-w-2xl mx-auto px-5 sm:px-8 text-center space-y-5">
           <p className="text-sm font-medium text-blue-700">Blog</p>
           <h1 className="text-2xl sm:text-4xl font-bold text-slate-900">
-            Aradığınız yazı bulunamadı.
+            {isEn ? 'Article not found.' : 'Aradığınız yazı bulunamadı.'}
           </h1>
           <p className="text-base text-slate-600">
-            Bağlantı güncellenmiş veya kaldırılmış olabilir. Tüm güncel analiz ve yazılara blog
-            sayfasından ulaşabilirsiniz.
+            {isEn
+              ? 'This link may have been updated or moved. You can browse all published articles on the blog page.'
+              : 'Bağlantı güncellenmiş veya kaldırılmış olabilir. Tüm güncel analiz ve yazılara blog sayfasından ulaşabilirsiniz.'}
           </p>
           <div className="pt-2">
             <button
@@ -129,7 +138,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Tüm Yazılara Dön</span>
+              <span>{isEn ? 'Back to All Articles' : 'Tüm Yazılara Dön'}</span>
             </button>
           </div>
         </div>
@@ -166,12 +175,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
   return (
     <article className="bg-white">
-      {/* Header Area: Breadcrumb, Category, Title, Spot, Author/Date/ReadingTime */}
+      {/* Header Area */}
       <header className="border-b border-slate-200/80 bg-white">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 pt-10 pb-10 sm:pt-14 sm:pb-12 space-y-6">
           {/* 1. Breadcrumb */}
           <nav
-            aria-label="Sayfa yolu"
+            aria-label={isEn ? 'Breadcrumb' : 'Sayfa yolu'}
             className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 text-xs sm:text-sm text-slate-500"
           >
             <a
@@ -182,7 +191,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               }}
               className="hover:text-slate-900 transition-colors"
             >
-              Ana Sayfa
+              {isEn ? 'Home' : 'Ana Sayfa'}
             </a>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <a
@@ -205,13 +214,15 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold tracking-tight text-slate-900 leading-[1.16] [text-wrap:balance]">
               {post.title}
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed">{post.spot}</p>
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+              {post.spot}
+            </p>
           </div>
 
           {/* 5. Author & Date + 6. Reading Time + Share */}
           <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-sm text-slate-600">
-              <span className="font-semibold text-slate-900">{BRAND_PROFILE.name}</span>
+              <span className="font-semibold text-slate-900">{brand.name}</span>
               <span className="text-slate-300 hidden sm:inline">·</span>
               <span className="inline-flex items-center gap-1.5 text-slate-500">
                 <Calendar className="w-4 h-4" />
@@ -232,7 +243,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-[#0A66C2] text-xs font-semibold text-slate-700 hover:text-[#0A66C2] transition-colors"
               >
                 <Linkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
-                <span>LinkedIn&apos;de Paylaş</span>
+                <span>{isEn ? 'Share on LinkedIn' : "LinkedIn'de Paylaş"}</span>
               </a>
               <button
                 type="button"
@@ -242,12 +253,14 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700">Kopyalandı</span>
+                    <span className="text-emerald-700">
+                      {isEn ? 'Copied' : 'Kopyalandı'}
+                    </span>
                   </>
                 ) : (
                   <>
                     <Link2 className="w-3.5 h-3.5" />
-                    <span>Bağlantı</span>
+                    <span>{isEn ? 'Link' : 'Bağlantı'}</span>
                   </>
                 )}
               </button>
@@ -269,15 +282,14 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
       {/* Main Content + 8. Table of Contents */}
       <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-14 space-y-10">
-        {/* Table of Contents */}
         {post.sections.length > 1 && (
           <aside
-            aria-label="İçindekiler"
+            aria-label={isEn ? 'Table of Contents' : 'İçindekiler'}
             className="bg-slate-50 border border-slate-200/90 rounded-2xl p-6 space-y-3"
           >
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
               <List className="w-4 h-4 text-blue-700" />
-              <span>İçindekiler</span>
+              <span>{isEn ? 'Table of Contents' : 'İçindekiler'}</span>
             </div>
             <ol className="space-y-2 text-sm text-slate-600">
               {post.sections.map((section, idx) => (
@@ -301,11 +313,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
         {/* 9. Article Body */}
         <div className="space-y-10">
           {post.sections.map((section) => (
-            <section
-              key={section.id}
-              id={section.id}
-              className="scroll-mt-24 space-y-4"
-            >
+            <section key={section.id} id={section.id} className="scroll-mt-24 space-y-4">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                 {section.heading}
               </h2>
@@ -326,7 +334,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Tüm Yazılara Dön</span>
+            <span>{isEn ? 'Back to All Articles' : 'Tüm Yazılara Dön'}</span>
           </button>
 
           <div className="flex flex-wrap items-center justify-center gap-2.5">
@@ -337,7 +345,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0A66C2] hover:bg-[#0958a8] text-sm font-semibold text-white transition-colors"
             >
               <Linkedin className="w-4 h-4" />
-              <span>LinkedIn&apos;de Paylaş</span>
+              <span>{isEn ? 'Share on LinkedIn' : "LinkedIn'de Paylaş"}</span>
             </a>
 
             <button
@@ -348,12 +356,14 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               {copied ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span className="text-emerald-700">Bağlantı Kopyalandı</span>
+                  <span className="text-emerald-700">
+                    {isEn ? 'Link Copied' : 'Bağlantı Kopyalandı'}
+                  </span>
                 </>
               ) : (
                 <>
                   <Link2 className="w-4 h-4" />
-                  <span>Bağlantıyı Kopyala</span>
+                  <span>{isEn ? 'Copy Link' : 'Bağlantıyı Kopyala'}</span>
                 </>
               )}
             </button>
@@ -366,20 +376,15 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           <div className="space-y-2.5 min-w-0">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-                Yazar Hakkında
+                {isEn ? 'About the Author' : 'Yazar Hakkında'}
               </p>
-              <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-                {BRAND_PROFILE.name}
-              </h3>
-              <p className="text-xs font-medium text-slate-500">
-                {BRAND_PROFILE.positioning}
-              </p>
+              <h3 className="text-lg font-bold text-slate-900 mt-0.5">{brand.name}</h3>
+              <p className="text-xs font-medium text-slate-500">{brand.positioning}</p>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında
-              çalışıyorum. Teknoloji, pazarlama ve iş stratejisini bir araya getirerek
-              markaların ve dijital ürünlerin sürdürülebilir büyümesini destekleyen
-              projelerde yer alıyorum.
+              {isEn
+                ? 'Working across digital marketing, product strategy, and insurance technologies—bringing technology, marketing, and business strategy together to support sustainable growth for brands and digital products.'
+                : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında çalışıyorum. Teknoloji, pazarlama ve iş stratejisini bir araya getirerek markaların ve dijital ürünlerin sürdürülebilir büyümesini destekleyen projelerde yer alıyorum.'}
             </p>
             <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm">
               <button
@@ -387,15 +392,15 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 onClick={() => navigate('/hakkimda')}
                 className="font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
               >
-                Hakkımda →
+                {isEn ? 'About Me →' : 'Hakkımda →'}
               </button>
               <a
-                href={BRAND_PROFILE.linkedin}
+                href={brand.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-slate-600 hover:text-slate-900"
               >
-                LinkedIn Profili
+                {isEn ? 'LinkedIn Profile' : 'LinkedIn Profili'}
               </a>
             </div>
           </div>
@@ -408,14 +413,14 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
               <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-                İlgili Yazılar
+                {isEn ? 'Related Articles' : 'İlgili Yazılar'}
               </h2>
               <button
                 type="button"
                 onClick={() => navigate('/blog')}
                 className="text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
               >
-                Tüm Yazılarım →
+                {isEn ? 'All Articles →' : 'Tüm Yazılarım →'}
               </button>
             </div>
 
@@ -465,7 +470,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                       }}
                       className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800"
                     >
-                      <span>Devamını Oku</span>
+                      <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
                       <ArrowRight className="w-4 h-4" />
                     </a>
                   </div>

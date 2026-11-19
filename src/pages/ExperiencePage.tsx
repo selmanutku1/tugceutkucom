@@ -1,21 +1,31 @@
 import { ArrowRight } from 'lucide-react';
-import { EXPERIENCE_LIST } from '../data/siteContent';
+import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ExperiencePage() {
   const { navigate } = useRouter();
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
+  const { experienceList } = getSiteContent(lang);
 
   return (
     <div className="bg-white">
       {/* Header */}
       <section className="py-14 sm:py-20 bg-slate-50 border-b border-slate-200/80">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-4 text-center sm:text-left">
-          <p className="text-sm font-medium text-blue-700">Deneyim</p>
+          <p className="text-sm font-medium text-blue-700">
+            {isEn ? 'Experience' : 'Deneyim'}
+          </p>
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.15] [text-wrap:balance]">
-            Farklı disiplinlerde kazanılan deneyim, bütünsel bir yönetim perspektifi.
+            {isEn
+              ? 'Experience gained across disciplines, united into a holistic leadership perspective.'
+              : 'Farklı disiplinlerde kazanılan deneyim, bütünsel bir yönetim perspektifi.'}
           </h1>
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto sm:mx-0">
-            Profesyonel deneyimimi dijital pazarlama, teknoloji, ürün geliştirme süreçleri ve iş stratejilerinin kesişiminde şekillendirdim.
+            {isEn
+              ? 'My professional experience has been shaped at the intersection of digital marketing, technology, product development, and business strategy.'
+              : 'Profesyonel deneyimimi dijital pazarlama, teknoloji, ürün geliştirme süreçleri ve iş stratejilerinin kesişiminde şekillendirdim.'}
           </p>
         </div>
       </section>
@@ -23,7 +33,7 @@ export default function ExperiencePage() {
       {/* Experience Blocks */}
       <section className="py-14 sm:py-20 border-b border-slate-200/80">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-8">
-          {EXPERIENCE_LIST.map((exp, idx) => (
+          {experienceList.map((exp, idx) => (
             <div
               key={exp.id}
               className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-9 space-y-5 text-center sm:text-left"
@@ -33,14 +43,13 @@ export default function ExperiencePage() {
                   0{idx + 1}
                 </p>
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                  {exp.organization} <span className="text-slate-300 font-normal">|</span>{' '}
+                  {exp.organization}{' '}
+                  <span className="text-slate-300 font-normal">|</span>{' '}
                   <span className="text-slate-700 font-semibold">{exp.roleArea}</span>
                 </h2>
               </div>
 
-              <p className="text-base text-slate-600 leading-relaxed">
-                {exp.summary}
-              </p>
+              <p className="text-base text-slate-600 leading-relaxed">{exp.summary}</p>
 
               <div className="space-y-3 pt-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -73,10 +82,14 @@ export default function ExperiencePage() {
         <div className="max-w-4xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Stratejinin uygulamaya dönüştüğü çalışmalar
+              {isEn
+                ? 'Initiatives where strategy turns into execution'
+                : 'Stratejinin uygulamaya dönüştüğü çalışmalar'}
             </h2>
             <p className="text-sm sm:text-base text-slate-600">
-              Konu bazlı yürütülen projeleri ve çalışma kapsamlarını inceleyebilirsiniz.
+              {isEn
+                ? 'Explore topic-based initiatives and core scopes of work.'
+                : 'Konu bazlı yürütülen projeleri ve çalışma kapsamlarını inceleyebilirsiniz.'}
             </p>
           </div>
           <button
@@ -84,7 +97,7 @@ export default function ExperiencePage() {
             onClick={() => navigate('/projeler')}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
-            <span>Projeleri İnceleyin</span>
+            <span>{isEn ? 'Explore Projects' : 'Projeleri İnceleyin'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

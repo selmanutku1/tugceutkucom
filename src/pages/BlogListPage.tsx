@@ -1,29 +1,35 @@
 import { useMemo, useState } from 'react';
 import { ArrowRight, Calendar, Clock, Linkedin, Search, X } from 'lucide-react';
-import { BLOG_FILTERS, BLOG_POSTS } from '../data/blogPosts';
+import { getBlogData } from '../data/blogPostsEn';
 import { BlogCategoryKey } from '../types';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 
 const PAGE_SIZE = 6;
 
 export default function BlogListPage() {
   const { navigate } = useRouter();
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
+  const { filters, posts } = getBlogData(lang);
+
   const [selectedCategory, setSelectedCategory] = useState<'all' | BlogCategoryKey>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const featuredPost = useMemo(
-    () => BLOG_POSTS.find((post) => post.featured) || BLOG_POSTS[0],
-    []
+    () => posts.find((post) => post.featured) || posts[0],
+    [posts]
   );
 
   const isDefaultView = selectedCategory === 'all' && searchQuery.trim() === '';
 
   const filteredPosts = useMemo(() => {
-    const query = searchQuery.trim().toLocaleLowerCase('tr');
+    const locale = isEn ? 'en' : 'tr';
+    const query = searchQuery.trim().toLocaleLowerCase(locale);
 
-    return BLOG_POSTS.filter((post) => {
+    return posts.filter((post) => {
       if (isDefaultView && post.id === featuredPost.id) {
         return false;
       }
@@ -32,13 +38,14 @@ export default function BlogListPage() {
         selectedCategory === 'all' || post.categoryKey === selectedCategory;
 
       if (!matchesCategory) return false;
-
       if (!query) return true;
 
-      const haystack = `${post.title} ${post.spot} ${post.categoryLabel}`.toLocaleLowerCase('tr');
+      const haystack = `${post.title} ${post.spot} ${post.categoryLabel}`.toLocaleLowerCase(
+        locale
+      );
       return haystack.includes(query);
     });
-  }, [selectedCategory, searchQuery, isDefaultView, featuredPost.id]);
+  }, [posts, selectedCategory, searchQuery, isDefaultView, featuredPost.id, isEn]);
 
   const visiblePosts = filteredPosts.slice(0, visibleCount);
   const hasMore = visibleCount < filteredPosts.length;
@@ -66,32 +73,37 @@ export default function BlogListPage() {
       <section className="border-b border-slate-200/80 bg-white">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-12 sm:pt-16 sm:pb-14">
           <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
-            <p className="text-sm font-medium text-blue-700">Blog ve İçgörüler</p>
+            <p className="text-sm font-medium text-blue-700">
+              {isEn ? 'Blog & Insights' : 'Blog ve İçgörüler'}
+            </p>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
-              Düşünceler, analizler ve sektörel içgörüler.
+              {isEn
+                ? 'Thoughts, analyses, and industry insights.'
+                : 'Düşünceler, analizler ve sektörel içgörüler.'}
             </h1>
             <div className="space-y-3 text-base sm:text-lg text-slate-600 leading-relaxed pt-1">
               <p>
-                Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve dijital büyüme
-                alanlarında gözlemlerimi, stratejik değerlendirmelerimi ve sektörel
-                analizlerimi paylaşıyorum.
+                {isEn
+                  ? 'I share observations, strategic assessments, and industry analyses across digital transformation, insurance technologies, artificial intelligence, and digital growth.'
+                  : 'Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve dijital büyüme alanlarında gözlemlerimi, stratejik değerlendirmelerimi ve sektörel analizlerimi paylaşıyorum.'}
               </p>
               <p className="text-sm sm:text-base text-slate-500">
-                Karar vericiler, teknoloji ekipleri ve sigorta sektörü profesyonelleri için
-                uygulanabilir perspektifler sunmayı hedefliyorum.
+                {isEn
+                  ? 'Aimed at offering practical perspectives for executives, technology teams, and insurance industry decision-makers.'
+                  : 'Karar vericiler, teknoloji ekipleri ve sigorta sektörü profesyonelleri için uygulanabilir perspektifler sunmayı hedefliyorum.'}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Article (shown in default unfiltered view) */}
+      {/* Featured Article */}
       {isDefaultView && featuredPost && (
         <section className="py-12 sm:py-16 bg-slate-50 border-b border-slate-200/80">
           <div className="max-w-6xl mx-auto px-5 sm:px-8">
             <div className="mb-5 text-center sm:text-left">
               <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-                Öne Çıkan Yazı
+                {isEn ? 'Featured Article' : 'Öne Çıkan Yazı'}
               </p>
             </div>
 
@@ -155,7 +167,7 @@ export default function BlogListPage() {
                     }}
                     className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
                   >
-                    <span>Devamını Oku</span>
+                    <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </a>
 
@@ -164,10 +176,14 @@ export default function BlogListPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#0A66C2] transition-colors"
-                    aria-label={`${featuredPost.title} yazısını LinkedIn'de paylaş`}
+                    aria-label={
+                      isEn
+                        ? `Share ${featuredPost.title} on LinkedIn`
+                        : `${featuredPost.title} yazısını LinkedIn'de paylaş`
+                    }
                   >
                     <Linkedin className="w-3.5 h-3.5" />
-                    <span>Paylaş</span>
+                    <span>{isEn ? 'Share' : 'Paylaş'}</span>
                   </a>
                 </div>
               </div>
@@ -181,13 +197,12 @@ export default function BlogListPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-8">
           {/* Controls Bar */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
-            {/* Category Tabs */}
             <div
               role="tablist"
-              aria-label="Blog kategorileri"
+              aria-label={isEn ? 'Blog categories' : 'Blog kategorileri'}
               className="flex flex-wrap items-center justify-center sm:justify-start gap-2"
             >
-              {BLOG_FILTERS.map((filter) => {
+              {filters.map((filter) => {
                 const active = selectedCategory === filter.key;
                 return (
                   <button
@@ -208,7 +223,6 @@ export default function BlogListPage() {
               })}
             </div>
 
-            {/* Search Input */}
             <div className="relative w-full lg:w-72 shrink-0">
               <Search
                 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -218,15 +232,15 @@ export default function BlogListPage() {
                 type="search"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Yazılarda ara..."
-                aria-label="Blog yazılarında ara"
+                placeholder={isEn ? 'Search articles...' : 'Yazılarda ara...'}
+                aria-label={isEn ? 'Search blog articles' : 'Blog yazılarında ara'}
                 className="w-full pl-10 pr-9 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => handleSearchChange('')}
-                  aria-label="Aramayı temizle"
+                  aria-label={isEn ? 'Clear search' : 'Aramayı temizle'}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
@@ -295,7 +309,7 @@ export default function BlogListPage() {
                         }}
                         className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
                       >
-                        <span>Devamını Oku</span>
+                        <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
                         <ArrowRight className="w-4 h-4" />
                       </a>
 
@@ -304,7 +318,11 @@ export default function BlogListPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-[#0A66C2] transition-colors"
-                        aria-label={`${post.title} yazısını LinkedIn'de paylaş`}
+                        aria-label={
+                          isEn
+                            ? `Share ${post.title} on LinkedIn`
+                            : `${post.title} yazısını LinkedIn'de paylaş`
+                        }
                       >
                         <Linkedin className="w-3.5 h-3.5" />
                         <span>LinkedIn</span>
@@ -317,10 +335,14 @@ export default function BlogListPage() {
           ) : (
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center space-y-4">
               <p className="text-base font-semibold text-slate-900">
-                Aramanızla eşleşen yazı bulunamadı.
+                {isEn
+                  ? 'No articles matched your search.'
+                  : 'Aramanızla eşleşen yazı bulunamadı.'}
               </p>
               <p className="text-sm text-slate-600">
-                Farklı bir anahtar kelime deneyebilir veya tüm kategorileri görüntüleyebilirsiniz.
+                {isEn
+                  ? 'Try another keyword or reset the category filter.'
+                  : 'Farklı bir anahtar kelime deneyebilir veya tüm kategorileri görüntüleyebilirsiniz.'}
               </p>
               <button
                 type="button"
@@ -331,7 +353,7 @@ export default function BlogListPage() {
                 }}
                 className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
               >
-                Filtreleri Temizle
+                {isEn ? 'Reset Filters' : 'Filtreleri Temizle'}
               </button>
             </div>
           )}
@@ -344,7 +366,9 @@ export default function BlogListPage() {
                 onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
                 className="px-6 py-3 text-sm font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-colors cursor-pointer"
               >
-                Daha Fazla Yazı Yükle ({filteredPosts.length - visiblePosts.length} yazı daha)
+                {isEn
+                  ? `Load More Articles (${filteredPosts.length - visiblePosts.length} more)`
+                  : `Daha Fazla Yazı Yükle (${filteredPosts.length - visiblePosts.length} yazı daha)`}
               </button>
             </div>
           )}

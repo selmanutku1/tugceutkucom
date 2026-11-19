@@ -1,28 +1,30 @@
 import { useState } from 'react';
-import { ArrowRight, ChevronDown } from 'lucide-react';
-import {
-  BRAND_PROFILE,
-  EXPERTISE_AREAS,
-  APPROACH_PILLARS,
-  PROJECT_ITEMS,
-  FAQ_CATEGORIES,
-} from '../data/siteContent';
-import { BLOG_POSTS } from '../data/blogPosts';
+import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
+import { getSiteContent } from '../data/siteContentEn';
+import { getBlogData } from '../data/blogPostsEn';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 import ExecutivePortrait from '../components/ExecutivePortrait';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import LinkedInPostsSection from '../components/LinkedInPostsSection';
 
 export default function HomePage() {
   const { navigate } = useRouter();
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
+
+  const { brand, expertiseAreas, approachPillars, projectItems, faqCategories } =
+    getSiteContent(lang);
+  const { posts } = getBlogData(lang);
+
   const [openPreviewFaqId, setOpenPreviewFaqId] = useState<string | null>('soru-1');
 
-  const latestPosts = BLOG_POSTS.slice(0, 3);
+  const latestPosts = posts.slice(0, 3);
   const previewFaqs = [
-    FAQ_CATEGORIES[0].questions[0],
-    FAQ_CATEGORIES[1].questions[0],
-    FAQ_CATEGORIES[1].questions[2],
-    FAQ_CATEGORIES[3].questions[0],
+    faqCategories[0].questions[0],
+    faqCategories[1].questions[0],
+    faqCategories[1].questions[2],
+    faqCategories[3].questions[0],
   ];
 
   return (
@@ -33,20 +35,24 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* Left: Main Editorial Positioning */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <p className="text-sm font-medium text-blue-700">
-                {BRAND_PROFILE.positioning}
-              </p>
+              <p className="text-sm font-medium text-blue-700">{brand.positioning}</p>
 
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
-                Dijital dönüşümün merkezinde teknoloji ve doğru strateji var.
+                {isEn
+                  ? 'Technology and the right strategy sit at the heart of digital transformation.'
+                  : 'Dijital dönüşümün merkezinde teknoloji ve doğru strateji var.'}
               </h1>
 
               <div className="space-y-3 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 <p>
-                  Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında edindiğim deneyimle dijital dünyanın değişen dinamiklerine odaklanıyorum.
+                  {isEn
+                    ? 'With experience spanning digital marketing, product strategy, and insurance technologies, I focus on the shifting dynamics of the digital world.'
+                    : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında edindiğim deneyimle dijital dünyanın değişen dinamiklerine odaklanıyorum.'}
                 </p>
                 <p className="text-sm sm:text-base text-slate-500">
-                  Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin gelişimini, markaların büyümesini ve sürdürülebilir iş modellerini destekleyen çalışmalarda yer alıyorum.
+                  {isEn
+                    ? 'By uniting technology, marketing, and business strategy, I contribute to initiatives that advance digital products, grow brands, and build sustainable business models.'
+                    : 'Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin gelişimini, markaların büyümesini ve sürdürülebilir iş modellerini destekleyen çalışmalarda yer alıyorum.'}
                 </p>
               </div>
 
@@ -56,7 +62,7 @@ export default function HomePage() {
                   onClick={() => navigate('/hakkimda')}
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
                 >
-                  <span>Hakkımda</span>
+                  <span>{isEn ? 'About Me' : 'Hakkımda'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -65,7 +71,7 @@ export default function HomePage() {
                   onClick={() => navigate('/uzmanlik-alanlarim')}
                   className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
                 >
-                  Uzmanlık Alanlarım
+                  {isEn ? 'Areas of Expertise' : 'Uzmanlık Alanlarım'}
                 </button>
               </div>
             </div>
@@ -77,30 +83,48 @@ export default function HomePage() {
                   <ExecutivePortrait size="md" />
                   <div className="min-w-0 space-y-1">
                     <h2 className="text-lg font-semibold text-slate-900 tracking-tight">
-                      {BRAND_PROFILE.name}
+                      {brand.name}
                     </h2>
                     <p className="text-sm text-slate-600 leading-snug">
-                      {BRAND_PROFILE.positioning}
+                      {brand.positioning}
                     </p>
                     <a
-                      href={BRAND_PROFILE.linkedin}
+                      href={brand.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block text-xs font-semibold text-blue-700 hover:text-blue-800 hover:underline pt-0.5"
+                      aria-label={
+                        isEn
+                          ? 'Tuğçe Utku LinkedIn Profile'
+                          : 'Tuğçe Utku LinkedIn Profili'
+                      }
+                      title="LinkedIn"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#0A66C2] hover:bg-[#0958a8] text-white transition-colors mt-1.5"
                     >
-                      LinkedIn Profili →
+                      <Linkedin className="w-4 h-4" />
                     </a>
                   </div>
                 </div>
 
                 <div className="pt-5 border-t border-slate-200/80 space-y-2.5 text-center sm:text-left">
                   <p className="text-xs font-medium text-slate-500">
-                    Odak Alanları
+                    {isEn ? 'Core Focus' : 'Odak Alanları'}
                   </p>
                   <div className="grid grid-cols-1 gap-2 text-sm text-slate-700">
-                    <p>Dijital Pazarlama ve Büyüme</p>
-                    <p>Ürün Stratejisi ve SaaS Büyüme Modelleri</p>
-                    <p>Sigortacılık Teknolojileri ve Yapay Zekâ</p>
+                    <p>
+                      {isEn
+                        ? 'Digital Marketing & Growth'
+                        : 'Dijital Pazarlama ve Büyüme'}
+                    </p>
+                    <p>
+                      {isEn
+                        ? 'Product Strategy & SaaS Growth Models'
+                        : 'Ürün Stratejisi ve SaaS Büyüme Modelleri'}
+                    </p>
+                    <p>
+                      {isEn
+                        ? 'Insurance Technologies & Artificial Intelligence'
+                        : 'Sigortacılık Teknolojileri ve Yapay Zekâ'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -112,22 +136,34 @@ export default function HomePage() {
       {/* 2. KISA TANITIM */}
       <section className="py-16 sm:py-22 bg-slate-50 border-b border-slate-200/80">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-6 text-center sm:text-left">
-          <p className="text-sm font-medium text-blue-700">Kısa Tanıtım</p>
+          <p className="text-sm font-medium text-blue-700">
+            {isEn ? 'Introduction' : 'Kısa Tanıtım'}
+          </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-            Dijital dünyayı yalnızca takip etmiyor, dönüşümünü anlamaya çalışıyorum.
+            {isEn
+              ? "I don't just follow the digital world—I work to understand its transformation."
+              : 'Dijital dünyayı yalnızca takip etmiyor, dönüşümünü anlamaya çalışıyorum.'}
           </h2>
           <div className="space-y-4 text-base text-slate-600 leading-relaxed">
             <p>
-              Ben Tuğçe Utku. Dijital pazarlama, teknoloji ve ürün stratejisi alanlarında farklı sorumluluklar üstlenmiş bir profesyonelim.
+              {isEn
+                ? 'I am Tuğçe Utku, a professional with multidisciplinary experience across digital marketing, technology, and product strategy.'
+                : 'Ben Tuğçe Utku. Dijital pazarlama, teknoloji ve ürün stratejisi alanlarında farklı sorumluluklar üstlenmiş bir profesyonelim.'}
             </p>
             <p>
-              Kariyerim boyunca dijital pazarlama operasyonlarından ajans yönetimine, ürün pazarlamasından dijital büyüme stratejilerine uzanan farklı alanlarda çalıştım.
+              {isEn
+                ? 'Throughout my career, I have worked across digital marketing operations, agency management, product marketing, and digital growth strategy.'
+                : 'Kariyerim boyunca dijital pazarlama operasyonlarından ajans yönetimine, ürün pazarlamasından dijital büyüme stratejilerine uzanan farklı alanlarda çalıştım.'}
             </p>
             <p>
-              Özellikle sigortacılık sektörünün dijital dönüşümü, yeni nesil iş modelleri, yapay zekâ uygulamaları ve dijital ürünlerin büyüme stratejileri üzerine odaklanıyorum.
+              {isEn
+                ? 'I focus particularly on digital transformation in insurance, next-generation business models, artificial intelligence applications, and growth strategies for digital products.'
+                : 'Özellikle sigortacılık sektörünün dijital dönüşümü, yeni nesil iş modelleri, yapay zekâ uygulamaları ve dijital ürünlerin büyüme stratejileri üzerine odaklanıyorum.'}
             </p>
             <p className="font-medium text-slate-900">
-              Benim için teknoloji bir araç, strateji ise bu aracın değer üretmesini sağlayan temel unsurdur.
+              {isEn
+                ? 'For me, technology is a tool, and strategy is the core discipline that turns that tool into real value.'
+                : 'Benim için teknoloji bir araç, strateji ise bu aracın değer üretmesini sağlayan temel unsurdur.'}
             </p>
           </div>
           <div className="pt-2">
@@ -136,7 +172,7 @@ export default function HomePage() {
               onClick={() => navigate('/hakkimda')}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer transition-colors"
             >
-              <span>Hakkımda Daha Fazla</span>
+              <span>{isEn ? 'More About Me' : 'Hakkımda Daha Fazla'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -149,10 +185,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
               <p className="text-sm font-medium text-blue-700">
-                Uzmanlık Alanlarım
+                {isEn ? 'Areas of Expertise' : 'Uzmanlık Alanlarım'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-                Stratejiyi teknolojiyle, teknolojiyi iş hedefleriyle buluşturuyorum.
+                {isEn
+                  ? 'Connecting strategy with technology, and technology with business goals.'
+                  : 'Stratejiyi teknolojiyle, teknolojiyi iş hedefleriyle buluşturuyorum.'}
               </h2>
             </div>
 
@@ -161,13 +199,13 @@ export default function HomePage() {
               onClick={() => navigate('/uzmanlik-alanlarim')}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>Tüm Uzmanlık Alanlarım</span>
+              <span>{isEn ? 'All Expertise Areas' : 'Tüm Uzmanlık Alanlarım'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {EXPERTISE_AREAS.map((area) => (
+            {expertiseAreas.map((area) => (
               <div
                 key={area.id}
                 className="bg-slate-50/70 rounded-2xl p-6 sm:p-8 border border-slate-200/90 space-y-3 text-center sm:text-left"
@@ -192,18 +230,22 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
           <div className="max-w-2xl mx-auto sm:mx-0 space-y-3 text-center sm:text-left">
             <p className="text-sm font-medium text-blue-700">
-              Deneyim ve Yaklaşım
+              {isEn ? 'Experience & Approach' : 'Deneyim ve Yaklaşım'}
             </p>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-              Farklı disiplinler, ortak bir hedef: Sürdürülebilir büyüme.
+              {isEn
+                ? 'Diverse disciplines, one shared goal: Sustainable growth.'
+                : 'Farklı disiplinler, ortak bir hedef: Sürdürülebilir büyüme.'}
             </h2>
             <p className="text-base text-slate-600 leading-relaxed">
-              Dijital pazarlama operasyonlarından teknoloji ürünlerinin pazarlanmasına kadar farklı alanlarda edindiğim deneyimi stratejik bir bakış açısıyla değerlendiriyorum.
+              {isEn
+                ? 'I bring together experience ranging from digital marketing operations to technology product marketing under a cohesive strategic perspective.'
+                : 'Dijital pazarlama operasyonlarından teknoloji ürünlerinin pazarlanmasına kadar farklı alanlarda edindiğim deneyimi stratejik bir bakış açısıyla değerlendiriyorum.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {APPROACH_PILLARS.map((pillar, idx) => (
+            {approachPillars.map((pillar, idx) => (
               <div
                 key={pillar.title}
                 className="pt-6 border-t border-slate-200 space-y-2.5 text-center md:text-left"
@@ -227,7 +269,9 @@ export default function HomePage() {
               onClick={() => navigate('/deneyim')}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
             >
-              <span>Deneyim Geçmişini İncele</span>
+              <span>
+                {isEn ? 'Explore Experience' : 'Deneyim Geçmişini İncele'}
+              </span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -240,10 +284,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
               <p className="text-sm font-medium text-blue-700">
-                Öne Çıkan Projeler
+                {isEn ? 'Featured Projects' : 'Öne Çıkan Projeler'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-                Stratejinin uygulamaya dönüştüğü çalışmalar.
+                {isEn
+                  ? 'Initiatives where strategy turns into execution.'
+                  : 'Stratejinin uygulamaya dönüştüğü çalışmalar.'}
               </h2>
             </div>
 
@@ -252,13 +298,13 @@ export default function HomePage() {
               onClick={() => navigate('/projeler')}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>Projeleri İnceleyin</span>
+              <span>{isEn ? 'Explore Projects' : 'Projeleri İnceleyin'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {PROJECT_ITEMS.map((project) => (
+            {projectItems.map((project) => (
               <div
                 key={project.id}
                 className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 flex flex-col justify-between gap-4 text-center sm:text-left"
@@ -280,7 +326,7 @@ export default function HomePage() {
                     onClick={() => navigate('/projeler')}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-blue-700 cursor-pointer transition-colors"
                   >
-                    <span>Çalışma kapsamını gör</span>
+                    <span>{isEn ? 'View scope of work' : 'Çalışma kapsamını gör'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -296,13 +342,17 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
               <p className="text-sm font-medium text-blue-700">
-                İçgörüler &amp; Blog
+                {isEn ? 'Insights & Blog' : 'İçgörüler & Blog'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-                Değişen dünyayı anlamak, geleceği şekillendirmekle başlar.
+                {isEn
+                  ? 'Understanding a changing world is where shaping the future begins.'
+                  : 'Değişen dünyayı anlamak, geleceği şekillendirmekle başlar.'}
               </h2>
               <p className="text-base text-slate-600 leading-relaxed">
-                Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve dijital büyüme üzerine değerlendirmelerimi, sektörel analizlerimi ve profesyonel görüşlerimi paylaşıyorum.
+                {isEn
+                  ? 'I share evaluations, industry analyses, and professional perspectives on digital transformation, insurance technologies, artificial intelligence, and digital growth.'
+                  : 'Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve dijital büyüme üzerine değerlendirmelerimi, sektörel analizlerimi ve profesyonel görüşlerimi paylaşıyorum.'}
               </p>
             </div>
 
@@ -311,7 +361,7 @@ export default function HomePage() {
               onClick={() => navigate('/blog')}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>Tüm Yazılarım</span>
+              <span>{isEn ? 'All Articles' : 'Tüm Yazılarım'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -376,7 +426,7 @@ export default function HomePage() {
                     }}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
                   >
-                    <span>Devamını Oku</span>
+                    <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </a>
                 </div>
@@ -392,13 +442,15 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
               <p className="text-sm font-medium text-blue-700">
-                Sıkça Sorulan Sorular
+                {isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
-                Merak Edilenler
+                {isEn ? 'Key Questions' : 'Merak Edilenler'}
               </h2>
               <p className="text-base text-slate-600 leading-relaxed">
-                Çalışma alanlarım, danışmanlık yaklaşımım ve profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını burada bulabilirsiniz.
+                {isEn
+                  ? 'Find answers to common questions about my focus areas, consulting approach, and professional collaborations.'
+                  : 'Çalışma alanlarım, danışmanlık yaklaşımım ve profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını burada bulabilirsiniz.'}
               </p>
             </div>
 
@@ -407,7 +459,7 @@ export default function HomePage() {
               onClick={() => navigate('/sss')}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <span>Tüm Soruları Görüntüle</span>
+              <span>{isEn ? 'View All Questions' : 'Tüm Soruları Görüntüle'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -419,9 +471,7 @@ export default function HomePage() {
                 <div key={faq.id}>
                   <button
                     type="button"
-                    onClick={() =>
-                      setOpenPreviewFaqId(isOpen ? null : faq.id)
-                    }
+                    onClick={() => setOpenPreviewFaqId(isOpen ? null : faq.id)}
                     aria-expanded={isOpen}
                     className="w-full py-5 min-h-[52px] text-left flex items-center justify-between gap-4 cursor-pointer group"
                   >
@@ -442,7 +492,7 @@ export default function HomePage() {
                         onClick={() => navigate(`/sss#${faq.id}`)}
                         className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
                       >
-                        SSS sayfasında görüntüle →
+                        {isEn ? 'View on FAQ page →' : 'SSS sayfasında görüntüle →'}
                       </button>
                     </div>
                   )}
@@ -459,12 +509,18 @@ export default function HomePage() {
       {/* 9. İLETİŞİM CTA */}
       <section className="py-16 sm:py-22 bg-white border-b border-slate-200/80">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
-          <p className="text-sm font-medium text-blue-700">İletişim</p>
+          <p className="text-sm font-medium text-blue-700">
+            {isEn ? 'Contact' : 'İletişim'}
+          </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-            Fikirlerin ve profesyonel bağlantıların değer yarattığı bir alan.
+            {isEn
+              ? 'A space where ideas and professional connections create lasting value.'
+              : 'Fikirlerin ve profesyonel bağlantıların değer yarattığı bir alan.'}
           </h2>
           <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Dijital dönüşüm, teknoloji, sigortacılık ve iş stratejileri üzerine fikir alışverişinde bulunmak, profesyonel bağlantılar kurmak ve iş birliği fırsatlarını değerlendirmek için benimle iletişime geçebilirsiniz.
+            {isEn
+              ? 'Feel free to get in touch to exchange ideas on digital transformation, technology, insurance, and business strategy, build professional connections, or explore collaboration opportunities.'
+              : 'Dijital dönüşüm, teknoloji, sigortacılık ve iş stratejileri üzerine fikir alışverişinde bulunmak, profesyonel bağlantılar kurmak ve iş birliği fırsatlarını değerlendirmek için benimle iletişime geçebilirsiniz.'}
           </p>
           <div className="pt-2">
             <button
@@ -472,7 +528,7 @@ export default function HomePage() {
               onClick={() => navigate('/iletisim')}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm sm:text-base font-semibold transition-colors cursor-pointer"
             >
-              <span>İletişime Geçin</span>
+              <span>{isEn ? 'Get in Touch' : 'İletişime Geçin'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

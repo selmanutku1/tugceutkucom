@@ -3,7 +3,6 @@ import {
   ExperienceItem,
   ProjectItem,
   FaqCategory,
-  LinkedInPost,
 } from '../types';
 
 export const BRAND_PROFILE = {
@@ -414,35 +413,3 @@ export const CONTACT_CATEGORIES = [
   'Profesyonel iş birlikleri',
 ];
 
-export const LINKEDIN_POSTS: LinkedInPost[] = [
-  {
-    id: 'li-1',
-    topic: 'Dijital Dönüşüm · Strateji',
-    title: 'Dijitalleşmek ile gerçekten dönüşmek arasındaki temel fark',
-    excerpt:
-      'Yeni bir yazılım kullanmaya başlamak dijitalleşmenin yalnızca ilk adımıdır. Gerçek dönüşüm; karar alma kültürünü, müşteri deneyimini ve iş hedeflerini ortak bir stratejide buluşturmakla başlar.',
-    fullText:
-      'Yeni bir yazılım kullanmaya başlamak dijitalleşmenin yalnızca ilk adımıdır. Gerçek dönüşüm; karar alma kültürünü, müşteri deneyimini ve iş hedeflerini ortak bir stratejide buluşturmakla başlar. Teknoloji doğru stratejiyle desteklenmediğinde araçlar değişir ama iş sonuçları aynı kalır.',
-    postUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
-  },
-  {
-    id: 'li-2',
-    topic: 'Insurtech · Sigorta CRM',
-    title: 'Sigorta acenteleri ve brokerlar için CRM neden artık bir büyüme altyapısıdır?',
-    excerpt:
-      'Sigorta aracılarında sürdürülebilir büyüme yalnızca yeni teklif üretmekle değil, mevcut portföyü verilerle okumak ve doğru zamanda temas kurmakla mümkün oluyor.',
-    fullText:
-      'Sigorta aracılarında sürdürülebilir büyüme yalnızca yeni teklif üretmekle değil, mevcut portföyü verilerle okumak ve doğru zamanda temas kurmakla mümkün oluyor. Düzenli bir CRM yaklaşımı hem yenileme performansını korur hem de çapraz satış fırsatlarını görünür kılar.',
-    postUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
-  },
-  {
-    id: 'li-3',
-    topic: 'Yapay Zekâ · Müşteri Deneyimi',
-    title: 'Sigortacılıkta yapay zekâ: Otomasyondan akıllı karar sistemlerine',
-    excerpt:
-      'Yapay zekâ sigortacılıkta yalnızca operasyonel hız kazandırmıyor; risk analizinden müşteri deneyimine kadar karar kalitesini yeniden tanımlıyor.',
-    fullText:
-      'Yapay zekâ sigortacılıkta yalnızca operasyonel hız kazandırmıyor; risk analizinden müşteri deneyimine kadar karar kalitesini yeniden tanımlıyor. Önemli olan teknolojiyi tek başına konuşmak değil, hangi iş probleminde ölçülebilir değer ürettiğini netleştirmektir.',
-    postUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
-  },
-];

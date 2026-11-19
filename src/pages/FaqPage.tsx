@@ -9,9 +9,10 @@ import {
   MessageSquare,
   ShieldCheck,
 } from 'lucide-react';
-import { FAQ_CATEGORIES } from '../data/siteContent';
+import { getSiteContent } from '../data/siteContentEn';
 import { FaqCategory } from '../types';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 
 function CategoryIcon({ icon }: { icon: FaqCategory['icon'] }) {
   const iconClass = 'w-5 h-5 text-blue-700';
@@ -29,15 +30,17 @@ function CategoryIcon({ icon }: { icon: FaqCategory['icon'] }) {
 
 export default function FaqPage() {
   const { hash, navigate } = useRouter();
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
+  const { faqCategories } = getSiteContent(lang);
 
-  // First category is open by default; first question expanded for immediate readability
-  const [openCategories, setOpenCategories] = useState<string[]>([FAQ_CATEGORIES[0].id]);
+  // First category open by default
+  const [openCategories, setOpenCategories] = useState<string[]>([faqCategories[0].id]);
   const [openQuestions, setOpenQuestions] = useState<string[]>([
-    FAQ_CATEGORIES[0].questions[0].id,
+    faqCategories[0].questions[0].id,
   ]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Inject BreadcrumbList JSON-LD only (Google restricts FAQPage rich results to authoritative government/health sites)
   useEffect(() => {
     const origin =
       typeof window !== 'undefined' ? window.location.origin : 'https://tugceutku.com';
@@ -49,17 +52,20 @@ export default function FaqPage() {
         {
           '@type': 'ListItem',
           position: 1,
-          name: 'Ana Sayfa',
+          name: isEn ? 'Home' : 'Ana Sayfa',
           item: origin,
         },
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'Sıkça Sorulan Sorular',
+          name: isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular',
           item: `${origin}/sss`,
         },
       ],
     };
+
+    const existing = document.getElementById('faq-breadcrumb-jsonld');
+    if (existing) existing.remove();
 
     const script = document.createElement('script');
     script.type = 'application/ld+json';
@@ -68,19 +74,17 @@ export default function FaqPage() {
     document.head.appendChild(script);
 
     return () => {
-      const existing = document.getElementById('faq-breadcrumb-jsonld');
-      if (existing) existing.remove();
+      const el = document.getElementById('faq-breadcrumb-jsonld');
+      if (el) el.remove();
     };
-  }, []);
+  }, [isEn]);
 
-  // Deep-link handling: open category & question when URL contains #soru-X or #category-id
   useEffect(() => {
     if (!hash) return;
     const targetId = hash.replace(/^#/, '');
     if (!targetId) return;
 
-    // Check if hash matches a category
-    const matchedCategory = FAQ_CATEGORIES.find((cat) => cat.id === targetId);
+    const matchedCategory = faqCategories.find((cat) => cat.id === targetId);
     if (matchedCategory) {
       setOpenCategories((prev) =>
         prev.includes(matchedCategory.id) ? prev : [...prev, matchedCategory.id]
@@ -92,8 +96,7 @@ export default function FaqPage() {
       return;
     }
 
-    // Check if hash matches a specific question
-    for (const category of FAQ_CATEGORIES) {
+    for (const category of faqCategories) {
       const matchedQuestion = category.questions.find((q) => q.id === targetId);
       if (matchedQuestion) {
         setOpenCategories((prev) =>
@@ -109,7 +112,7 @@ export default function FaqPage() {
         break;
       }
     }
-  }, [hash]);
+  }, [hash, faqCategories]);
 
   const toggleCategory = (categoryId: string) => {
     setOpenCategories((prev) =>
@@ -141,7 +144,7 @@ export default function FaqPage() {
         await navigator.clipboard.writeText(url);
       }
     } catch {
-      // Clipboard API may be unavailable in restricted contexts; URL hash is still updated
+      // Clipboard fallback
     }
 
     setCopiedId(questionId);
@@ -166,20 +169,22 @@ export default function FaqPage() {
       <section className="border-b border-slate-200/80 bg-white">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-12 pb-12 sm:pt-16 sm:pb-14">
           <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
-            <p className="text-sm font-medium text-blue-700">Sıkça Sorulan Sorular</p>
+            <p className="text-sm font-medium text-blue-700">
+              {isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular'}
+            </p>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
-              Merak Edilenler
+              {isEn ? 'Key Questions' : 'Merak Edilenler'}
             </h1>
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-              Çalışma alanlarım, danışmanlık yaklaşımım, sigortacılık teknolojileri ve
-              profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını
-              kategorilere göre inceleyebilirsiniz.
+              {isEn
+                ? 'Explore answers to frequently asked questions about my focus areas, consulting approach, insurance technologies, and professional collaborations by category.'
+                : 'Çalışma alanlarım, danışmanlık yaklaşımım, sigortacılık teknolojileri ve profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını kategorilere göre inceleyebilirsiniz.'}
             </p>
           </div>
 
           {/* Quick Category Navigation */}
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {FAQ_CATEGORIES.map((category) => (
+            {faqCategories.map((category) => (
               <button
                 key={category.id}
                 type="button"
@@ -194,7 +199,7 @@ export default function FaqPage() {
                     {category.title}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {category.questions.length} soru
+                    {category.questions.length} {isEn ? 'questions' : 'soru'}
                   </p>
                 </div>
               </button>
@@ -206,7 +211,7 @@ export default function FaqPage() {
       {/* Category-Based Accordions */}
       <section className="py-12 sm:py-16 bg-slate-50 border-b border-slate-200/80">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 space-y-6">
-          {FAQ_CATEGORIES.map((category) => {
+          {faqCategories.map((category) => {
             const isCategoryOpen = openCategories.includes(category.id);
             return (
               <div
@@ -214,7 +219,6 @@ export default function FaqPage() {
                 id={category.id}
                 className="scroll-mt-24 bg-white rounded-2xl border border-slate-200 overflow-hidden"
               >
-                {/* Category Header Trigger */}
                 <button
                   type="button"
                   onClick={() => toggleCategory(category.id)}
@@ -237,7 +241,7 @@ export default function FaqPage() {
 
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="hidden sm:inline text-xs font-medium text-slate-500">
-                      {category.questions.length} soru
+                      {category.questions.length} {isEn ? 'questions' : 'soru'}
                     </span>
                     <ChevronDown
                       className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${
@@ -247,18 +251,13 @@ export default function FaqPage() {
                   </div>
                 </button>
 
-                {/* Questions List */}
                 {isCategoryOpen && (
                   <div className="border-t border-slate-200/80 divide-y divide-slate-200/80">
                     {category.questions.map((item) => {
                       const isQuestionOpen = openQuestions.includes(item.id);
                       const isCopied = copiedId === item.id;
                       return (
-                        <div
-                          key={item.id}
-                          id={item.id}
-                          className="scroll-mt-28 bg-white"
-                        >
+                        <div key={item.id} id={item.id} className="scroll-mt-28 bg-white">
                           <div className="flex items-stretch">
                             <button
                               type="button"
@@ -280,12 +279,19 @@ export default function FaqPage() {
                               />
                             </button>
 
-                            {/* Direct Deep-Link Copy Button */}
                             <button
                               type="button"
                               onClick={() => handleCopyQuestionLink(item.id)}
-                              title="Bu sorunun bağlantısını kopyala"
-                              aria-label={`${item.question} sorusunun doğrudan bağlantısını kopyala`}
+                              title={
+                                isEn
+                                  ? 'Copy direct link to this question'
+                                  : 'Bu sorunun bağlantısını kopyala'
+                              }
+                              aria-label={
+                                isEn
+                                  ? `Copy direct link for ${item.question}`
+                                  : `${item.question} sorusunun doğrudan bağlantısını kopyala`
+                              }
                               className="min-w-[48px] px-3 border-l border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
                             >
                               {isCopied ? (
@@ -314,13 +320,19 @@ export default function FaqPage() {
                                     <>
                                       <Check className="w-3.5 h-3.5 text-emerald-600" />
                                       <span className="text-emerald-700">
-                                        Soru bağlantısı kopyalandı (#{item.id})
+                                        {isEn
+                                          ? `Question link copied (#${item.id})`
+                                          : `Soru bağlantısı kopyalandı (#${item.id})`}
                                       </span>
                                     </>
                                   ) : (
                                     <>
                                       <Link2 className="w-3.5 h-3.5" />
-                                      <span>Soruya doğrudan bağlantı kopyala</span>
+                                      <span>
+                                        {isEn
+                                          ? 'Copy direct link to question'
+                                          : 'Soruya doğrudan bağlantı kopyala'}
+                                      </span>
                                     </>
                                   )}
                                 </button>
@@ -341,13 +353,18 @@ export default function FaqPage() {
       {/* End-of-Page Contact CTA */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-5">
-          <p className="text-sm font-medium text-blue-700">İletişim</p>
+          <p className="text-sm font-medium text-blue-700">
+            {isEn ? 'Contact' : 'İletişim'}
+          </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-            Sorunuzun yanıtını bulamadınız mı?
+            {isEn
+              ? "Didn't find the answer to your question?"
+              : 'Sorunuzun yanıtını bulamadınız mı?'}
           </h2>
           <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Danışmanlık kapsamı, dijital dönüşüm projeleri veya profesyonel iş birlikleri
-            hakkında detaylı bilgi almak için doğrudan iletişime geçebilirsiniz.
+            {isEn
+              ? 'Feel free to reach out directly for details on consulting scope, digital transformation projects, or professional collaborations.'
+              : 'Danışmanlık kapsamı, dijital dönüşüm projeleri veya profesyonel iş birlikleri hakkında detaylı bilgi almak için doğrudan iletişime geçebilirsiniz.'}
           </p>
           <div className="pt-2">
             <button
@@ -355,7 +372,7 @@ export default function FaqPage() {
               onClick={() => navigate('/iletisim')}
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer"
             >
-              <span>İletişime Geçin</span>
+              <span>{isEn ? 'Get in Touch' : 'İletişime Geçin'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { RouterProvider, useRouter } from './context/RouterContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
@@ -14,26 +15,39 @@ import BlogDetailPage from './pages/BlogDetailPage';
 import FaqPage from './pages/FaqPage';
 import ContactPage from './pages/ContactPage';
 
-const ROUTE_TITLES: Record<string, string> = {
-  '/': 'Tuğçe Utku — Dijital Dönüşüm, Teknoloji ve Strateji',
-  '/hakkimda': 'Hakkımda | Tuğçe Utku',
-  '/uzmanlik-alanlarim': 'Uzmanlık Alanlarım | Tuğçe Utku',
-  '/deneyim': 'Deneyim | Tuğçe Utku',
-  '/projeler': 'Projeler | Tuğçe Utku',
-  '/blog': 'Blog ve İçgörüler | Tuğçe Utku',
-  '/sss': 'Sıkça Sorulan Sorular | Tuğçe Utku',
-  '/iletisim': 'İletişim | Tuğçe Utku',
+const ROUTE_TITLES: Record<'tr' | 'en', Record<string, string>> = {
+  tr: {
+    '/': 'Tuğçe Utku — Dijital Dönüşüm, Teknoloji ve Strateji',
+    '/hakkimda': 'Hakkımda | Tuğçe Utku',
+    '/uzmanlik-alanlarim': 'Uzmanlık Alanlarım | Tuğçe Utku',
+    '/deneyim': 'Deneyim | Tuğçe Utku',
+    '/projeler': 'Projeler | Tuğçe Utku',
+    '/blog': 'Blog ve İçgörüler | Tuğçe Utku',
+    '/sss': 'Sıkça Sorulan Sorular | Tuğçe Utku',
+    '/iletisim': 'İletişim | Tuğçe Utku',
+  },
+  en: {
+    '/': 'Tuğçe Utku — Digital Transformation, Technology & Strategy',
+    '/hakkimda': 'About | Tuğçe Utku',
+    '/uzmanlik-alanlarim': 'Expertise | Tuğçe Utku',
+    '/deneyim': 'Experience | Tuğçe Utku',
+    '/projeler': 'Projects | Tuğçe Utku',
+    '/blog': 'Blog & Insights | Tuğçe Utku',
+    '/sss': 'Frequently Asked Questions | Tuğçe Utku',
+    '/iletisim': 'Contact | Tuğçe Utku',
+  },
 };
 
 function AppShell() {
   const { pathname } = useRouter();
+  const { lang } = useLanguage();
 
   useEffect(() => {
     if (!pathname.startsWith('/blog/')) {
-      document.title =
-        ROUTE_TITLES[pathname] || 'Tuğçe Utku — Dijital Dönüşüm, Teknoloji ve Strateji';
+      const titles = ROUTE_TITLES[lang];
+      document.title = titles[pathname] || titles['/'];
     }
-  }, [pathname]);
+  }, [pathname, lang]);
 
   const renderPage = () => {
     if (pathname === '/') return <HomePage />;
@@ -68,8 +82,10 @@ function AppShell() {
 
 export default function App() {
   return (
-    <RouterProvider>
-      <AppShell />
-    </RouterProvider>
+    <LanguageProvider>
+      <RouterProvider>
+        <AppShell />
+      </RouterProvider>
+    </LanguageProvider>
   );
 }

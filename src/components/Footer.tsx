@@ -1,21 +1,25 @@
 import { Linkedin } from 'lucide-react';
-import { BRAND_PROFILE } from '../data/siteContent';
+import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
+import { useLanguage } from '../context/LanguageContext';
 import BrandLogo from './BrandLogo';
-
-const FOOTER_LINKS = [
-  { label: 'Ana Sayfa', path: '/' },
-  { label: 'Hakkımda', path: '/hakkimda' },
-  { label: 'Uzmanlık Alanlarım', path: '/uzmanlik-alanlarim' },
-  { label: 'Deneyim', path: '/deneyim' },
-  { label: 'Projeler', path: '/projeler' },
-  { label: 'Blog', path: '/blog' },
-  { label: 'SSS', path: '/sss' },
-  { label: 'İletişim', path: '/iletisim' },
-];
 
 export default function Footer() {
   const { navigate } = useRouter();
+  const { lang } = useLanguage();
+  const { brand } = getSiteContent(lang);
+  const isEn = lang === 'en';
+
+  const footerLinks = [
+    { label: isEn ? 'Home' : 'Ana Sayfa', path: '/' },
+    { label: isEn ? 'About' : 'Hakkımda', path: '/hakkimda' },
+    { label: isEn ? 'Expertise' : 'Uzmanlık Alanlarım', path: '/uzmanlik-alanlarim' },
+    { label: isEn ? 'Experience' : 'Deneyim', path: '/deneyim' },
+    { label: isEn ? 'Projects' : 'Projeler', path: '/projeler' },
+    { label: 'Blog', path: '/blog' },
+    { label: isEn ? 'FAQ' : 'SSS', path: '/sss' },
+    { label: isEn ? 'Contact' : 'İletişim', path: '/iletisim' },
+  ];
 
   return (
     <footer className="bg-slate-950 text-slate-400 pb-20 md:pb-0">
@@ -33,12 +37,12 @@ export default function Footer() {
               <BrandLogo theme="dark" />
             </a>
             <p className="text-sm text-slate-400 leading-relaxed">
-              {BRAND_PROFILE.shortTagline}
+              {brand.shortTagline}
             </p>
           </div>
 
           <a
-            href={BRAND_PROFILE.linkedin}
+            href={brand.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 hover:border-slate-700 text-sm font-medium text-slate-200 hover:text-white transition-colors shrink-0"
@@ -50,10 +54,10 @@ export default function Footer() {
 
         {/* Full Menu Row */}
         <nav
-          aria-label="Alt menü"
+          aria-label={isEn ? 'Footer navigation' : 'Alt menü'}
           className="pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2.5 text-sm"
         >
-          {FOOTER_LINKS.map((link) => (
+          {footerLinks.map((link) => (
             <a
               key={link.path}
               href={link.path}
@@ -70,7 +74,10 @@ export default function Footer() {
 
         {/* Quiet Copyright */}
         <div className="pt-6 border-t border-slate-800/80 text-xs text-slate-500 text-center md:text-left">
-          <p>© {BRAND_PROFILE.name}. Tüm hakları saklıdır.</p>
+          <p>
+            © {brand.name}.{' '}
+            {isEn ? 'All rights reserved.' : 'Tüm hakları saklıdır.'}
+          </p>
         </div>
       </div>
     </footer>

@@ -71,10 +71,24 @@ export interface FaqCategory {
 
 export interface LinkedInPost {
   id: string;
-  topic: string;
   title: string;
   excerpt: string;
   fullText: string;
+  publishedAt?: string;
+  publishedIso?: string;
   postUrl: string;
+  imageUrl?: string;
   embedUrl?: string;
 }
+
+export interface LinkedInFeedResponse {
+  mode: 'posts' | 'embeds' | 'widget' | 'unconfigured';
+  source?: 'feed' | 'api' | 'embeds' | 'widget';
+  oauthConfigured: boolean;
+  profileUrl: string;
+  activityUrl: string;
+  widgetUrl?: string;
+  posts: LinkedInPost[];
+  syncedAt?: string;
+}
+

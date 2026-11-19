@@ -1,27 +1,38 @@
 import { useState } from 'react';
 import { X, Send } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const TUGCE_PHOTO = '/assets/aistudio/tugce-utku_2f46d5a0.jpg';
 
 interface WhatsAppFloatingButtonProps {
   phoneNumber?: string;
-  defaultMessage?: string;
 }
 
 export default function WhatsAppFloatingButton({
   phoneNumber = '905468253597',
-  defaultMessage = 'Merhaba Tuğçe Hanım, dijital dönüşüm, strateji ve danışmanlık çalışmaları hakkında bilgi almak istiyorum.',
 }: WhatsAppFloatingButtonProps) {
+  const { lang } = useLanguage();
+  const isEn = lang === 'en';
   const [isOpen, setIsOpen] = useState(false);
   const [customMsg, setCustomMsg] = useState('');
 
   const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
 
-  const quickMessages = [
-    'Dijital büyüme ve ürün stratejisi hakkında görüşmek istiyorum.',
-    'Sigortacılık teknolojileri ve CRM dönüşümü için bilgi almak istiyorum.',
-    'Danışmanlık veya iş birliği talebi paylaşmak istiyorum.',
-  ];
+  const defaultMessage = isEn
+    ? 'Hello Tuğçe, I would like to get in touch regarding digital transformation, strategy, and consulting.'
+    : 'Merhaba Tuğçe Hanım, dijital dönüşüm, strateji ve danışmanlık çalışmaları hakkında bilgi almak istiyorum.';
+
+  const quickMessages = isEn
+    ? [
+        'I would like to discuss digital growth and product strategy.',
+        'I would like information on insurance technologies and CRM transformation.',
+        'I would like to share a consulting or collaboration inquiry.',
+      ]
+    : [
+        'Dijital büyüme ve ürün stratejisi hakkında görüşmek istiyorum.',
+        'Sigortacılık teknolojileri ve CRM dönüşümü için bilgi almak istiyorum.',
+        'Danışmanlık veya iş birliği talebi paylaşmak istiyorum.',
+      ];
 
   const getWhatsAppUrl = (messageToSend?: string) => {
     const text = messageToSend || customMsg.trim() || defaultMessage;
@@ -46,7 +57,7 @@ export default function WhatsAppFloatingButton({
                   Tuğçe Utku
                 </h4>
                 <p className="text-xs text-slate-300 mt-0.5">
-                  WhatsApp İletişim
+                  {isEn ? 'WhatsApp Contact' : 'WhatsApp İletişim'}
                 </p>
               </div>
             </div>
@@ -54,7 +65,7 @@ export default function WhatsAppFloatingButton({
               type="button"
               onClick={() => setIsOpen(false)}
               className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-              aria-label="Kapat"
+              aria-label={isEn ? 'Close' : 'Kapat'}
             >
               <X className="w-4 h-4" />
             </button>
@@ -63,7 +74,9 @@ export default function WhatsAppFloatingButton({
           {/* Body */}
           <div className="p-4 bg-slate-50 space-y-3">
             <p className="text-xs text-slate-600 leading-relaxed bg-white p-3 rounded-xl border border-slate-200/80">
-              Merhaba, aklınızdaki soruları doğrudan WhatsApp üzerinden iletebilirsiniz.
+              {isEn
+                ? 'Hello, feel free to send your questions directly via WhatsApp.'
+                : 'Merhaba, aklınızdaki soruları doğrudan WhatsApp üzerinden iletebilirsiniz.'}
             </p>
 
             <div className="space-y-1.5">
@@ -85,7 +98,7 @@ export default function WhatsAppFloatingButton({
             <div className="relative pt-1">
               <input
                 type="text"
-                placeholder="Mesajınızı yazın..."
+                placeholder={isEn ? 'Write your message...' : 'Mesajınızı yazın...'}
                 value={customMsg}
                 onChange={(e) => setCustomMsg(e.target.value)}
                 className="w-full bg-white border border-slate-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-xs rounded-xl py-2.5 pl-3 pr-10 outline-none text-slate-800 placeholder:text-slate-400"
@@ -96,7 +109,7 @@ export default function WhatsAppFloatingButton({
                 rel="noopener noreferrer"
                 onClick={() => setIsOpen(false)}
                 className="absolute right-1.5 top-[calc(50%+2px)] -translate-y-1/2 p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
-                aria-label="WhatsApp ile gönder"
+                aria-label={isEn ? 'Send via WhatsApp' : 'WhatsApp ile gönder'}
               >
                 <Send className="w-3.5 h-3.5" />
               </a>
@@ -109,7 +122,7 @@ export default function WhatsAppFloatingButton({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="WhatsApp ile iletişime geç"
+        aria-label={isEn ? 'Contact via WhatsApp' : 'WhatsApp ile iletişime geç'}
         className="w-13 h-13 rounded-full bg-[#25D366] hover:bg-[#1ebe5d] text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
       >
         {isOpen ? (
