@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
 import { getSiteContent } from '../data/siteContentEn';
-import { getBlogData } from '../data/blogPostsEn';
+import { useBlog } from '../context/BlogContext';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import ExecutivePortrait from '../components/ExecutivePortrait';
@@ -11,11 +11,12 @@ import LinkedInPostsSection from '../components/LinkedInPostsSection';
 export default function HomePage() {
   const { navigate } = useRouter();
   const { lang } = useLanguage();
+  const { getPosts } = useBlog();
   const isEn = lang === 'en';
 
   const { brand, expertiseAreas, approachPillars, projectItems, faqCategories } =
     getSiteContent(lang);
-  const { posts } = getBlogData(lang);
+  const posts = getPosts(lang);
 
   const [openPreviewFaqId, setOpenPreviewFaqId] = useState<string | null>('soru-1');
 
@@ -383,6 +384,7 @@ export default function HomePage() {
                   >
                     <BlogCoverVisual
                       theme={post.coverTheme}
+                      coverImage={post.coverImage}
                       title={post.title}
                       categoryLabel={post.categoryLabel}
                     />

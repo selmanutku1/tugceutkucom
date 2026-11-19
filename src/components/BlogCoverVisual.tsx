@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import aiStrategyPhoto from '../assets/images/blog_ai_strategy_1795090718952.jpg';
 import { BlogPost } from '../types';
 
 interface BlogCoverVisualProps {
   theme: BlogPost['coverTheme'];
+  coverImage?: string;
   title: string;
   categoryLabel: string;
   className?: string;
@@ -11,11 +12,31 @@ interface BlogCoverVisualProps {
 
 export default function BlogCoverVisual({
   theme,
+  coverImage,
   title,
   categoryLabel,
   className = '',
 }: BlogCoverVisualProps) {
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [coverImage, theme]);
+
+  if (coverImage && !imgError) {
+    return (
+      <div
+        className={`relative overflow-hidden bg-slate-900 aspect-[16/9] ${className}`}
+      >
+        <img
+          src={coverImage}
+          alt={title}
+          onError={() => setImgError(true)}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+      </div>
+    );
+  }
 
   if (theme === 'photo' && !imgError) {
     return (

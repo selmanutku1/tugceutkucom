@@ -51,6 +51,13 @@ export interface BlogPost {
   publishedIso: string;
   readingTime: string;
   coverTheme: 'photo' | 'transformation' | 'insurtech' | 'ai' | 'growth' | 'strategy';
+  coverImage?: string;
+  coverImageMeta?: {
+    width: number;
+    height: number;
+    format: 'JPEG' | 'PNG';
+    sizeKb: number;
+  };
   featured?: boolean;
   sections: BlogSection[];
 }

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import type { Request, Response } from 'express';
 import nodemailer from 'nodemailer';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer as createViteServer } from 'vite';
@@ -22,6 +23,24 @@ const DEFAULT_CONTACT_RECIPIENTS = [
   'tugce.utku@insurup.com',
   'tugce.utku@acerpro.com.tr',
 ];
+
+const DASHBOARD_PASSCODE = process.env.DASHBOARD_PASSCODE || '2027';
+const CUSTOM_POSTS_FILE = path.resolve(__dirname, 'data', 'custom-blog-posts.json');
+
+async function readCustomPostsFile(): Promise<unknown[]> {
+  try {
+    const raw = await fs.readFile(CUSTOM_POSTS_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeCustomPostsFile(posts: unknown[]): Promise<void> {
+  await fs.mkdir(path.dirname(CUSTOM_POSTS_FILE), { recursive: true });
+  await fs.writeFile(CUSTOM_POSTS_FILE, JSON.stringify(posts, null, 2), 'utf8');
+}
 
 function getContactRecipients(): string[] {
   const configured = process.env.CONTACT_TO_EMAILS?.trim();
@@ -592,7 +611,7 @@ async function resolveLinkedInFeed(forceRefresh = false): Promise<LinkedInFeedPa
 
 async function startServer() {
   const app = express();
-  app.use(express.json());
+  app.use(express.json({ limit: '15mb' }));
 
   // Contact Form Email Endpoint -> delivers to both tugce.utku@insurup.com & tugce.utku@acerpro.com.tr
   app.post('/api/contact', async (req: Request, res: Response) => {
@@ -659,6 +678,75 @@ async function startServer() {
         recipients: getContactRecipients(),
         error: 'Mesaj gönderilirken geçici bir hata oluştu.',
       });
+    }
+  });
+
+  // Custom Blog Posts API (protected by dashboard passcode for writes)
+  app.get('/api/blog-posts', async (_req: Request, res: Response) => {
+    const posts = await readCustomPostsFile();
+    res.json({ posts });
+  });
+
+  app.post('/api/blog-posts', async (req: Request, res: Response) => {
+    const passcode = String(req.headers['x-dashboard-passcode'] || '');
+    if (passcode !== DASHBOARD_PASSCODE) {
+      res.status(401).json({ ok: false, error: 'Geçersiz geçiş kodu.' });
+      return;
+    }
+    const post = (req.body as { post?: Record<string, unknown> })?.post;
+    if (!post || typeof post.id !== 'string' || typeof post.title !== 'string') {
+      res.status(400).json({ ok: false, error: 'Geçersiz yazı verisi.' });
+      return;
+    }
+    try {
+      const existing = await readCustomPostsFile();
+      const updated = [post, ...existing.filter((p) => (p as { id?: string })?.id !== post.id)];
+      await writeCustomPostsFile(updated);
+      res.json({ ok: true, post });
+    } catch (error) {
+      console.error('Failed to persist custom blog post:', error);
+      res.status(500).json({ ok: false, error: 'Yazı kaydedilemedi.' });
+    }
+  });
+
+  app.put('/api/blog-posts/:id', async (req: Request, res: Response) => {
+    const passcode = String(req.headers['x-dashboard-passcode'] || '');
+    if (passcode !== DASHBOARD_PASSCODE) {
+      res.status(401).json({ ok: false, error: 'Geçersiz geçiş kodu.' });
+      return;
+    }
+    const post = (req.body as { post?: Record<string, unknown> })?.post;
+    const { id } = req.params;
+    if (!post) {
+      res.status(400).json({ ok: false, error: 'Geçersiz yazı verisi.' });
+      return;
+    }
+    try {
+      const existing = await readCustomPostsFile();
+      const updated = existing.map((p) => ((p as { id?: string })?.id === id ? post : p));
+      await writeCustomPostsFile(updated);
+      res.json({ ok: true, post });
+    } catch (error) {
+      console.error('Failed to update custom blog post:', error);
+      res.status(500).json({ ok: false, error: 'Yazı güncellenemedi.' });
+    }
+  });
+
+  app.delete('/api/blog-posts/:id', async (req: Request, res: Response) => {
+    const passcode = String(req.headers['x-dashboard-passcode'] || '');
+    if (passcode !== DASHBOARD_PASSCODE) {
+      res.status(401).json({ ok: false, error: 'Geçersiz geçiş kodu.' });
+      return;
+    }
+    const { id } = req.params;
+    try {
+      const existing = await readCustomPostsFile();
+      const updated = existing.filter((p) => (p as { id?: string })?.id !== id);
+      await writeCustomPostsFile(updated);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('Failed to delete custom blog post:', error);
+      res.status(500).json({ ok: false, error: 'Yazı silinemedi.' });
     }
   });
 

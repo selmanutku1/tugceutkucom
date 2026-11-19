@@ -14,6 +14,7 @@ import { getBlogData } from '../data/blogPostsEn';
 import { BlogCategoryKey } from '../types';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useBlog } from '../context/BlogContext';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 
 const PAGE_SIZE = 3;
@@ -56,9 +57,11 @@ function getPageNumbers(currentPage: number, totalPages: number): (number | 'ell
 export default function BlogListPage() {
   const { navigate } = useRouter();
   const { lang } = useLanguage();
+  const { getPosts } = useBlog();
   const isEn = lang === 'en';
   const locale = isEn ? 'en' : 'tr';
-  const { filters, posts } = getBlogData(lang);
+  const { filters } = getBlogData(lang);
+  const posts = getPosts(lang);
 
   const [selectedCategory, setSelectedCategory] = useState<'all' | BlogCategoryKey>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -267,6 +270,7 @@ export default function BlogListPage() {
               >
                 <BlogCoverVisual
                   theme={featuredPost.coverTheme}
+                  coverImage={featuredPost.coverImage}
                   title={featuredPost.title}
                   categoryLabel={featuredPost.categoryLabel}
                   className="h-full w-full"
@@ -423,6 +427,7 @@ export default function BlogListPage() {
                   >
                     <BlogCoverVisual
                       theme={post.coverTheme}
+                      coverImage={post.coverImage}
                       title={post.title}
                       categoryLabel={post.categoryLabel}
                     />

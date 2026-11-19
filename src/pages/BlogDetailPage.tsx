@@ -10,10 +10,10 @@ import {
   Linkedin,
   List,
 } from 'lucide-react';
-import { getBlogData } from '../data/blogPostsEn';
 import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
+import { slugifyTurkish, useBlog } from '../context/BlogContext';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import ExecutivePortrait from '../components/ExecutivePortrait';
 
@@ -24,13 +24,25 @@ interface BlogDetailPageProps {
 export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   const { navigate } = useRouter();
   const { lang } = useLanguage();
+  const { getPosts, isLoading } = useBlog();
   const isEn = lang === 'en';
-  const { posts } = getBlogData(lang);
+  const posts = getPosts(lang);
   const { brand } = getSiteContent(lang);
 
   const [copied, setCopied] = useState(false);
 
-  const post = useMemo(() => posts.find((item) => item.slug === slug), [posts, slug]);
+  const post = useMemo(() => {
+    const cleanSlug = slug.trim().replace(/^\/+|\/+$/g, '').toLowerCase();
+    const normalizedSlug = slugifyTurkish(cleanSlug);
+    return posts.find((item) => {
+      const itemSlug = item.slug.toLowerCase();
+      return (
+        itemSlug === cleanSlug ||
+        itemSlug === normalizedSlug ||
+        slugifyTurkish(item.title) === normalizedSlug
+      );
+    });
+  }, [posts, slug]);
 
   const relatedPosts = useMemo(() => {
     if (!post) return [];
@@ -117,6 +129,19 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
       if (el) el.remove();
     };
   }, [post, brand.name, isEn]);
+
+  if (!post && isLoading) {
+    return (
+      <section className="py-20 sm:py-28 bg-white">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 space-y-5 animate-pulse">
+          <div className="h-4 w-32 bg-slate-200 rounded" />
+          <div className="h-10 w-3/4 bg-slate-200 rounded" />
+          <div className="h-5 w-full bg-slate-100 rounded" />
+          <div className="aspect-[16/9] w-full bg-slate-100 rounded-2xl mt-6" />
+        </div>
+      </section>
+    );
+  }
 
   if (!post) {
     return (
@@ -274,6 +299,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
         <div className="rounded-2xl overflow-hidden border border-slate-200">
           <BlogCoverVisual
             theme={post.coverTheme}
+            coverImage={post.coverImage}
             title={post.title}
             categoryLabel={post.categoryLabel}
           />
@@ -325,6 +351,21 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             </section>
           ))}
         </div>
+
+        {/* Content Tags */}
+        {post.tags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-md bg-slate-100 text-xs font-medium text-slate-600"
+              >
+                <span className="opacity-60">#</span>
+                <span>{tag}</span>
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* 12. Bottom Share Bar */}
         <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -440,6 +481,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                   >
                     <BlogCoverVisual
                       theme={related.coverTheme}
+                      coverImage={related.coverImage}
                       title={related.title}
                       categoryLabel={related.categoryLabel}
                     />
