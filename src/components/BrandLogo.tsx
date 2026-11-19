@@ -1,57 +1,45 @@
-import React from 'react';
+import { useState } from 'react';
+
+const BRAND_LOGO = '/assets/aistudio/Gemini_Generated_Image_u0c53tu0c53tu0c5_9f641ea2.jpg';
 
 interface BrandLogoProps {
   theme?: 'light' | 'dark';
-  size?: 'sm' | 'md' | 'lg';
-  showSubtitle?: boolean;
 }
 
-export default function BrandLogo({
-  theme = 'light',
-  size = 'md',
-  showSubtitle = true,
-}: BrandLogoProps) {
+export default function BrandLogo({ theme = 'light' }: BrandLogoProps) {
   const isDark = theme === 'dark';
+  const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="flex items-center gap-3 select-none group">
-      {/* Ultra-Minimalist Modern "TU" Emblem */}
+    <div className="inline-flex items-center gap-2.5 select-none whitespace-nowrap shrink-0">
       <div
-        className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-transform duration-200 group-hover:scale-105 ${
+        className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${
           isDark
-            ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
-            : 'bg-slate-900 text-white shadow-sm'
+            ? 'bg-white ring-1 ring-white/15'
+            : 'bg-white border border-slate-200/80'
         }`}
       >
-        <span className="text-base tracking-tighter font-extrabold flex items-center font-mono">
-          <span className="text-white">T</span>
-          <span className={isDark ? 'text-blue-200' : 'text-blue-400'}>U</span>
-        </span>
-      </div>
-
-      {/* Clean Typography */}
-      <div className="flex flex-col justify-center">
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`text-lg font-bold tracking-tight leading-tight ${
-              isDark ? 'text-white' : 'text-slate-900'
-            }`}
-          >
-            Tuğçe Utku
-          </span>
-          <span className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-blue-400' : 'bg-blue-600'}`}></span>
-        </div>
-
-        {showSubtitle && (
-          <span
-            className={`text-[11px] font-medium tracking-normal ${
-              isDark ? 'text-slate-400' : 'text-slate-500'
-            }`}
-          >
-            Sigorta CRM & InsurTech Danışmanı
+        {!imgError ? (
+          <img
+            src={BRAND_LOGO}
+            alt="Tuğçe Utku Logo"
+            referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover object-center scale-[1.9]"
+          />
+        ) : (
+          <span className="text-xs font-bold tracking-tight text-slate-900">
+            TU
           </span>
         )}
       </div>
+      <span
+        className={`text-base font-semibold tracking-tight ${
+          isDark ? 'text-white' : 'text-slate-900'
+        }`}
+      >
+        Tuğçe Utku
+      </span>
     </div>
   );
 }

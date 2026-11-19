@@ -1,627 +1,181 @@
 import {
-  FlagshipService,
-  ServiceItem,
-  WebsiteSectionPlan,
-  ConsultingPackage,
-  CaseStudy,
+  SimpleService,
+  ProcessStep,
+  ImpactHighlight,
   FaqItem,
+  LinkedInPost,
 } from '../types';
 
 export const TUĞÇE_PROFILE = {
   name: 'Tuğçe Utku',
-  title: 'Sigorta CRM & InsurTech Danışmanı',
-  company: 'Sigorta Teknolojileri & CRM Ekosistemi',
-  headline: 'Dijital Sigortacılığın ve Sigorta CRM Teknolojilerinin Geleceğini Birlikte Tasarlıyoruz.',
-  subheadline: 'Yeni nesil bulut sigorta CRM altyapısı ve veri odaklı dijital büyüme stratejisiyle acenteleri, brokerları ve sigorta şirketlerini geleceğe taşıyoruz.',
-  positioningNotice: 'Bulut Sigorta CRM altyapısı, yapay zekâ, online teklif motoru ve dijital büyüme danışmanlığı.',
-  experienceYears: 8,
-  managedProjectsCount: '80+',
-  digitalTransformationCount: '65+',
-  aiUseCasesCount: '25+',
-  operationalEfficiencyGain: '%50',
+  role: 'Dijital Sigortacılık ve Sigorta CRM Danışmanı',
   email: 'iletisim@tugceutku.com',
-  phone: '+90 (546) 825 35 97',
-  whatsapp: '+90 546 825 35 97',
+  phone: '+90 546 825 35 97',
+  whatsappNumber: '905468253597',
   linkedin: 'https://www.linkedin.com/in/tugceutku/',
-  insurupWebsite: 'https://www.insurup.com/',
-  location: 'İstanbul / Hibrit & Online Danışmanlık',
-  education: 'Sigortacılık & Finans Teknolojileri / InsurTech',
-  currentEcosystem: 'Bulut Sigorta CRM & InsurTech Teknolojileri',
-  certifications: [
-    'Sigorta CRM Mimarisi & Dijital Büyüme',
-    'Dijital Sigorta Acentesi Yöneticiliği',
-    'Karşılaştırmalı Online Teklif & Satış Mimarisi',
-    'Açık Sigortacılık (API) & Yapay Zekâ Entegrasyonları',
-    'Google Ads & Sigorta Müşteri (Lead) Kazanımı',
-    'Sigortacılıkta Süreç Otomasyonu & CX Mimarisi',
-  ],
-  bio: `Sigorta teknolojileri ve CRM alanındaki 8+ yıllık tecrübemle; Türkiye’deki sigorta acentelerinin, brokerların ve sigorta şirketlerinin dijitalleşme vizyonuna yön veriyorum. Yeni nesil bulut CRM ve online teklif altyapısını; veri odaklı dijital pazarlama, yapay zekâ doküman otomasyonu ve müşteri kazanım kurgularıyla birleştirerek acentelerin portföylerini katlayarak büyütmelerini sağlıyorum.`,
-};
-
-// SİGORTA CRM & DİJİTAL SATIŞ PLATFORMU TANITIM VERİSİ
-export const INSURUP_ECOSYSTEM = {
-  brandName: 'Bulut Sigorta CRM',
-  badge: 'Bulut Tabanlı InsurTech & CRM Çözümü',
-  tagline: 'Sigorta Acenteleri ve Brokerlar İçin Yeni Nesil Bulut CRM & Dijital Satış Platformu',
-  description: 'Türkiye sigortacılık sektöründeki acente ve brokerların dijital dönüşümünü hızlandırmak için geliştirilmiş, kurulum gerektirmeyen bağımsız ve sektöre özel web tabanlı Sigorta CRM ve Online Satış platformudur.',
-  websiteUrl: 'https://www.insurup.com/',
-  coreModules: [
-    {
-      id: 'insurup-crm',
-      title: '360° Müşteri & Portföy Yönetimi (CRM)',
-      desc: 'Tüm müşteri bilgilerini, poliçe geçmişini, yaklaşan yenilemeleri ve teklif kayıtlarını tek ekrandan yönetin. Manuel takip ve veri kayıplarını sıfırlayın.',
-      icon: 'Users',
-      badge: 'Akıllı CRM',
-    },
-    {
-      id: 'online-teklif',
-      title: 'Karşılaştırmalı Online Teklif & Hızlı Satış',
-      desc: 'Çoklu sigorta şirketinden tek tıkla teklif alın, yan yana karşılaştırın ve müşterilerinize web siteniz üzerinden anında 7/24 online teklif sunun.',
-      icon: 'Sliders',
-      badge: 'Hızlı Satış',
-    },
-    {
-      id: 'capraz-satis',
-      title: 'Çapraz Satış (Cross-Selling) & Fırsat Motoru',
-      desc: 'Mevcut kasko müşterinize doğru anda tamamlayıcı sağlık veya konut sigortası önerecek akıllı çapraz satış algoritmalarıyla prim hacminizi artırın.',
-      icon: 'TrendingUp',
-      badge: 'Gelir Artışı',
-    },
-    {
-      id: 'otomatik-yenileme',
-      title: 'Otomatik Yenileme & Vade Hatırlatma',
-      desc: 'Vade bitimine 30, 15 ve 7 gün kala müşterilerinize otomatik WhatsApp ve SMS bildirimleri göndererek portföy kaybı (churn) riskini ortadan kaldırın.',
-      icon: 'BellRing',
-      badge: '%93 Yenileme',
-    },
-    {
-      id: 'hasar-yonetimi',
-      title: 'Uçtan Uca Hasar & Dosya Takip Modülü',
-      desc: 'Hasar ihbarından dosya kapanışına kadar tüm süreci, eksper raporlarını ve evrakları sistem üzerinden şeffaf şekilde takip edin.',
-      icon: 'ShieldAlert',
-      badge: 'Hasar Kontrol',
-    },
-    {
-      id: 'muhasebe-mutabakat',
-      title: 'Ön Muhasebe, Komisyon & Mutabakat',
-      desc: 'Sigorta şirketleriyle komisyon mutabakatlarını, tahsilatları ve cari hesap hareketlerini otomatikleştirin; muhasebe yükünüzü dakikalara indirin.',
-      icon: 'FileSpreadsheet',
-      badge: 'Finansal Kontrol',
-    },
-    {
-      id: 'api-entegrasyon',
-      title: 'Açık Sigortacılık & Çoklu Şirket API Entegrasyonu',
-      desc: 'Türkiye’nin önde gelen sigorta şirketlerinin ekranlarıyla tam entegre çalışarak ek bir yazılıma gerek kalmadan doğrudan poliçeleşin.',
-      icon: 'Layers',
-      badge: 'API Gateway',
-    },
-    {
-      id: 'yonetim-raporlama',
-      title: 'Gerçek Zamanlı Yönetici Dashboard’u',
-      desc: 'Acentenizin günlük, haftalık ve aylık üretimini, danışman performanslarını ve branş kârlılıklarını cep telefonunuzdan bile anlık izleyin.',
-      icon: 'BarChart3',
-      badge: 'Canlı Veri',
-    },
-  ],
-  synergyPillars: [
-    {
-      title: 'Bulut CRM Teknolojisi',
-      desc: 'Kurulum gerektirmeyen bulut CRM altyapısı, online teklif motoru, mobil uyum ve şirket API entegrasyonları.',
-    },
-    {
-      title: 'Dijital Büyüme & Pazarlama Stratejisi',
-      desc: 'Google Ads, sosyal medya lead üretimi, SEO ve satış dönüşüm optimizasyonuyla acentenize düzenli yeni müşteri akışı.',
-    },
-    {
-      title: 'Sonuç: Kesintisiz Büyüme',
-      desc: 'Acenteniz sadece bir yazılım değil, onu üretime ve yeni müşterilere dönüştüren eksiksiz bir büyüme mimarisine kavuşur.',
-    },
+  linkedinActivityUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
+  location: 'İstanbul · Online & Yüz Yüze',
+  bio: '8 yılı aşkın sigorta teknolojileri ve dijital büyüme deneyimimle, sigorta acentelerinin ve brokerların günlük iş yükünü azaltmasına, müşteri takibini düzenli hale getirmesine ve dijital kanallardan sürdürülebilir şekilde büyümesine eşlik ediyorum. Karmaşık teknik süreçleri sizin yerinize sadeleştiriyor, ekibinizin ilk günden kolayca kullanabileceği pratik sistemler kuruyorum.',
+  focusAreas: [
+    'Sigorta CRM kurulumu ve portföy düzeni',
+    'Acente ve brokerlar için dijitalleşme ve online teklif süreçleri',
+    'Müşteri takibi, yenileme hatırlatmaları ve ekip eğitimi',
   ],
 };
 
-// 6 ANA HİZMET
-export const CORE_6_SERVICES: FlagshipService[] = [
+export const SIMPLE_SERVICES: SimpleService[] = [
   {
-    id: 'dijital-donusum',
-    title: 'Dijital Dönüşüm',
-    summary: 'Sigorta süreçlerinizi analiz ediyor, dijital dönüşüm yol haritanızı oluşturuyoruz.',
-    icon: 'Cpu',
-    badge: 'Strateji',
-    keyBullets: [
-      'Dijital olgunluk & süreç analizi',
-      'Manuel operasyonların dijitalleştirilmesi',
-      'Teknoloji yatırımı önceliklendirme',
+    id: 'sigorta-crm',
+    number: '01',
+    title: 'Sigorta CRM Kurulumu ve Düzeni',
+    summary:
+      'Müşteri kayıtlarını, poliçe geçmişini ve yaklaşan yenilemeleri tek bir düzenli ekranda toplayarak dağınık tablolardan kurtulun.',
+    highlights: [
+      'Mevcut müşteri ve poliçe kayıtlarının güvenle aktarılması',
+      'Her cihazdan kolayca erişilebilen düzenli çalışma alanı',
+      'Ekibinizin hızla alışacağı sade kullanım ve birebir eğitim',
     ],
   },
   {
-    id: 'yapay-zeka',
-    title: 'Yapay Zekâ (AI)',
-    summary: 'AI ile operasyon, müşteri deneyimi ve karar süreçlerini yeniden tasarlıyoruz.',
-    icon: 'Sparkles',
-    badge: 'Fark Yaratan Alan',
-    keyBullets: [
-      'Hasar & sigorta doküman analizi (OCR/NLP)',
-      'AI chatbot ve akıllı müşteri asistanları',
-      'AI destekli risk analizi & çapraz satış',
+    id: 'acente-broker-dijitallesme',
+    number: '02',
+    title: 'Acente & Broker Dijitalleşmesi',
+    summary:
+      'Acente ve brokerlık yapınızı mesai saatleriyle sınırlı kalmayan, web sitesi ve WhatsApp üzerinden düzenli teklif toplayan modern bir düzene kavuşturun.',
+    highlights: [
+      'Güven veren, mobil uyumlu kurumsal acente ve broker web sitesi',
+      'Müşterilerin kolayca ulaşabileceği hızlı teklif formları',
+      'WhatsApp üzerinden düzenli teklif ve bilgilendirme akışı',
     ],
   },
   {
-    id: 'insurtech',
-    title: 'InsurTech & Bulut CRM',
-    summary: 'Bulut CRM ve açık sigortacılık API’leri ile yeni nesil iş modelleri geliştiriyoruz.',
-    icon: 'Layers',
-    badge: 'CRM & API',
-    keyBullets: [
-      'Bulut CRM & Online Karşılaştırma altyapısı',
-      'Gömülü sigorta (Embedded) & API çözümleri',
-      'FinTech-InsurTech entegrasyon modelleri',
+    id: 'yenileme-musteri-takibi',
+    number: '03',
+    title: 'Yenileme ve Müşteri Takibi',
+    summary:
+      'Poliçe vadesi yaklaşan müşterilerinizi zamanında hatırlatın; mevcut portföyünüzü korurken yeni fırsatları kaçırmayın.',
+    highlights: [
+      'Vade öncesi düzenli hatırlatma ve takip planı',
+      'Mevcut müşterilere uygun ek sigorta önerileri',
+      'Hasar ve talep süreçlerinde şeffaf müşteri iletişimi',
     ],
   },
   {
-    id: 'dijital-urunler',
-    title: 'Dijital Ürünler',
-    summary: 'Web, mobil, portal ve dijital sigorta deneyimleri tasarlıyoruz.',
-    icon: 'LayoutTemplate',
-    badge: 'UX / Platform',
-    keyBullets: [
-      'Sigorta mobil uygulaması & müşteri portalı',
-      'Acente ve broker online teklif platformları',
-      'Uçtan uca dijital müşteri yolculuğu',
-    ],
-  },
-  {
-    id: 'veri-analitik',
-    title: 'Veri & Analitik',
-    summary: 'Veriyi yönetim kararlarına dönüştüren analitik sistemler kuruyoruz.',
-    icon: 'BarChart3',
-    badge: 'İstihbarat',
-    keyBullets: [
-      'Gerçek zamanlı yönetim dashboard tasarımı',
-      'Müşteri kaybı (Churn) & hasar analitiği',
-      'Veri odaklı karar destek modelleri',
-    ],
-  },
-  {
-    id: 'acente-dijitallesmesi',
-    title: 'Acenta Dijitalleşmesi',
-    summary: 'Sigorta CRM’i ve dijital pazarlama ile acentelerin satış, müşteri ve operasyon süreçlerini dönüştürüyoruz.',
-    icon: 'Rocket',
-    badge: 'Bulut CRM Destekli',
-    keyBullets: [
-      'Bulut CRM & 7/24 online teklif motoru',
-      'WhatsApp otomasyonu & otomatik vade yenileme',
-      'Dijital pazarlama & nitelikli müşteri (lead) akışı',
+    id: 'dijital-buyume-egitim',
+    number: '04',
+    title: 'Dijital Büyüme ve Danışmanlık',
+    summary:
+      'Dijital kanallardan doğru müşterilere ulaşmanız için sade, ölçülebilir bir büyüme planı hazırlıyor ve süreç boyunca yanınızda oluyoruz.',
+    highlights: [
+      'Google ve sosyal medya üzerinden nitelikli müşteri kazanımı',
+      'Aylık performans değerlendirmesi ve yol haritası',
+      'Kurulum sonrası ekibinize düzenli destek ve danışmanlık',
     ],
   },
 ];
 
-// 8 DETAYLANDIRILMIŞ DERİNLEMESİNE HİZMET ALANI
-export const ALL_8_SERVICES: ServiceItem[] = [
-  {
-    id: 'dijital-donusum-danismanligi',
-    title: '1. Dijital Dönüşüm Danışmanlığı',
-    subtitle: 'Sigorta Şirketleri ve Brokerlar İçin Stratejik Dönüşüm',
-    category: 'dijital-donusum',
-    icon: 'Cpu',
-    summary: 'Geleneksel sigorta şirketlerinde ve büyük ölçekli aracı kurumlarda dijital dönüşüm stratejisinin belirlenmesi, iş süreçlerinin yeniden tasarımı ve teknoloji yatırımlarının doğru önceliklendirilmesi.',
-    subCapabilities: [
-      'Sigorta şirketlerinde dijital dönüşüm stratejisi',
-      'Mevcut dijital süreçlerin analizi (As-Is / To-Be)',
-      'Manuel süreçlerin dijitalleştirilmesi',
-      'Dijital yol haritası oluşturma',
-      'İş süreçlerinin yeniden tasarlanması',
-      'Dijital olgunluk analizi ve skorlama',
-      'Teknoloji yatırımlarının önceliklendirilmesi ve ROI fizibilitesi',
-    ],
-    deliverables: [
-      'Kurumsal Dijital Olgunluk Raporu',
-      '3 Yıllık Dijital Dönüşüm ve Teknoloji Yol Haritası',
-      'Yeniden Tasarlanan Süreç Akış Diyagramları',
-      'Yazılım & Altyapı Tedarikçi Değerlendirme Şartnamesi',
-    ],
-    benefits: [
-      'Operasyonel gecikmelerde %45 azalma',
-      'Yazılım yatırımlarında yanlış tercih riskini sıfırlama',
-      'Ekiplerin dijital adaptasyon hızında 2 kat artış',
-    ],
-    targetAudience: 'Sigorta Şirketleri, Reasürans Aracıları, Büyük Brokerlar ve TPA’lar',
-    timeline: '4 - 8 Hafta',
-  },
-  {
-    id: 'yapay-zeka-ve-otomasyon',
-    title: '2. Yapay Zekâ (AI) ve Otomasyon',
-    subtitle: 'Sigortacılıkta Görsel LLM, OCR & Akıllı Karar Sistemleri',
-    category: 'yapay-zeka',
-    icon: 'Sparkles',
-    summary: 'Hasar evraklarının incelenmesinden poliçe şartnamesi analizine, 7/24 müşteri yanıtlayan AI ajanlarından sahtecilik (fraud) tespitine kadar sigortacılığa özel yapay zekâ çözümleri.',
-    subCapabilities: [
-      'Sigortacılıkta AI kullanım alanlarının (Use Cases) belirlenmesi',
-      'Hasar ve poliçe doküman analizi (OCR / NLP)',
-      'Ekspertiz raporu ve fatura doğrulama otomasyonu',
-      'AI tabanlı müşteri asistanı ve chatbot sistemleri',
-      'Tahmine dayalı risk analizi ve fiyatlandırma desteği',
-      'Çapraz satış (Cross-Sell / Up-Sell) öneri motoru',
-      'Sahtecilik / Suistimal (Fraud) tespit modelleri',
-      'Generative AI / LLM ile iç operasyonel verimlilik',
-    ],
-    deliverables: [
-      'Kuruma Özel Sigorta AI Use-Case Haritası',
-      'Hasar & Evrak OCR/NLP Entegrasyon Şartnamesi',
-      'LLM Ajan Prompt Mimarisi & Müşteri Asistanı Akışları',
-      'AI Model Doğrulama ve PoC (Kavram Kanıtlama) Raporu',
-    ],
-    benefits: [
-      'Hasar dosyası inceleme süresinde 8 kat hızlanma',
-      'Müşteri yanıt verme süresinin saniyelere inmesi',
-      'Manuel hataların ve operasyonel maliyetin %50 azalması',
-    ],
-    targetAudience: 'Hasar ve operasyon ekiplerini hızlandırmak isteyen sigorta şirketleri, asistans firmaları ve acenteler',
-    timeline: '3 - 6 Hafta',
-  },
-  {
-    id: 'insurtech-ve-yeni-is-modelleri',
-    title: '3. InsurTech, Bulut CRM & Yeni İş Modelleri',
-    subtitle: 'Bulut CRM Mimarisi, Gömülü Sigorta ve Açık API Mimarisi',
-    category: 'insurtech',
-    icon: 'Layers',
-    summary: 'Bulut CRM platformunun gücüyle açık sigortacılık, gömülü sigorta (Embedded Insurance), API entegrasyonları ve FinTech işbirlikleri kurgulayarak yeni gelir kanalları oluşturuyoruz.',
-    subCapabilities: [
-      'Sigorta CRM & Online Teklif Altyapı Entegrasyonu',
-      'Gömülü Sigorta (Embedded Insurance) stratejisi ve ürün tasarımı',
-      'Açık sigortacılık (Open Insurance) ve API entegrasyon mimarisi',
-      'InsurTech girişim danışmanlığı (Fikirden Canlıya)',
-      'FinTech ve e-ticaret platformları için sigorta çözümleri',
-      'Mikro sigorta ürün tasarımı ve iş modeli geliştirme',
-      'Pazara çıkış (Go-to-Market) ve ekosistem işbirlikleri',
-      'SEDDK mevzuat ve regülasyon uyumluluk yol haritası',
-    ],
-    deliverables: [
-      'Bulut CRM Entegrasyon Planı',
-      'Gömülü Sigorta (Embedded) İş Modeli ve API Şartnamesi',
-      'InsurTech MVP Ürün Gereksinim Dokümanı (PRD)',
-      'Ekosistem İş Ortaklığı ve Gelir Paylaşım Modeli',
-    ],
-    benefits: [
-      'Geleneksel kanalların dışında 0’dan yeni B2B2C satış kanalı yaratma',
-      'InsurTech yatırımlarında pazara çıkış süresini (Time-to-Market) %60 kısaltma',
-      'Regülasyona tam uyumlu güvenli API mimarisi',
-    ],
-    targetAudience: 'InsurTech girişimleri, FinTech’ler, E-Ticaret devleri ve yenilikçi sigorta şirketleri',
-    timeline: '4 - 10 Hafta',
-  },
-  {
-    id: 'dijital-urun-ve-deneyim-yonetimi',
-    title: '4. Dijital Ürün ve Deneyim Yönetimi',
-    subtitle: 'Yüksek Dönüşümlü Web, Mobil & Acente Portalları',
-    category: 'dijital-urunler',
-    icon: 'LayoutTemplate',
-    summary: 'Kullanıcının saniyeler içinde teklif alıp poliçeleştiği, acente ve müşterilerin keyifle kullandığı modern dijital ürün arayüzleri ve müşteri deneyimleri (UX/UI).',
-    subCapabilities: [
-      'Sigorta mobil uygulaması ve müşteri portalı tasarımı',
-      'Acenta ve broker dijital platformları',
-      'Online teklif ve poliçe satın alma akışlarının optimizasyonu',
-      'Kullanıcı deneyimi (UX/UI) araştırması ve tasarımı',
-      'Ürün gereksinim dokümanı (PRD) hazırlama',
-      'Dijital self-servis müşteri deneyimi tasarımı',
-      'Dönüşüm oranı optimizasyonu (CRO) ve A/B testleri',
-    ],
-    deliverables: [
-      'Figma UX/UI Tel Çerçeve ve Etkileşimli Prototip',
-      'Uçtan Uca Satın Alma Akış Diyagramı',
-      'Detaylı PRD ve Fonksiyonel Teknik Şartname',
-      'CRO & Dönüşüm Artırma Öneri Raporu',
-    ],
-    benefits: [
-      'Online tekliften poliçeye dönüşüm oranında %40 artış',
-      'Kullanıcı terk oranlarında (Drop-off) belirgin düşüş',
-      'Müşteri memnuniyet (CSAT / NPS) skorlarında sıçrama',
-    ],
-    targetAudience: 'Web veya mobil kanalından doğrudan sigorta satmak isteyen tüm şirket ve brokerlar',
-    timeline: '3 - 6 Hafta',
-  },
-  {
-    id: 'surec-ve-operasyon-optimizasyonu',
-    title: '5. Süreç ve Operasyon Optimizasyonu',
-    subtitle: 'Hasar, Onay ve Poliçe Süreçlerinde Sıfır Bürokrasisi',
-    category: 'operasyon',
-    icon: 'SlidersHorizontal',
-    summary: 'Sigorta operasyonlarındaki gereksiz manuel adımları, evrak yükünü ve tekrarlayan onay mekanizmalarını dijitalleştirerek maliyetleri radikal biçimde düşürüyoruz.',
-    subCapabilities: [
-      'Sigorta operasyon süreçlerinin dijitalleştirilmesi ve hızlandırılması',
-      'Hasar ihbar, ekspertiz ve onay süreçlerinin iyileştirilmesi',
-      'Onay ve imza süreçlerinin dijitalleştirilmesi',
-      'Evrak ve doküman yönetimi (Dijital Arşiv & OCR)',
-      'İş akışı otomasyonu (Workflow Automation)',
-      'RPA / Robotik Süreç Otomasyonu fırsatlarının belirlenmesi',
-      'Operasyonel verimlilik ve darboğaz analizi',
-      'KPI ve performans ölçümleme sistemlerinin kurulması',
-    ],
-    deliverables: [
-      'Operasyonel Darboğaz ve Verimsizlik Raporu',
-      'RPA & Otomasyon Uygulanabilirlik Matrisi',
-      'Hasar ve Operasyon Süreç İyileştirme Standartları (SOP)',
-      'Operasyonel KPI & Dashboard Gösterge Kılavuzu',
-    ],
-    benefits: [
-      'Dosya işlem sürelerinde %60 hızlanma',
-      'Manuel veri girişi kaynaklı hataların %90 oranında engellenmesi',
-      'Aynı operasyon ekibiyle 2.5 kat daha yüksek işlem hacmini yönetebilme',
-    ],
-    targetAudience: 'Operasyon maliyetlerini düşürmek isteyen sigorta şirketleri, TPA’lar ve büyük acenteler',
-    timeline: '3 - 6 Hafta',
-  },
-  {
-    id: 'veri-ve-analitik-danismanligi',
-    title: '6. Veri ve Analitik Danışmanlığı',
-    subtitle: 'Veriyi Yönetim Kararlarına Dönüştüren Analitik Güç',
-    category: 'veri-analitik',
-    icon: 'BarChart3',
-    summary: 'Sigorta verilerini dağınık tablolardan kurtarıp gerçek zamanlı yönetim panellerine, müşteri kaybı tahminlerine ve kârlı portföy analizlerine dönüştürüyoruz.',
-    subCapabilities: [
-      'Sigorta verilerinin analizi ve veri kalitesi denetimi',
-      'Üst yönetim ve operasyon dashboard tasarımı',
-      'Yönetim raporlama sistemlerinin otomasyonu',
-      'Müşteri analitiği (LTV, segmentasyon, satın alma sıklığı)',
-      'Satış ve acente kanal performans analitiği',
-      'Hasar analitiği ve hasar/prim (Loss Ratio) takibi',
-      'Churn / müşteri kaybı analizi ve erken uyarı sistemleri',
-      'Tahminleme modelleri (Yenileme olasılığı, çapraz satış)',
-      'Veri odaklı karar destek sistemleri (Decision Support)',
-    ],
-    deliverables: [
-      'Power BI / Looker Sigorta Yönetim Dashboard Tasarımı',
-      'Müşteri Kaybı (Churn) Erken Uyarı Modeli Spesifikasyonu',
-      'Hasar / Prim Oranı Erken Teşhis Raporu',
-      'Satış Kanalları Kârlılık ve Verimlilik Matrisi',
-    ],
-    benefits: [
-      'Haftalar süren manuel rapor hazırlıklarının anlık panellere dönüşmesi',
-      'Müşteri ve portföy kayıplarının (churn) 60 gün önceden tespit edilebilmesi',
-      'Kârsız branş ve risklerin anında teşhis edilmesi',
-    ],
-    targetAudience: 'Veri odaklı yönetilmek isteyen sigorta yöneticileri, CFO/COO’lar ve portföy yöneticileri',
-    timeline: '3 - 5 Hafta',
-  },
-  {
-    id: 'dijital-pazarlama-ve-deneyim',
-    title: '7. Dijital Pazarlama ve Müşteri Deneyimi',
-    subtitle: 'Veri Odaklı Büyüme & Nitelikli Müşteri Edinimi Stratejisi',
-    category: 'pazarlama',
-    icon: 'Target',
-    summary: 'Sigortacılıkta müşteri edinme maliyetlerini düşüren, Google Ads ve sosyal medyadan gelen talepleri doğrudan üretime ve poliçeye çeviren büyüme kurguları.',
-    subCapabilities: [
-      'Dijital müşteri kazanımı (Customer Acquisition) stratejisi',
-      'Müşteri talep (lead) yönetimi ve anlık takip kurguları',
-      'Sigorta odaklı CRM stratejisi ve müşteri segmentasyonu',
-      'Dijital satış hunisi (Funnel) kurulumu ve A/B testleri',
-      'Müşteri deneyimi (CX) tasarımı ve memnuniyet ölçümü',
-      'Omnichannel iletişim (Web, WhatsApp, E-posta, SMS, Çağrı)',
-      'Sosyal medya ve eğitici sektörel içerik stratejisi',
-      'Dijital marka konumlandırması ve düşünce liderliği (Thought Leadership)',
-    ],
-    deliverables: [
-      'Sigorta Lead Generation & Google Ads Kampanya Şablonları',
-      'Satış Hunisi (Funnel) ve Yüksek Dönüşümlü İniş Sayfaları (Landing Pages)',
-      'Omnichannel Müşteri İletişim Akışları (WhatsApp + E-posta)',
-      'Aylık Sektörel İçerik & Sosyal Medya İletişim Planı',
-    ],
-    benefits: [
-      'Müşteri edinme maliyetinde (CAC) %35 tasarruf',
-      'Teklif talebinden satışa dönüş oranında 2 kat artış',
-      'Fiyat rekabetine girmeden danışmanlık algısıyla güven inşası',
-    ],
-    targetAudience: 'Dijitalden düzenli müşteri kazanımı ve üretim yapmak isteyen acenteler, brokerlar ve doğrudan satış kanalları',
-    timeline: 'Aylık Yönetim & Proje Bazlı',
-  },
-  {
-    id: 'sigorta-acenteleri-icin-dijitallesme',
-    title: '8. Sigorta Acenteleri İçin Dijitalleşme',
-    subtitle: 'Bulut CRM Destekli “Acentenizi Dijitalleştirin” Çözümü',
-    category: 'acente',
-    icon: 'Rocket',
-    summary: 'Bulut CRM ve online teklif altyapısıyla geleneksel acenteleri Excel ve defter takibinden kurtarıp, 7/24 teklif toplayan, WhatsApp ile vadesi gelen müşteriyi hatırlatan ve Google’dan müşteri çeken dijital işletmelere dönüştürüyoruz.',
-    subCapabilities: [
-      'Acenta dijital olgunluk analizi ve gelişim yol haritası',
-      'Bulut Sigorta CRM sistemi kurulumu ve veri aktarımı',
-      'Mobil uyumlu, SEO odaklı profesyonel acente web sitesi',
-      'Platform üzerinden online teklif ve karşılaştırma motoru',
-      'WhatsApp otomasyonu ile hızlı teklif ve evrak paylaşımı',
-      'Müşteri takip sistemi ve 360° portföy yaşam döngüsü yönetimi',
-      'Portföy & sözleşme yenileme otomasyonu (Vadeye 30/15/7 gün kala otomatik SMS/WhatsApp)',
-      'Yerel ve dijital pazarlama (Google Haritalar & Sigorta Arama Reklamları)',
-      'AI müşteri asistanı ile mesai saatleri dışında da teklif talebi yanıtlama',
-      'Yönetim dashboard’u ve günlük/haftalık satış raporlama ekranları',
-    ],
-    deliverables: [
-      'Bulut CRM Kurulum & Veri Aktarım Desteği',
-      'Anahtar Teslim Acente Web Sitesi & Online Teklif Formları',
-      'Otomatik WhatsApp & SMS Yenileme Şablonları',
-      'Google İşletme & Arama Kampanyası Başlangıç Paketi',
-      'Acente Ekibine Birebir Sistem Kullanım Eğitimi',
-    ],
-    benefits: [
-      'Portföy kaybı (churn) oranında %75 düşüş',
-      'Mesai saatleri dışında da kesintisiz online talep toplayabilme',
-      'Acente personeline harcanan manuel takip süresinde günde 3 saat tasarruf',
-    ],
-    targetAudience: 'Büyümek, gençleşmek ve yeni nesil müşterileri portföyüne katmak isteyen sigorta acenteleri ve brokerlar',
-    timeline: '3 - 6 Hafta (Anahtar Teslim)',
-  },
-];
-
-// DANIŞMANLIK PAKETLERİ
-export const PACKAGES: ConsultingPackage[] = [
-  {
-    id: 'acente-dijitallesme-paketi',
-    name: 'Acentenizi Dijitalleştirin (Bulut CRM Destekli)',
-    tagline: 'Bulut CRM ve Dijital Büyüme Stratejisiyle Acentenizi 7/24 Büyüyen Güç Merkezine Dönüştürün',
-    badge: 'En Popüler / Anahtar Teslim',
-    popular: true,
-    priceNote: 'Bulut CRM Kurulumu & 3 Ay Birebir Büyüme Danışmanlığı',
-    features: [
-      'Bulut Sigorta CRM Kurulumu & Portföy Veri Aktarımı',
-      'Acenta Dijital Olgunluk Analizi & Süreç Haritası',
-      'Modern, Mobil Uyumlu & SEO Odaklı Acente Web Sitesi',
-      'Karşılaştırmalı Online Teklif Toplama Motoru',
-      'WhatsApp Otomasyonu (Teklif & Hasar Süreç Bildirimi)',
-      'Otomatik Müşteri & Portföy Yenileme Hatırlatmaları (30/15/7 gün)',
-      'Yapay Zekâ (AI) Destekli 7/24 Müşteri Asistanı',
-      'Google Haritalar & Yerel Sigorta Arama Reklamları Kurgusu',
-      'Akıllı Çapraz Satış (Cross-Sell) ve Mutabakat Modülü',
-      'Acente Ekibine Birebir Sistem Kullanım ve Satış Eğitimi',
-    ],
-    suitableFor: 'Portföyünü korumak, müşteri kaybetmemek ve dijitalden yeni üretim hacmi yaratmak isteyen tüm sigorta acenteleri ve brokerlar.',
-  },
-  {
-    id: 'ai-ve-dijital-donusum-paketi',
-    name: 'Kurumsal AI & Dijital Dönüşüm',
-    tagline: 'Sigorta Şirketleri ve Kurumsal Brokerlar İçin Uçtan Uca Teknoloji Stratejisi',
-    badge: 'Kurumsal / Enterprise',
-    priceNote: 'Kapsam Analizi Sonrası Proje Bazlı Teklif',
-    features: [
-      'Mevcut İş Süreçlerinin As-Is / To-Be Analizi',
-      'Sigorta Süreçleri İçin Kurumsal AI Kullanım Senaryoları (Use Cases)',
-      'Evrak, Fatura ve Hasar Dokümanı OCR/NLP Otomasyon Şartnamesi',
-      'Hasar ve Operasyon Süreçleri İş Akışı (RPA) Mimarisi',
-      'Açık Sigortacılık (Open Insurance) & API Entegrasyon Planı',
-      'Teknoloji Tedarikçi (Vendor) Seçimi & Sözleşme Danışmanlığı',
-      'Kurum İçi İnovasyon Ekibine Dijital Dönüşüm Mentorluğu',
-    ],
-    suitableFor: 'Operasyonel verimlilik arayan, yapay zekâ stratejisini netleştirmek isteyen sigorta şirketleri ve büyük aracı kurumlar.',
-  },
-  {
-    id: 'insurtech-hizlandirma-paketi',
-    name: 'InsurTech & Gömülü Sigorta (Embedded) Danışmanlığı',
-    tagline: 'Fikirden Pazar Liderliğine InsurTech & Açık Sigortacılık API Mimarisi',
-    badge: 'Start-Up & FinTech',
-    priceNote: 'Aylık Stratejik Danışmanlık / Sprint Bazlı',
-    features: [
-      'InsurTech Girişim Değer Önerisi & MVP Kapsam Belirleme',
-      'SEDDK Mevzuat & Lisanslama Uyumluluk Yol Haritası',
-      'Sigorta Şirketleri ile API Entegrasyon Köprüsü',
-      'Gömülü Sigorta (Embedded Insurance) B2B2C Ürün Kurgusu',
-      'Kullanıcı Deneyimi (UX) & Satın Alma Akışı Doğrulaması',
-      'Büyüme (Growth) & Dijital Müşteri Kazanım Hunisi Kurgusu',
-    ],
-    suitableFor: 'Sigorta alanında yeni ürün geliştiren start-up’lar, FinTech platformları ve inovatif e-ticaret ekosistemleri.',
-  },
-];
-
-// VAKA ANALİZLERİ
-export const CASE_STUDIES: CaseStudy[] = [
-  {
-    id: 'vaka-acente-dijitallesme',
-    clientType: 'Sigorta Acentesi (İstanbul & Ankara)',
-    title: 'Bulut Sigorta CRM & “Acentenizi Dijitalleştirin” ile Yenileme Oranının %93’e Yükseltilmesi',
-    challenge: 'Excel tablolarında kaybolan yenileme tarihleri, mesai saatleri dışında kaçırılan teklif talepleri ve sadece geleneksel referanslara dayalı yavaş büyüme.',
-    solution: 'Bulut Sigorta CRM altyapısı kuruldu, web sitesi üzerinden online teklif toplama başlatıldı ve vadeye 30 gün kala devreye giren otomatik WhatsApp hatırlatma botu entegre edildi.',
-    results: [
-      { label: 'Portföy Yenileme Oranı', value: '%93' },
-      { label: 'Kaçırılan Müşteri Oranında Düşüş', value: '%78' },
-      { label: 'Dijitalden Aylık Yeni Üretim Hacmi', value: '180+' },
-    ],
-  },
-  {
-    id: 'vaka-ai-dokuman-analizi',
-    clientType: 'Kurumsal Sigorta Brokerı',
-    title: 'Hasar Evrakı ve Fatura Süreçlerinde Yapay Zekâ Destekli Doküman Analizi',
-    challenge: 'Günlük 350+ hasar evrakının ve hastane faturalarının eksperler tarafından manuel incelenmesi sonucu uzayan dosya kapanış süreleri ve yüksek operasyonel maliyet.',
-    solution: 'Görsel LLM ve OCR destekli yapay zekâ boru hattı tasarlandı; faturalardaki kalemler anında teminat şartnamesiyle eşleştirilerek ön onay mekanizması kuruldu.',
-    results: [
-      { label: 'Dosya İnceleme Hızı', value: '8x Kat' },
-      { label: 'Operasyonel İşgücü Tasarrufu', value: '%60' },
-      { label: 'Hatasız Veri Ayrıştırma', value: '%99.2' },
-    ],
-  },
-  {
-    id: 'vaka-insurtech-embedded',
-    clientType: 'FinTech & B2B E-Ticaret Platformu',
-    title: 'Gömülü Sigorta (Embedded Insurance) & API Entegrasyonu ile Yeni Gelir Kanalı',
-    challenge: 'Platform üzerinden ticaret yapan 12.000 KOBİ’ye sipariş anında mikro-lojistik ve alacak sigortası sunma ihtiyacı.',
-    solution: 'Açık sigortacılık API mimarisi tasarlandı, sigorta şirketi entegrasyonu tamamlandı ve ödeme adımına tek tıkla güvence seçeneği yerleştirildi.',
-    results: [
-      { label: 'Pazara Çıkış Süresi', value: '45 Gün' },
-      { label: 'Sepet İçi Mikro-Sigorta Satın Alma', value: '%24' },
-      { label: 'Kullanıcı Başı Yeni Gelir (ARPU)', value: '+%38' },
-    ],
-  },
-];
-
-// DANIŞMANLIK METODOLOJİSİ (4 ADIM)
-export const METHODOLOGY_STEPS = [
+export const PROCESS_STEPS: ProcessStep[] = [
   {
     step: '01',
-    title: 'Dijital Olgunluk & İhtiyaç Keşfi',
-    description: 'Mevcut süreçlerinizi, acentenizin/kurumunuzun kullandığı araçları, manuel tıkanıklıkları ve teknoloji eksiklerini yerinde analiz ediyoruz.',
+    title: 'Tanışma ve İhtiyaç Dinleme',
+    description:
+      '30 dakikalık ücretsiz ön görüşmede acente veya brokerlığınızın bugünkü çalışma düzenini, beklentilerini ve önceliklerini birlikte netleştiriyoruz.',
   },
   {
     step: '02',
-    title: 'Bulut CRM Mimarisi & Büyüme Stratejisi',
-    description: 'Bulut CRM altyapısı, online teklif motoru ve yapay zekâ senaryolarını içeren uygulanabilir büyüme adımlarını projelendiriyoruz.',
+    title: 'Sade ve Size Özel Plan',
+    description:
+      'Gereksiz karmaşadan uzak, yalnızca kurumunuza gerçekten fayda sağlayacak CRM ve dijitalleşme adımlarını belirliyoruz.',
   },
   {
     step: '03',
-    title: 'Uygulama, Entegrasyon & Otomasyon',
-    description: 'Sigorta CRM kurulumu, web sitesi, WhatsApp botları, API bağlantıları ve Google Ads kurgularını anahtar teslim devreye alıyoruz.',
-  },
-  {
-    step: '04',
-    title: 'Eğitim, Büyüme & Sürekli Destek',
-    description: 'Acente ekibinize CRM ve dijital araçlar için birebir eğitim veriyor, satış ve dönüşüm metriklerini sürekli optimize ediyoruz.',
+    title: 'Kurulum ve Birebir Eğitim',
+    description:
+      'Tüm kurulumları anahtar teslim tamamlıyor, ekibinizin sistemi rahatlıkla kullanabilmesi için birebir eğitim ve destek sunuyoruz.',
   },
 ];
 
-// SSS
-export const FAQ_ITEMS: FaqItem[] = [
+export const IMPACT_HIGHLIGHTS: ImpactHighlight[] = [
+  {
+    value: '8+ Yıl',
+    label: 'Sektör Deneyimi',
+    context: 'Sigorta teknolojileri, acente ve broker danışmanlığı',
+  },
+  {
+    value: '65+',
+    label: 'Acente & Broker Dönüşümü',
+    context: 'Başarıyla tamamlanan CRM ve dijitalleşme süreci',
+  },
+  {
+    value: '%93',
+    label: 'Yenileme Başarısı',
+    context: 'Düzenli takip sistemine geçen acente ve broker ortalaması',
+  },
+  {
+    value: '3–4 Hafta',
+    label: 'Hızlı Geçiş',
+    context: 'Planlamadan canlı kullanıma ve ekip eğitimine',
+  },
+];
+
+export const FAQ_LIST: FaqItem[] = [
   {
     id: 'f1',
-    category: 'Danışmanlık',
-    question: 'Tuğçe Utku kimdir ve danışmanlık yaklaşımı nasıldır?',
-    answer: 'Tuğçe Utku, sigorta teknolojileri, bulut CRM sistemleri ve dijital büyüme alanında 8+ yıllık tecrübeye sahip bir InsurTech danışmanıdır. Sigorta aracılarına, brokerlara ve sigorta şirketlerine uçtan uca dijital dönüşüm, bulut CRM entegrasyonu ve veri odaklı büyüme danışmanlığı sunmaktadır.',
+    question: 'Danışmanlık süreci nasıl başlıyor?',
+    answer:
+      'İlk adım olarak 30 dakikalık ücretsiz bir online tanışma görüşmesi yapıyoruz. Bu görüşmede acente veya brokerlığınızın ihtiyaçlarını dinliyor ve sizin için en uygun yol haritasını paylaşıyoruz.',
   },
   {
     id: 'f2',
-    category: 'Sigorta CRM',
-    question: 'Bulut Sigorta CRM sistemi acenteme ne kazandırır?',
-    answer: 'Bulut tabanlı Sigorta CRM; kurulum gerektirmeyen yapısıyla tek ekrandan çoklu şirketten teklif alma, otomatik WhatsApp/SMS vade hatırlatma, poliçe & hasar takibi, çapraz satış ve ön muhasebe modülleriyle acentenizi 7/24 çalışan bir dijital satış gücüne dönüştürür.',
+    question: 'Sigorta CRM sistemine geçiş zor mu? Mevcut kayıtlarımız ne olur?',
+    answer:
+      'Hayır, geçiş sürecini sizin adınıza adım adım yönetiyoruz. Mevcut müşteri ve poliçe kayıtlarınız düzenli şekilde yeni sisteme aktarılır ve ekibinize birebir kullanım eğitimi verilir.',
   },
   {
     id: 'f3',
-    category: 'Acenteler',
-    question: '“Acentenizi Dijitalleştirin” paketi tam olarak neleri içerir?',
-    answer: 'Bulut CRM lisanslama ve kurulumu, müşteri portföy aktarımı, mobil uyumlu modern web sitesi, 7/24 online teklif toplama motoru, 30/15 gün kala otomatik WhatsApp bildirimleri, yapay zekâ müşteri asistanı, Google yerel reklam kurgusu ve 3 ay kesintisiz danışmanlık desteğini içerir.',
+    question: 'Kurulum ne kadar sürer?',
+    answer:
+      'Acente veya brokerlığınızın kapsamına göre değişmekle birlikte, CRM kurulumu, dijital düzenlemeler ve ekip eğitimleri genellikle 3 ila 4 hafta içinde tamamlanır.',
   },
   {
     id: 'f4',
-    category: 'Yapay Zekâ',
-    question: 'Sigortacılıkta yapay zekâyı (AI) hangi somut alanlarda uygulayabiliriz?',
-    answer: 'Hasar/fatura/ekspertiz evraklarının anında OCR & NLP ile yapılandırılmış veriye dönüştürülmesi, 7/24 teklif ve bilgi asistanı sağlayan LLM tabanlı AI ajanları, müşteri kayıp (churn) riskini erkenden tespit eden makine öğrenmesi modelleri ve doğru anda doğru ürünü öneren çapraz satış tahminleme algoritmalarında somut başarılar elde ediyoruz.',
-  },
-  {
-    id: 'f5',
-    category: 'Süreç',
-    question: 'Danışmanlık süreci ne kadar sürer ve nasıl başlar?',
-    answer: 'İlk olarak 30 dakikalık ücretsiz online keşif toplantısında ihtiyaçlarınızı ve acentenizin dijital olgunluğunu dinliyoruz. Bulut CRM ve acente dijitalleşme paketleri 3-4 hafta içerisinde anahtar teslim devreye alınır.',
+    question: 'Kurulum bittikten sonra destek almaya devam edebilir miyiz?',
+    answer:
+      'Evet. Kurulum sonrasında da ekibinizin soruları, yeni ihtiyaçları ve dijital büyüme hedefleriniz için düzenli danışmanlık desteği sağlamaya devam ediyoruz.',
   },
 ];
 
-// WEB SİTESİ PLANLAMA
-export const WEBSITE_PLANNING_SECTIONS: WebsiteSectionPlan[] = [
+// Resmi LinkedIn embed linki (https://www.linkedin.com/embed/feed/update/urn:li:activity:...)
+// eklendiğinde kart otomatik olarak canlı LinkedIn gönderisini gömer.
+export const LINKEDIN_POSTS: LinkedInPost[] = [
   {
-    id: 'hero-konumlandirma',
-    title: '1. Hero & Net Konumlandırma Bölümü',
-    purpose: 'Bulut Sigorta CRM ve stratejik danışmanlık gücünü öne çıkarmak.',
-    mustHaveElements: [
-      'Bulut CRM Destekli Dijital Sigortacılık Danışmanlığı.',
-      'Acenteler, brokerlar ve kurumlar için teknoloji ve büyüme çözümleri.',
-      'CRM Demo & 30 Dk Keşif Aksiyonları.',
-    ],
-    recommendedCopyPrompt: 'Tuğçe Utku liderliğinde acentelere güven ve teknolojik güç sunulmalı.',
-    trustFactor: 'Bulut Sigorta CRM Mimarisi',
+    id: 'li-1',
+    topic: 'Sigorta CRM & Portföy Düzeni',
+    title: 'Acente ve brokerlar için düzenli müşteri takibi neden ilk adım olmalı?',
+    excerpt:
+      'Yeni müşteri kazanmak kadar, mevcut portföyü kaybetmemek de büyümenin temelidir. Dağınık listeler yerine tek bir düzenli ekranda çalışmak her gün saatler kazandırır.',
+    fullText:
+      'Yeni müşteri kazanmak kadar, mevcut portföyü kaybetmemek de büyümenin temelidir. Dağınık listeler yerine tek bir düzenli ekranda çalışmak her gün saatler kazandırır. Düzenli bir CRM yapısına geçen acente ve brokerlarda ekip içi koordinasyon güçlenir, yaklaşan yenilemeler zamanında takip edilir ve müşteri memnuniyeti kalıcı olarak artar.',
+    postUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
+  },
+  {
+    id: 'li-2',
+    topic: 'Acente & Broker Dijitalleşmesi',
+    title: 'Mesai saatleri dışında gelen teklif taleplerini kaçırmamak',
+    excerpt:
+      'Sigorta müşterileri artık akşam saatlerinde ve hafta sonu da araştırma yapıyor. Sade bir web sitesi ve hızlı WhatsApp akışı ile 7/24 ulaşılabilir olmak büyük fark yaratıyor.',
+    fullText:
+      'Sigorta müşterileri artık akşam saatlerinde ve hafta sonu da araştırma yapıyor. Sade bir web sitesi ve hızlı WhatsApp akışı ile 7/24 ulaşılabilir olmak büyük fark yaratıyor. Müşteriye ilk dönüş yapan acente veya broker olmak, yalnızca satış oranını değil kuruma duyulan güveni de doğrudan yukarı taşır.',
+    postUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
+  },
+  {
+    id: 'li-3',
+    topic: 'Yenileme ve Müşteri İletişimi',
+    title: 'Poliçe yenileme zamanını müşteriden önce hatırlamak',
+    excerpt:
+      'Müşteriyle yalnızca poliçe kesilirken değil, yenileme öncesinde ve ihtiyaç anında temas kurmak uzun vadeli portföy bağlılığının en güçlü yoludur.',
+    fullText:
+      'Müşteriyle yalnızca poliçe kesilirken değil, yenileme öncesinde ve ihtiyaç anında temas kurmak uzun vadeli portföy bağlılığının en güçlü yoludur. Vade öncesi düzenli bilgilendirme ve doğru ek teminat önerileriyle hem yenileme oranları yükselir hem de mevcut müşterilerden gelen referanslar artar.',
+    postUrl: 'https://www.linkedin.com/in/tugceutku/recent-activity/all/',
   },
 ];
-
-// Compatibility aliases
-export const FAQ_LIST = FAQ_ITEMS;
-export const WEBSITE_BLUEPRINT = WEBSITE_PLANNING_SECTIONS;
-export const SERVICES = ALL_8_SERVICES;

@@ -1,80 +1,35 @@
-export interface FlagshipService {
+export interface SimpleService {
   id: string;
+  number: string;
   title: string;
   summary: string;
-  icon: string;
-  badge?: string;
-  keyBullets: string[];
+  highlights: string[];
 }
 
-export interface ServiceItem {
-  id: string;
+export interface ProcessStep {
+  step: string;
   title: string;
-  subtitle: string;
-  category: 'dijital-donusum' | 'yapay-zeka' | 'insurtech' | 'dijital-urunler' | 'operasyon' | 'veri-analitik' | 'pazarlama' | 'acente';
-  icon: string;
-  summary: string;
-  deliverables: string[];
-  subCapabilities: string[];
-  benefits: string[];
-  targetAudience: string;
-  timeline: string;
+  description: string;
 }
 
-export interface WebsiteSectionPlan {
-  id: string;
-  title: string;
-  purpose: string;
-  mustHaveElements: string[];
-  recommendedCopyPrompt: string;
-  trustFactor: string;
-}
-
-export interface ConsultingPackage {
-  id: string;
-  name: string;
-  tagline: string;
-  badge?: string;
-  priceNote: string;
-  features: string[];
-  notIncluded?: string[];
-  suitableFor: string;
-  popular?: boolean;
-}
-
-export interface CaseStudy {
-  id: string;
-  clientType: string;
-  title: string;
-  challenge: string;
-  solution: string;
-  results: {
-    label: string;
-    value: string;
-  }[];
+export interface ImpactHighlight {
+  value: string;
+  label: string;
+  context: string;
 }
 
 export interface FaqItem {
   id: string;
   question: string;
   answer: string;
-  category: string;
 }
 
-export interface AssessmentAnswer {
-  category: 'bireysel' | 'kobi' | 'acente';
-  currentCoverage: string;
-  digitalPainPoint: string;
-  cyberExposure: string;
-  budgetOrScale: string;
-}
-
-export interface AssessmentResult {
-  score: number;
-  grade: 'Kritik Risk' | 'Gelişime Açık' | 'Yarı Dijital' | 'İleri Seviye';
+export interface LinkedInPost {
+  id: string;
+  topic: string;
   title: string;
-  analysis: string;
-  identifiedGaps: string[];
-  recommendedSteps: string[];
-  suggestedPackage: string;
+  excerpt: string;
+  fullText: string;
+  postUrl: string;
+  embedUrl?: string;
 }
