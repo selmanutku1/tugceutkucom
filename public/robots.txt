@@ -1,0 +1,46 @@
+# robots.txt — Tuğçe Utku (https://www.tugceutku.com)
+# Search Engines & Generative AI Crawlers (SEO & GEO)
+
+User-agent: *
+Allow: /
+Disallow: /yonetim
+Disallow: /dashboard
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /yonetim
+Disallow: /dashboard
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /yonetim
+Disallow: /dashboard
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://www.tugceutku.com/sitemap.xml
+# LLM / GEO Content Guide: https://www.tugceutku.com/llms.txt
+# RSS Feed: https://www.tugceutku.com/rss.xml

@@ -860,6 +860,116 @@ async function startServer() {
     }
   };
 
+  // SEO & GEO Endpoints (dynamically include custom blog posts alongside static catalog)
+  const resolvePublicFile = (filename: string) =>
+    path.resolve(__dirname, IS_PROD ? 'dist' : 'public', filename);
+
+  const resolveBaseUrl = (req: Request) => {
+    const envUrl = process.env.APP_URL?.trim();
+    if (envUrl) return envUrl.replace(/\/+$/, '');
+    const proto = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'https';
+    const host = req.get('host');
+    return host ? `${proto}://${host}` : 'https://www.tugceutku.com';
+  };
+
+  interface CustomPostRecord {
+    slug?: string;
+    title?: string;
+    spot?: string;
+    categoryLabel?: string;
+    publishedIso?: string;
+  }
+
+  app.get('/robots.txt', async (req: Request, res: Response) => {
+    try {
+      const baseUrl = resolveBaseUrl(req);
+      const raw = await fs.readFile(resolvePublicFile('robots.txt'), 'utf8');
+      res.type('text/plain; charset=utf-8').send(
+        raw.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl)
+      );
+    } catch {
+      res.type('text/plain; charset=utf-8').send('User-agent: *\nAllow: /\n');
+    }
+  });
+
+  app.get('/sitemap.xml', async (req: Request, res: Response) => {
+    try {
+      const baseUrl = resolveBaseUrl(req);
+      let xml = await fs.readFile(resolvePublicFile('sitemap.xml'), 'utf8');
+      xml = xml.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl);
+
+      const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
+      const extraEntries = customPosts
+        .filter((p) => p.slug)
+        .map(
+          (p) =>
+            `  <url>\n    <loc>${escapeHtml(`${baseUrl}/blog/${p.slug}`)}</loc>\n    <lastmod>${escapeHtml(p.publishedIso || new Date().toISOString().slice(0, 10))}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`
+        )
+        .join('\n');
+
+      if (extraEntries) {
+        xml = xml.replace('</urlset>', `${extraEntries}\n</urlset>`);
+      }
+
+      res.type('application/xml; charset=utf-8').send(xml);
+    } catch {
+      res.status(404).end();
+    }
+  });
+
+  app.get('/llms.txt', async (req: Request, res: Response) => {
+    try {
+      const baseUrl = resolveBaseUrl(req);
+      let txt = await fs.readFile(resolvePublicFile('llms.txt'), 'utf8');
+      txt = txt.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl);
+
+      const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
+      const extraLines = customPosts
+        .filter((p) => p.slug && p.title)
+        .map((p) => `- [${p.title}](${baseUrl}/blog/${p.slug}): ${p.spot || ''}`)
+        .join('\n');
+
+      if (extraLines) {
+        txt = txt.replace(
+          '## İlgili Beslemeler (Feeds)',
+          `${extraLines}\n\n## İlgili Beslemeler (Feeds)`
+        );
+      }
+
+      res.type('text/plain; charset=utf-8').send(txt);
+    } catch {
+      res.status(404).end();
+    }
+  });
+
+  app.get('/rss.xml', async (req: Request, res: Response) => {
+    try {
+      const baseUrl = resolveBaseUrl(req);
+      let rss = await fs.readFile(resolvePublicFile('rss.xml'), 'utf8');
+      rss = rss.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl);
+
+      const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
+      const extraItems = customPosts
+        .filter((p) => p.slug && p.title)
+        .map((p) => {
+          const link = `${baseUrl}/blog/${p.slug}`;
+          const pubDate = p.publishedIso
+            ? new Date(p.publishedIso).toUTCString()
+            : new Date().toUTCString();
+          return `    <item>\n      <title>${escapeHtml(p.title || '')}</title>\n      <link>${escapeHtml(link)}</link>\n      <guid>${escapeHtml(link)}</guid>\n      <pubDate>${escapeHtml(pubDate)}</pubDate>\n      <category>${escapeHtml(p.categoryLabel || 'Blog')}</category>\n      <description>${escapeHtml(p.spot || '')}</description>\n    </item>`;
+        })
+        .join('\n');
+
+      if (extraItems) {
+        rss = rss.replace('<item>', `${extraItems}\n    <item>`);
+      }
+
+      res.type('application/rss+xml; charset=utf-8').send(rss);
+    } catch {
+      res.status(404).end();
+    }
+  });
+
   app.get(['/auth/linkedin/callback', '/auth/linkedin/callback/'], oauthCallbackHandler);
 
   if (!IS_PROD) {

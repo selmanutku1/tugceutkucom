@@ -14,9 +14,7 @@ export default function BrandLogo({ theme = 'light' }: BrandLogoProps) {
     <div className="inline-flex items-center gap-2.5 select-none whitespace-nowrap shrink-0">
       <div
         className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${
-          isDark
-            ? 'bg-white ring-1 ring-white/15'
-            : 'bg-white border border-slate-200/80'
+          isDark ? 'bg-white ring-1 ring-white/15' : 'bg-transparent'
         }`}
       >
         {!imgError ? (
@@ -25,20 +23,32 @@ export default function BrandLogo({ theme = 'light' }: BrandLogoProps) {
             alt="Tuğçe Utku Logo"
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover object-center scale-[1.9]"
+            className={`w-full h-full object-cover object-center scale-[1.95] ${
+              isDark ? '' : 'mix-blend-multiply brightness-[1.04] contrast-[1.06]'
+            }`}
           />
         ) : (
-          <span className="text-xs font-bold tracking-tight text-slate-900">
+          <span className="font-display text-sm font-extrabold tracking-tight text-[#0e2753]">
             TU
           </span>
         )}
       </div>
-      <span
-        className={`text-base font-semibold tracking-tight ${
-          isDark ? 'text-white' : 'text-slate-900'
-        }`}
-      >
-        Tuğçe Utku
+
+      <span className="font-display text-[13.5px] sm:text-[14.5px] tracking-[0.14em] uppercase leading-none flex items-center gap-1.5">
+        <span
+          className={`font-bold ${
+            isDark ? 'text-white' : 'text-[#0e2753]'
+          }`}
+        >
+          TUĞÇE
+        </span>
+        <span
+          className={`font-semibold ${
+            isDark ? 'text-cyan-300' : 'text-[#0c6278]'
+          }`}
+        >
+          UTKU
+        </span>
       </span>
     </div>
   );

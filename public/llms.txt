@@ -1,0 +1,44 @@
+# Tuğçe Utku — Dijital Dönüşüm, Strateji ve Sigorta Teknolojileri
+
+> Tuğçe Utku; dijital pazarlama, ürün stratejisi, sigortacılık teknolojileri (InsurTech), sigorta CRM sistemleri ve yapay zekâ uygulamaları alanlarında çalışan bir profesyoneldir. Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin büyümesini ve sürdürülebilir iş modellerini destekler.
+
+## Kişi ve Uzmanlık Özeti (Entity Summary)
+- **Ad Soyad:** Tuğçe Utku
+- **Konumlandırma (TR):** Dijital Dönüşüm, Strateji ve Sigorta Teknolojileri
+- **Positioning (EN):** Digital Transformation, Strategy & Insurance Technologies
+- **Resmî Web Sitesi:** https://www.tugceutku.com/
+- **LinkedIn Profili:** https://www.linkedin.com/in/tugceutku/
+- **Diller:** Türkçe (tr-TR), İngilizce (en-US)
+- **Ana Odak Alanları:**
+  1. Dijital Pazarlama ve Büyüme (SEO, performans pazarlaması, dönüşüm optimizasyonu, B2B müşteri kazanımı)
+  2. Ürün ve Büyüme Stratejisi (ürün konumlandırması, SaaS büyüme modelleri, self-servis satış, Go-to-Market)
+  3. Sigortacılık Teknolojileri ve Yapay Zekâ (InsurTech, sigorta CRM altyapıları, online satış kanalları, yapay zekâ karar sistemleri)
+  4. Stratejik Yönetim ve İş Geliştirme (ajans yönetimi, ekip koordinasyonu, B2B iş ortaklıkları)
+
+## Temel Sayfalar (Core Pages)
+- [Ana Sayfa](https://www.tugceutku.com/): Dijital dönüşüm, teknoloji ve strateji ekseninde genel bakış, uzmanlıklar, konu bazlı projeler, son 3 blog yazısı ve SSS ön izlemesi.
+- [Hakkımda](https://www.tugceutku.com/hakkimda): Tuğçe Utku'nun profesyonel yaklaşımı (Veri Odaklı Düşünme, Stratejik Bakış, Teknoloji ve İnovasyon, Bütünsel Pazarlama) ve kariyer perspektifi.
+- [Uzmanlık Alanlarım](https://www.tugceutku.com/uzmanlik-alanlarim): Dijital pazarlama, ürün stratejisi, InsurTech, yapay zekâ ve stratejik yönetim alanlarındaki detaylı yetkinlikler.
+- [Deneyim](https://www.tugceutku.com/deneyim): Teknoloji, ajans ve sigortacılık ekosistemindeki liderlik ve operasyon deneyimleri.
+- [Projeler](https://www.tugceutku.com/projeler): Sigorta CRM ve dijital acente dönüşümü, online satış kanalları, sigortacılıkta yapay zekâ araştırmaları ve sektörel organizasyon çalışmaları.
+- [Blog ve İçgörüler](https://www.tugceutku.com/blog): Dijital dönüşüm, InsurTech, yapay zekâ ve B2B büyüme stratejileri üzerine makaleler.
+- [Sıkça Sorulan Sorular (SSS)](https://www.tugceutku.com/sss): Çalışma alanları, danışmanlık modeli, sigortacılık teknolojileri ve iş birlikleri hakkında kategori bazlı soru-cevaplar.
+- [İletişim](https://www.tugceutku.com/iletisim): Profesyonel iş birliği, danışmanlık ve sektör görüşmeleri için iletişim formu.
+
+## Blog Makaleleri ve Sektörel Analizler (Articles)
+- [Dijital Dönüşümün Merkezinde Teknoloji ve Doğru Strateji Var](https://www.tugceutku.com/blog/dijital-donusumun-merkezinde-teknoloji-ve-dogru-strateji-var): Teknoloji yatırımlarının iş hedefleri, müşteri deneyimi ve ölçüm disiplini ile nasıl kalıcı dönüşüme dönüştüğünü inceler.
+- [Yapay Zekâ Sigortacılık Sektörünü Nasıl Dönüştürüyor?](https://www.tugceutku.com/blog/yapay-zeka-sigortacilik-sektorunu-nasil-donusturuyor): Müşteri iletişimi, hasar ve belge analizi, yenileme tahmini ve CRM veri kalitesi ekseninde sigortacılıkta yapay zekâ kullanımını ele alır.
+- [Sigorta Sektöründe CRM Teknolojilerinin Stratejik Önemi](https://www.tugceutku.com/blog/sigorta-sektorunde-crm-teknolojilerinin-stratejik-onemi): Sigorta acenteleri ve brokerlar için CRM sistemlerinin portföy koruma, vade yenileme ve çapraz satış üzerindeki etkisini analiz eder.
+- [Dijitalleşmek ile Gerçekten Dönüşmek Arasındaki Fark](https://www.tugceutku.com/blog/dijitallesmek-ile-gercekten-donusmek-arasindaki-fark): Süreçleri yalnızca yazılıma taşımak ile iş modelini müşteri değeri odağında yeniden tasarlamak arasındaki farkı açıklar.
+- [Sigortacılıkta Dijital Dönüşüm: Teknolojiden Daha Fazlası](https://www.tugceutku.com/blog/sigortacilikta-dijital-donusum-teknolojiden-daha-fazlasi): Sigorta sektöründe hız ve güven dengesini kuran hibrit müşteri deneyimi modelini değerlendirir.
+- [Sigorta Acenteleri İçin Dijitalleşmenin Yeni Dönemi](https://www.tugceutku.com/blog/sigorta-acenteleri-icin-dijitallesmenin-yeni-donemi): Acente ve brokerların dijital görünürlük, online teklif alma ve otomatik yenileme takibi adımlarını özetler.
+- [Sigortacılıkta Yapay Zekâ: Otomasyondan Akıllı Karar Sistemlerine](https://www.tugceutku.com/blog/sigortacilikta-yapay-zeka-otomasyondan-akilli-karar-sistemlerine): Yapay zekânın rutin otomasyonun ötesinde risk, fiyatlandırma ve portföy kararlarına katkısını inceler.
+- [Yapay Zekâ Çağında Müşteri Deneyimi Nasıl Değişiyor?](https://www.tugceutku.com/blog/yapay-zeka-caginda-musteri-deneyimi-nasil-degisiyor): Hızlı yanıt, kişiselleştirme ve insan danışmanlığının birleştiği yeni nesil müşteri deneyimi standartlarını ele alır.
+- [B2B Pazarlamada Lead Sayısından Daha Önemli Olan Nedir?](https://www.tugceutku.com/blog/b2b-pazarlamada-lead-sayisindan-daha-onemli-olan-nedir): Talep hacmi yerine ideal müşteri profili, nitelikli talep kalitesi ve ticari dönüşüm metriklerine odaklanır.
+- [SaaS Ürünlerinde Self-Servis Satış Modeli Nasıl Kurgulanır?](https://www.tugceutku.com/blog/saas-urunlerinde-self-servis-satis-modeli-nasil-kurgulanir): İlk değer anını kısaltan ürün içi karşılama akışı, net değer önerisi ve fiyatlandırma uyumunu anlatır.
+- [Pazarlama ve Satış Ekipleri Neden Aynı Hedefe Odaklanmalı?](https://www.tugceutku.com/blog/pazarlama-ve-satis-ekipleri-neden-ayni-hedefe-odaklanmali): Ortak CRM verisi ve paylaşılan gelir hedefleriyle pazarlama-satış uyumunun büyüme üzerindeki etkisini açıklar.
+- [Teknoloji Şirketlerinde Ürün Pazarlamasının Stratejik Rolü](https://www.tugceutku.com/blog/teknoloji-sirketlerinde-urun-pazarlamasinin-stratejik-rolu): Teknik özellikleri müşteri problemine ve ticari değere çeviren ürün konumlandırma ve pazara giriş stratejisini inceler.
+
+## İlgili Beslemeler (Feeds)
+- Sitemap XML: https://www.tugceutku.com/sitemap.xml
+- RSS Feed: https://www.tugceutku.com/rss.xml

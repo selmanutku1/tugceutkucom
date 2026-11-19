@@ -14,6 +14,7 @@ import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import { slugifyTurkish, useBlog } from '../context/BlogContext';
+import { upsertLinkTag, upsertMetaTag } from '../components/SeoHead';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import ExecutivePortrait from '../components/ExecutivePortrait';
 
@@ -58,36 +59,85 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   useEffect(() => {
     if (!post) return;
 
-    document.title = `${post.title} | ${brand.name}`;
-
     const origin =
-      typeof window !== 'undefined' ? window.location.origin : 'https://tugceutku.com';
+      typeof window !== 'undefined' ? window.location.origin : 'https://www.tugceutku.com';
     const canonicalUrl = `${origin}/blog/${post.slug}`;
+    const fullTitle = `${post.title} | ${brand.name}`;
+    const keywords = [...post.tags, post.categoryLabel, brand.name].join(', ');
+
+    document.title = fullTitle;
+    upsertMetaTag('name', 'description', post.spot);
+    upsertMetaTag('name', 'keywords', keywords);
+    upsertMetaTag(
+      'name',
+      'robots',
+      'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+    );
+    upsertLinkTag('canonical', canonicalUrl);
+
+    upsertMetaTag('property', 'og:type', 'article');
+    upsertMetaTag('property', 'og:title', fullTitle);
+    upsertMetaTag('property', 'og:description', post.spot);
+    upsertMetaTag('property', 'og:url', canonicalUrl);
+    upsertMetaTag('property', 'og:locale', isEn ? 'en_US' : 'tr_TR');
+    upsertMetaTag('property', 'article:published_time', post.publishedIso);
+    upsertMetaTag('property', 'article:author', brand.name);
+    upsertMetaTag('property', 'article:section', post.categoryLabel);
+    upsertMetaTag('name', 'twitter:title', fullTitle);
+    upsertMetaTag('name', 'twitter:description', post.spot);
+
+    const allText = post.sections
+      .map((section) => `${section.heading}. ${section.paragraphs.join(' ')}`)
+      .join(' ');
+    const wordCount = allText.trim().split(/\s+/).filter(Boolean).length;
+    const minutesMatch = post.readingTime.match(/\d+/);
+    const timeRequired = `PT${minutesMatch ? minutesMatch[0] : '5'}M`;
 
     const jsonLd = {
       '@context': 'https://schema.org',
       '@graph': [
         {
           '@type': 'BlogPosting',
+          '@id': `${canonicalUrl}#article`,
           headline: post.title,
+          alternativeHeadline: post.spot,
           description: post.spot,
+          abstract: post.spot,
+          keywords: post.tags.join(', '),
+          about: post.tags.map((tag) => ({
+            '@type': 'Thing',
+            name: tag,
+          })),
+          wordCount,
+          timeRequired,
+          isAccessibleForFree: true,
           datePublished: post.publishedIso,
           dateModified: post.publishedIso,
           inLanguage: isEn ? 'en-US' : 'tr-TR',
+          url: canonicalUrl,
           mainEntityOfPage: {
             '@type': 'WebPage',
             '@id': canonicalUrl,
           },
           author: {
             '@type': 'Person',
+            '@id': `${origin}/#person`,
             name: brand.name,
-            url: origin,
+            url: `${origin}/`,
+            sameAs: [brand.linkedin],
           },
           publisher: {
             '@type': 'Person',
+            '@id': `${origin}/#person`,
             name: brand.name,
+            url: `${origin}/`,
           },
           articleSection: post.categoryLabel,
+          articleBody: allText,
+          speakable: {
+            '@type': 'SpeakableSpecification',
+            cssSelector: ['h1', '.geo-summary'],
+          },
         },
         {
           '@type': 'BreadcrumbList',
@@ -96,7 +146,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               '@type': 'ListItem',
               position: 1,
               name: isEn ? 'Home' : 'Ana Sayfa',
-              item: origin,
+              item: `${origin}/`,
             },
             {
               '@type': 'ListItem',
@@ -128,7 +178,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
       const el = document.getElementById('blog-detail-jsonld');
       if (el) el.remove();
     };
-  }, [post, brand.name, isEn]);
+  }, [post, brand.name, brand.linkedin, isEn]);
 
   if (!post && isLoading) {
     return (
@@ -239,7 +289,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold tracking-tight text-slate-900 leading-[1.16] [text-wrap:balance]">
               {post.title}
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+            <p className="geo-summary text-base sm:text-lg text-slate-600 leading-relaxed">
               {post.spot}
             </p>
           </div>
