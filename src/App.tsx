@@ -25,7 +25,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 
 export const PAGE_META_DESCRIPTIONS: Record<'tr' | 'en', Record<string, string>> = {
   tr: {
-    '/': 'Tuğçe Utku’nun dijital dönüşüm, ürün stratejisi, sigortacılık teknolojileri (InsurTech), sigorta CRM ve yapay zekâ çalışmalarını ve içgörülerini keşfedin.',
+    '/': 'Dijital pazarlama, ürün stratejisi, sigortacılık teknolojileri ve yapay zekâ alanlarında çalışmalar ve sektörel içgörüler.',
     '/hakkimda':
       'Tuğçe Utku kimdir? Dijital pazarlama, ürün stratejisi, sigortacılık teknolojileri ve veri odaklı büyüme alanlarındaki profesyonel yaklaşımını keşfedin.',
     '/uzmanlik-alanlarim':

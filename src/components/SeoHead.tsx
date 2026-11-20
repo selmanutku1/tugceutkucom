@@ -23,7 +23,7 @@ const ROUTE_META: Record<'tr' | 'en', Record<string, RouteMeta>> = {
     '/': {
       title: 'Tuğçe Utku | Dijital Dönüşüm, Strateji ve Sigorta Teknolojileri',
       description:
-        'Tuğçe Utku — Dijital pazarlama, ürün stratejisi, sigortacılık teknolojileri (InsurTech), sigorta CRM ve yapay zekâ alanlarında çalışmalar, analizler ve içgörüler.',
+        'Dijital pazarlama, ürün stratejisi, sigortacılık teknolojileri ve yapay zekâ alanlarında çalışmalar ve sektörel içgörüler.',
       keywords:
         'Tuğçe Utku, dijital dönüşüm, sigortacılık teknolojileri, insurtech, yapay zekâ, sigorta CRM, ürün stratejisi, dijital pazarlama, B2B büyüme',
       schemaType: 'ProfilePage',
@@ -255,14 +255,24 @@ export default function SeoHead({ description }: SeoHeadProps) {
     );
     upsertLinkTag('canonical', canonicalUrl);
 
+    const defaultOgImage = `${origin}/og-share-card.png`;
     upsertMetaTag('property', 'og:type', 'website');
     upsertMetaTag('property', 'og:title', meta.title);
     upsertMetaTag('property', 'og:description', resolvedDescription);
     upsertMetaTag('property', 'og:url', canonicalUrl);
     upsertMetaTag('property', 'og:locale', isEn ? 'en_US' : 'tr_TR');
+    upsertMetaTag('property', 'og:image', defaultOgImage);
+    upsertMetaTag('property', 'og:image:secure_url', defaultOgImage);
+    upsertMetaTag('property', 'og:image:type', 'image/png');
+    upsertMetaTag('property', 'og:image:width', '1200');
+    upsertMetaTag('property', 'og:image:height', '630');
+    upsertMetaTag('property', 'og:image:alt', meta.title);
 
+    upsertMetaTag('name', 'twitter:card', 'summary_large_image');
     upsertMetaTag('name', 'twitter:title', meta.title);
     upsertMetaTag('name', 'twitter:description', resolvedDescription);
+    upsertMetaTag('name', 'twitter:image', defaultOgImage);
+    upsertMetaTag('name', 'twitter:image:alt', meta.title);
 
     // Clear stale blog detail schema when leaving an article
     const blogLd = document.getElementById('blog-detail-jsonld');

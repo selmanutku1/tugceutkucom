@@ -75,15 +75,7 @@ export default function Footer() {
         {/* Quiet Copyright */}
         <div className="pt-6 border-t border-white/10 text-xs text-slate-400 text-center md:text-left">
           <p>
-            <button
-              type="button"
-              onClick={() => navigate('/yonetim')}
-              className="hover:text-[#6EE0E8] transition-colors cursor-pointer"
-              title={isEn ? 'Blog Management' : 'Blog Yönetim Paneli'}
-            >
-              © {brand.name}
-            </button>
-            . {isEn ? 'All rights reserved.' : 'Tüm hakları saklıdır.'}
+            © {brand.name}. {isEn ? 'All rights reserved.' : 'Tüm hakları saklıdır.'}
           </p>
         </div>
       </div>

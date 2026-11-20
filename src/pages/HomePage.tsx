@@ -1,7 +1,16 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronDown,
+  Compass,
+  Cpu,
+  Linkedin,
+  MessageSquare,
+  ShieldCheck,
+} from 'lucide-react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { getSiteContent } from '../data/siteContentEn';
+import { FaqCategory } from '../types';
 import { useBlog } from '../context/BlogContext';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,6 +24,20 @@ import {
   StaggerGroup,
   StaggerItem,
 } from '../components/MotionPrimitives';
+
+function FaqCategoryIcon({ icon }: { icon: FaqCategory['icon'] }) {
+  const iconClass = 'w-5 h-5 text-brand-teal';
+  switch (icon) {
+    case 'compass':
+      return <Compass className={iconClass} />;
+    case 'shield':
+      return <ShieldCheck className={iconClass} />;
+    case 'cpu':
+      return <Cpu className={iconClass} />;
+    case 'message':
+      return <MessageSquare className={iconClass} />;
+  }
+}
 
 export default function HomePage() {
   const { navigate } = useRouter();
@@ -39,15 +62,33 @@ export default function HomePage() {
   } = getSiteContent(lang);
   const posts = getPosts(lang);
 
+  const [selectedFaqCategoryId, setSelectedFaqCategoryId] = useState<string | null>(null);
   const [openPreviewFaqId, setOpenPreviewFaqId] = useState<string | null>('soru-1');
 
   const latestPosts = posts.slice(0, 3);
-  const previewFaqs = [
+  const defaultPreviewFaqs = [
     faqCategories[0].questions[0],
     faqCategories[1].questions[0],
     faqCategories[1].questions[2],
     faqCategories[3].questions[0],
   ];
+
+  const activeFaqCategory = selectedFaqCategoryId
+    ? faqCategories.find((cat) => cat.id === selectedFaqCategoryId) || null
+    : null;
+  const displayedFaqs = activeFaqCategory
+    ? activeFaqCategory.questions
+    : defaultPreviewFaqs;
+
+  const handleSelectFaqCategory = (category: FaqCategory) => {
+    if (selectedFaqCategoryId === category.id) {
+      setSelectedFaqCategoryId(null);
+      setOpenPreviewFaqId(defaultPreviewFaqs[0]?.id ?? null);
+    } else {
+      setSelectedFaqCategoryId(category.id);
+      setOpenPreviewFaqId(category.questions[0]?.id ?? null);
+    }
+  };
 
   return (
     <div>
@@ -497,34 +538,69 @@ export default function HomePage() {
 
       {/* 7. SIKÇA SORULAN SORULAR (KISA ÖN İZLEME) */}
       <section className="py-16 sm:py-22 bg-transparent border-b border-[#012253]/8">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-10">
-          <Reveal className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
-            <div className="max-w-2xl space-y-3">
-              <p className="text-sm font-medium text-brand-teal">
-                {isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular'}
-              </p>
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
-                {isEn ? 'Key Questions' : 'Merak Edilenler'}
-              </h2>
-              <p className="text-base text-slate-600 leading-relaxed">
-                {isEn
-                  ? 'Find answers to common questions about my focus areas, consulting approach, and professional collaborations.'
-                  : 'Çalışma alanlarım, danışmanlık yaklaşımım ve profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını burada bulabilirsiniz.'}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => navigate('/sss')}
-              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <span>{isEn ? 'View All Questions' : 'Tüm Soruları Görüntüle'}</span>
-              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-            </button>
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 space-y-8">
+          <Reveal className="max-w-2xl mx-auto sm:mx-0 space-y-3 text-center sm:text-left">
+            <p className="text-sm font-medium text-brand-teal">
+              {isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular'}
+            </p>
+            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
+              {isEn ? 'Key Questions' : 'Merak Edilenler'}
+            </h2>
+            <p className="text-base text-slate-600 leading-relaxed">
+              {isEn
+                ? 'Find answers to common questions about my focus areas, consulting approach, and professional collaborations.'
+                : 'Çalışma alanlarım, danışmanlık yaklaşımım ve profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını burada bulabilirsiniz.'}
+            </p>
           </Reveal>
 
-          <Reveal className="divide-y divide-slate-200 border-t border-b border-slate-200">
-            {previewFaqs.map((faq) => {
+          {/* Interactive FAQ Categories (matching FAQ page) */}
+          <StaggerGroup
+            staggerDelay={0.06}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+          >
+            {faqCategories.map((category) => {
+              const isSelected = selectedFaqCategoryId === category.id;
+              return (
+                <StaggerItem key={category.id} distance={20}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectFaqCategory(category)}
+                    aria-pressed={isSelected}
+                    className={`w-full min-h-[58px] p-3.5 rounded-xl border transition-all duration-200 flex items-center gap-3 text-left cursor-pointer ${
+                      isSelected
+                        ? 'border-brand-teal bg-brand-teal-light/85 shadow-xs ring-1 ring-brand-teal/20'
+                        : 'border-[#012253]/10 bg-white/75 backdrop-blur-md hover:border-brand-teal-soft hover:bg-white/95'
+                    }`}
+                  >
+                    <span
+                      className={`w-9 h-9 rounded-lg border flex items-center justify-center shrink-0 transition-colors ${
+                        isSelected
+                          ? 'bg-white border-brand-teal-soft'
+                          : 'bg-white border-slate-200/80'
+                      }`}
+                    >
+                      <FaqCategoryIcon icon={category.icon} />
+                    </span>
+                    <div className="min-w-0">
+                      <p
+                        className={`text-sm font-semibold truncate transition-colors ${
+                          isSelected ? 'text-brand-navy' : 'text-slate-900'
+                        }`}
+                      >
+                        {category.title}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {category.questions.length} {isEn ? 'questions' : 'soru'}
+                      </p>
+                    </div>
+                  </button>
+                </StaggerItem>
+              );
+            })}
+          </StaggerGroup>
+
+          <Reveal className="divide-y divide-slate-200/90 border-t border-b border-slate-200/90">
+            {displayedFaqs.map((faq) => {
               const isOpen = openPreviewFaqId === faq.id;
               return (
                 <div key={faq.id}>
@@ -559,6 +635,22 @@ export default function HomePage() {
                 </div>
               );
             })}
+          </Reveal>
+
+          {/* Bottom Centered "View All Questions" Action */}
+          <Reveal className="pt-2 flex justify-center">
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  selectedFaqCategoryId ? `/sss#${selectedFaqCategoryId}` : '/sss'
+                )
+              }
+              className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#012253]/12 bg-white/80 hover:bg-white hover:border-brand-teal/40 text-sm font-semibold text-brand-navy hover:text-brand-teal transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs cursor-pointer whitespace-nowrap"
+            >
+              <span>{isEn ? 'View All Questions' : 'Tüm Soruları Görüntüle'}</span>
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </button>
           </Reveal>
         </div>
       </section>
