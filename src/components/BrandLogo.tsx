@@ -1,31 +1,33 @@
 import { useState } from 'react';
 
-const BRAND_LOGO = '/assets/aistudio/Gemini_Generated_Image_u0c53tu0c53tu0c5_9f641ea2.jpg';
+const FULL_BRAND_LOGO = '/assets/aistudio/IMG_8967_231027ea.png';
+const MONOGRAM_LOGO = '/assets/aistudio/IMG_8969_35f4cedb.png';
 
 interface BrandLogoProps {
   theme?: 'light' | 'dark';
+  variant?: 'full' | 'icon';
 }
 
-export default function BrandLogo({ theme = 'light' }: BrandLogoProps) {
+export default function BrandLogo({
+  theme = 'light',
+  variant = 'full',
+}: BrandLogoProps) {
   const isDark = theme === 'dark';
   const [imgError, setImgError] = useState(false);
 
-  return (
-    <div className="inline-flex items-center gap-2.5 select-none whitespace-nowrap shrink-0">
+  if (variant === 'icon') {
+    return (
       <div
-        className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${
-          isDark ? 'bg-white ring-1 ring-white/15' : 'bg-transparent'
+        className={`inline-flex items-center justify-center select-none shrink-0 ${
+          isDark ? 'bg-white p-1.5 rounded-xl ring-1 ring-white/15' : ''
         }`}
       >
         {!imgError ? (
           <img
-            src={BRAND_LOGO}
-            alt="Tuğçe Utku Logo"
-            referrerPolicy="no-referrer"
+            src={MONOGRAM_LOGO}
+            alt="TU — Tuğçe Utku"
             onError={() => setImgError(true)}
-            className={`w-full h-full object-cover object-center scale-[1.95] ${
-              isDark ? '' : 'mix-blend-multiply brightness-[1.04] contrast-[1.06]'
-            }`}
+            className="h-9 w-auto object-contain"
           />
         ) : (
           <span className="font-display text-sm font-extrabold tracking-tight text-[#0e2753]">
@@ -33,23 +35,29 @@ export default function BrandLogo({ theme = 'light' }: BrandLogoProps) {
           </span>
         )}
       </div>
+    );
+  }
 
-      <span className="font-display text-[13.5px] sm:text-[14.5px] tracking-[0.14em] uppercase leading-none flex items-center gap-1.5">
-        <span
-          className={`font-bold ${
-            isDark ? 'text-white' : 'text-[#0e2753]'
+  return (
+    <div
+      className={`inline-flex items-center select-none whitespace-nowrap shrink-0 ${
+        isDark ? 'bg-white px-3.5 py-2 rounded-xl ring-1 ring-white/15' : ''
+      }`}
+    >
+      {!imgError ? (
+        <img
+          src={FULL_BRAND_LOGO}
+          alt="Tuğçe Utku"
+          onError={() => setImgError(true)}
+          className={`w-auto object-contain ${
+            isDark ? 'h-8 sm:h-9' : 'h-9 sm:h-11'
           }`}
-        >
-          TUĞÇE
+        />
+      ) : (
+        <span className="font-display text-sm font-bold tracking-[0.14em] uppercase text-[#0e2753]">
+          TUĞÇE UTKU
         </span>
-        <span
-          className={`font-semibold ${
-            isDark ? 'text-cyan-300' : 'text-[#0c6278]'
-          }`}
-        >
-          UTKU
-        </span>
-      </span>
+      )}
     </div>
   );
 }

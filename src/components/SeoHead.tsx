@@ -210,7 +210,11 @@ export function upsertLinkTag(rel: string, href: string) {
   el.setAttribute('href', href);
 }
 
-export default function SeoHead() {
+interface SeoHeadProps {
+  description?: string;
+}
+
+export default function SeoHead({ description }: SeoHeadProps) {
   const { pathname } = useRouter();
   const { lang } = useLanguage();
   const { getPosts } = useBlog();
@@ -233,11 +237,12 @@ export default function SeoHead() {
     const canonicalUrl = `${origin}${normalizedPath === '/' ? '/' : normalizedPath}`;
 
     const meta = ROUTE_META[lang][normalizedPath] || ROUTE_META[lang]['/'];
+    const resolvedDescription = description || meta.description;
     const { brand, expertiseAreas, projectItems } = getSiteContent(lang);
     const posts = getPosts(lang);
 
     document.title = meta.title;
-    upsertMetaTag('name', 'description', meta.description);
+    upsertMetaTag('name', 'description', resolvedDescription);
     if (meta.keywords) {
       upsertMetaTag('name', 'keywords', meta.keywords);
     }
@@ -252,12 +257,12 @@ export default function SeoHead() {
 
     upsertMetaTag('property', 'og:type', 'website');
     upsertMetaTag('property', 'og:title', meta.title);
-    upsertMetaTag('property', 'og:description', meta.description);
+    upsertMetaTag('property', 'og:description', resolvedDescription);
     upsertMetaTag('property', 'og:url', canonicalUrl);
     upsertMetaTag('property', 'og:locale', isEn ? 'en_US' : 'tr_TR');
 
     upsertMetaTag('name', 'twitter:title', meta.title);
-    upsertMetaTag('name', 'twitter:description', meta.description);
+    upsertMetaTag('name', 'twitter:description', resolvedDescription);
 
     // Clear stale blog detail schema when leaving an article
     const blogLd = document.getElementById('blog-detail-jsonld');
@@ -275,7 +280,7 @@ export default function SeoHead() {
         '@id': `${canonicalUrl}#webpage`,
         url: canonicalUrl,
         name: meta.title,
-        description: meta.description,
+        description: resolvedDescription,
         inLanguage: isEn ? 'en-US' : 'tr-TR',
         isPartOf: { '@id': `${origin}/#website` },
         about: personRef,
@@ -372,7 +377,7 @@ export default function SeoHead() {
       const el = document.getElementById('route-seo-jsonld');
       if (el) el.remove();
     };
-  }, [pathname, lang, isEn, getPosts]);
+  }, [pathname, lang, isEn, getPosts, description]);
 
   return null;
 }

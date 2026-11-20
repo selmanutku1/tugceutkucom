@@ -11,7 +11,8 @@ export const BRAND_PROFILE = {
   shortTagline:
     'Dijital dönüşüm, teknoloji ve strateji üzerine profesyonel görüşler ve çalışmalar.',
   portraitUrl: '/assets/aistudio/tugce-utku_2f46d5a0.jpg',
-  logoUrl: '/assets/aistudio/Gemini_Generated_Image_u0c53tu0c53tu0c5_9f641ea2.jpg',
+  logoUrl: '/assets/aistudio/IMG_8967_231027ea.png',
+  iconUrl: '/assets/aistudio/IMG_8969_35f4cedb.png',
   email: 'iletisim@tugceutku.com',
   phone: '+90 546 825 35 97',
   whatsappNumber: '905468253597',
