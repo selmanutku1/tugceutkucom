@@ -78,10 +78,20 @@ export default function HomePage() {
               </StaggerItem>
 
               <StaggerItem distance={28}>
-                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
-                  {isEn
-                    ? 'Technology and the right strategy sit at the heart of digital transformation.'
-                    : 'Dijital dönüşümün merkezinde teknoloji ve doğru strateji var.'}
+                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-brand-navy leading-[1.14] [text-wrap:balance]">
+                  {isEn ? (
+                    <>
+                      <span>A Strategic Perspective on the </span>
+                      <span className="text-brand-teal">
+                        Digital Future of Insurance.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Sigortacılığın Dijital Geleceğine </span>
+                      <span className="text-brand-teal">Stratejik Bakış.</span>
+                    </>
+                  )}
                 </h1>
               </StaggerItem>
 
@@ -92,7 +102,7 @@ export default function HomePage() {
                       ? 'With experience spanning digital marketing, product strategy, and insurance technologies, I focus on the shifting dynamics of the digital world.'
                       : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında edindiğim deneyimle dijital dünyanın değişen dinamiklerine odaklanıyorum.'}
                   </p>
-                  <p className="text-sm sm:text-base text-slate-500">
+                  <p className="hidden md:block text-sm sm:text-base text-slate-500">
                     {isEn
                       ? 'By uniting technology, marketing, and business strategy, I contribute to initiatives that advance digital products, grow brands, and build sustainable business models.'
                       : 'Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin gelişimini, markaların büyümesini ve sürdürülebilir iş modellerini destekleyen çalışmalarda yer alıyorum.'}
