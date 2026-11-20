@@ -24,8 +24,8 @@ export default function MobileBottomBar() {
           onClick={() => navigate('/uzmanlik-alanlarim')}
           className={`min-h-[48px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer px-1 ${
             isExpertise
-              ? 'bg-blue-50 text-blue-700 font-semibold'
-              : 'text-slate-600 hover:text-slate-900 active:bg-slate-100'
+              ? 'bg-brand-teal-light text-brand-navy font-semibold'
+              : 'text-slate-600 hover:text-brand-navy active:bg-slate-100'
           }`}
         >
           <LayoutGrid className="w-5 h-5" />
@@ -40,8 +40,8 @@ export default function MobileBottomBar() {
           onClick={() => navigate('/blog')}
           className={`min-h-[48px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer px-1 ${
             isBlog
-              ? 'bg-blue-50 text-blue-700 font-semibold'
-              : 'text-slate-600 hover:text-slate-900 active:bg-slate-100'
+              ? 'bg-brand-teal-light text-brand-navy font-semibold'
+              : 'text-slate-600 hover:text-brand-navy active:bg-slate-100'
           }`}
         >
           <BookOpen className="w-5 h-5" />
@@ -56,8 +56,8 @@ export default function MobileBottomBar() {
           onClick={() => navigate('/iletisim')}
           className={`min-h-[48px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer px-1 ${
             isContact
-              ? 'bg-blue-700 text-white'
-              : 'bg-blue-50 text-blue-700 hover:bg-blue-100/80 active:bg-blue-100'
+              ? 'bg-brand-navy text-white'
+              : 'bg-brand-teal-light text-brand-teal hover:bg-brand-teal-soft/70 active:bg-brand-teal-soft'
           }`}
         >
           <CalendarCheck className="w-5 h-5" />

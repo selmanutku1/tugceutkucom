@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
   ArrowRight,
-  Check,
   ChevronDown,
   Compass,
   Cpu,
-  Link2,
   MessageSquare,
   ShieldCheck,
 } from 'lucide-react';
@@ -13,9 +11,15 @@ import { getSiteContent } from '../data/siteContentEn';
 import { FaqCategory } from '../types';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
+import {
+  AccordionBody,
+  Reveal,
+  StaggerGroup,
+  StaggerItem,
+} from '../components/MotionPrimitives';
 
 function CategoryIcon({ icon }: { icon: FaqCategory['icon'] }) {
-  const iconClass = 'w-5 h-5 text-blue-700';
+  const iconClass = 'w-5 h-5 text-brand-teal';
   switch (icon) {
     case 'compass':
       return <Compass className={iconClass} />;
@@ -39,7 +43,6 @@ export default function FaqPage() {
   const [openQuestions, setOpenQuestions] = useState<string[]>([
     faqCategories[0].questions[0].id,
   ]);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const origin =
@@ -130,29 +133,6 @@ export default function FaqPage() {
     );
   };
 
-  const handleCopyQuestionLink = async (questionId: string) => {
-    const origin =
-      typeof window !== 'undefined' ? window.location.origin : 'https://tugceutku.com';
-    const url = `${origin}/sss#${questionId}`;
-
-    if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', `/sss#${questionId}`);
-    }
-
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(url);
-      }
-    } catch {
-      // Clipboard fallback
-    }
-
-    setCopiedId(questionId);
-    window.setTimeout(() => {
-      setCopiedId((current) => (current === questionId ? null : current));
-    }, 2200);
-  };
-
   const handleQuickJumpCategory = (categoryId: string) => {
     setOpenCategories((prev) =>
       prev.includes(categoryId) ? prev : [...prev, categoryId]
@@ -164,12 +144,12 @@ export default function FaqPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div>
       {/* Page Header */}
-      <section className="border-b border-slate-200/80 bg-white">
+      <section className="border-b border-[#012253]/8 bg-transparent">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-12 pb-12 sm:pt-16 sm:pb-14">
-          <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
-            <p className="text-sm font-medium text-blue-700">
+          <Reveal immediate className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
+            <p className="text-sm font-medium text-brand-teal">
               {isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular'}
             </p>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
@@ -180,45 +160,56 @@ export default function FaqPage() {
                 ? 'Explore answers to frequently asked questions about my focus areas, consulting approach, insurance technologies, and professional collaborations by category.'
                 : 'Çalışma alanlarım, danışmanlık yaklaşımım, sigortacılık teknolojileri ve profesyonel iş birlikleri hakkında sıkça sorulan soruların yanıtlarını kategorilere göre inceleyebilirsiniz.'}
             </p>
-          </div>
+          </Reveal>
 
           {/* Quick Category Navigation */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StaggerGroup
+            immediate
+            delayChildren={0.16}
+            staggerDelay={0.07}
+            className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+          >
             {faqCategories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => handleQuickJumpCategory(category.id)}
-                className="min-h-[56px] p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50 hover:bg-blue-50/40 transition-colors flex items-center gap-3 text-left cursor-pointer"
-              >
-                <span className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
-                  <CategoryIcon icon={category.icon} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {category.title}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {category.questions.length} {isEn ? 'questions' : 'soru'}
-                  </p>
-                </div>
-              </button>
+              <StaggerItem key={category.id} distance={24}>
+                <button
+                  type="button"
+                  onClick={() => handleQuickJumpCategory(category.id)}
+                  className="w-full min-h-[56px] p-3.5 rounded-xl border border-slate-200 hover:border-brand-teal-soft bg-slate-50 hover:bg-brand-teal-light/60 transition-colors flex items-center gap-3 text-left cursor-pointer"
+                >
+                  <span className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
+                    <CategoryIcon icon={category.icon} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      {category.title}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {category.questions.length} {isEn ? 'questions' : 'soru'}
+                    </p>
+                  </div>
+                </button>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
       {/* Category-Based Accordions */}
-      <section className="py-12 sm:py-16 bg-slate-50 border-b border-slate-200/80">
+      <section className="py-12 sm:py-16 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 space-y-6">
-          {faqCategories.map((category) => {
+          {faqCategories.map((category, idx) => {
             const isCategoryOpen = openCategories.includes(category.id);
             return (
-              <div
+              <Reveal
                 key={category.id}
-                id={category.id}
-                className="scroll-mt-24 bg-white rounded-2xl border border-slate-200 overflow-hidden"
+                immediate={idx === 0}
+                delay={idx === 0 ? 0.22 : 0.04}
+                distance={32}
               >
+                <div
+                  id={category.id}
+                  className="scroll-mt-24 bg-white rounded-2xl border border-slate-200 overflow-hidden"
+                >
                 <button
                   type="button"
                   onClick={() => toggleCategory(category.id)}
@@ -226,7 +217,7 @@ export default function FaqPage() {
                   className="w-full min-h-[72px] p-5 sm:p-6 flex items-center justify-between gap-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-brand-teal-light border border-brand-teal-soft flex items-center justify-center shrink-0">
                       <CategoryIcon icon={category.icon} />
                     </div>
                     <div className="min-w-0 space-y-0.5">
@@ -245,115 +236,64 @@ export default function FaqPage() {
                     </span>
                     <ChevronDown
                       className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${
-                        isCategoryOpen ? 'rotate-180 text-blue-700' : ''
+                        isCategoryOpen ? 'rotate-180 text-brand-teal' : ''
                       }`}
                     />
                   </div>
                 </button>
 
-                {isCategoryOpen && (
-                  <div className="border-t border-slate-200/80 divide-y divide-slate-200/80">
+                <AccordionBody
+                  isOpen={isCategoryOpen}
+                  className="border-t border-slate-200/80 divide-y divide-slate-200/80"
+                >
                     {category.questions.map((item) => {
                       const isQuestionOpen = openQuestions.includes(item.id);
-                      const isCopied = copiedId === item.id;
                       return (
                         <div key={item.id} id={item.id} className="scroll-mt-28 bg-white">
-                          <div className="flex items-stretch">
-                            <button
-                              type="button"
-                              onClick={() => toggleQuestion(item.id)}
-                              aria-expanded={isQuestionOpen}
-                              aria-controls={`${item.id}-answer`}
-                              className="flex-1 min-h-[56px] px-5 sm:px-6 py-4 flex items-center justify-between gap-4 text-left hover:bg-slate-50/60 transition-colors cursor-pointer"
-                            >
-                              <span className="flex items-baseline gap-3 text-sm sm:text-base font-semibold text-slate-900 leading-snug">
-                                <span className="text-xs font-semibold text-blue-700 shrink-0">
-                                  {String(item.number).padStart(2, '0')}
-                                </span>
-                                <span>{item.question}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleQuestion(item.id)}
+                            aria-expanded={isQuestionOpen}
+                            aria-controls={`${item.id}-answer`}
+                            className="w-full min-h-[56px] px-5 sm:px-6 py-4 flex items-center justify-between gap-4 text-left hover:bg-slate-50/60 transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-baseline gap-3 text-sm sm:text-base font-semibold text-slate-900 leading-snug">
+                              <span className="text-xs font-semibold text-brand-teal shrink-0">
+                                {String(item.number).padStart(2, '0')}
                               </span>
-                              <ChevronDown
-                                className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                                  isQuestionOpen ? 'rotate-180 text-blue-700' : ''
-                                }`}
-                              />
-                            </button>
+                              <span>{item.question}</span>
+                            </span>
+                            <ChevronDown
+                              className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                                isQuestionOpen ? 'rotate-180 text-brand-teal' : ''
+                              }`}
+                            />
+                          </button>
 
-                            <button
-                              type="button"
-                              onClick={() => handleCopyQuestionLink(item.id)}
-                              title={
-                                isEn
-                                  ? 'Copy direct link to this question'
-                                  : 'Bu sorunun bağlantısını kopyala'
-                              }
-                              aria-label={
-                                isEn
-                                  ? `Copy direct link for ${item.question}`
-                                  : `${item.question} sorusunun doğrudan bağlantısını kopyala`
-                              }
-                              className="min-w-[48px] px-3 border-l border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
-                            >
-                              {isCopied ? (
-                                <Check className="w-4 h-4 text-emerald-600" />
-                              ) : (
-                                <Link2 className="w-4 h-4" />
-                              )}
-                            </button>
-                          </div>
-
-                          {isQuestionOpen && (
-                            <div
-                              id={`${item.id}-answer`}
-                              className="px-5 sm:px-6 pb-5 pt-1 pl-11 sm:pl-13 space-y-3"
-                            >
-                              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                                {item.answer}
-                              </p>
-                              <div className="flex items-center gap-3 pt-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleCopyQuestionLink(item.id)}
-                                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-blue-700 transition-colors cursor-pointer"
-                                >
-                                  {isCopied ? (
-                                    <>
-                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span className="text-emerald-700">
-                                        {isEn
-                                          ? `Question link copied (#${item.id})`
-                                          : `Soru bağlantısı kopyalandı (#${item.id})`}
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Link2 className="w-3.5 h-3.5" />
-                                      <span>
-                                        {isEn
-                                          ? 'Copy direct link to question'
-                                          : 'Soruya doğrudan bağlantı kopyala'}
-                                      </span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                          <AccordionBody
+                            isOpen={isQuestionOpen}
+                            id={`${item.id}-answer`}
+                            className="px-5 sm:px-6 pb-5 pt-1 pl-11 sm:pl-13"
+                          >
+                            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                              {item.answer}
+                            </p>
+                          </AccordionBody>
                         </div>
                       );
                     })}
-                  </div>
-                )}
-              </div>
+                </AccordionBody>
+                </div>
+              </Reveal>
             );
           })}
         </div>
       </section>
 
       {/* End-of-Page Contact CTA */}
-      <section className="py-16 sm:py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-5">
-          <p className="text-sm font-medium text-blue-700">
+      <section className="py-16 sm:py-20 bg-transparent">
+        <Reveal className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-5">
+          <p className="text-sm font-medium text-brand-teal">
             {isEn ? 'Contact' : 'İletişim'}
           </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -370,13 +310,13 @@ export default function FaqPage() {
             <button
               type="button"
               onClick={() => navigate('/iletisim')}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm sm:text-base font-semibold text-white bg-brand-navy hover:bg-brand-navy-hover rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#012253]/15 cursor-pointer"
             >
               <span>{isEn ? 'Get in Touch' : 'İletişime Geçin'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );

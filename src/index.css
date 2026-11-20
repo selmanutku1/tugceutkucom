@@ -4,6 +4,17 @@
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+
+  /* Brand Palette harmonized with the TU Logo (Deep Navy + Petrol Teal) */
+  --color-brand-navy: #012253;
+  --color-brand-navy-hover: #00183D;
+  --color-brand-navy-deep: #011536;
+  --color-brand-navy-soft: #EBF1F8;
+  --color-brand-teal: #006E78;
+  --color-brand-teal-mid: #017B86;
+  --color-brand-teal-hover: #00555E;
+  --color-brand-teal-light: #E7F5F6;
+  --color-brand-teal-soft: #C4E5E8;
 }
 
 @layer base {
@@ -11,6 +22,15 @@
   body {
     scroll-behavior: smooth;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f3f7fa;
+    background-image: linear-gradient(
+      145deg,
+      #eef4f9 0%,
+      #f5f9fb 42%,
+      #eaf4f6 76%,
+      #edf3f9 100%
+    );
+    background-attachment: fixed;
   }
 }
 
@@ -28,3 +48,41 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+@keyframes ambientDriftSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -14px, 0) scale(1.04);
+  }
+}
+
+@keyframes ambientDriftReverse {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-16px, 12px, 0) scale(1.05);
+  }
+}
+
+.animate-ambient-slow {
+  animation: ambientDriftSlow 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-ambient-reverse {
+  animation: ambientDriftReverse 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ambient-slow,
+  .animate-ambient-reverse {
+    animation: none;
+  }
+}
+

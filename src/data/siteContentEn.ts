@@ -18,7 +18,7 @@ import type { Language } from '../context/LanguageContext';
 
 export const BRAND_PROFILE_EN = {
   ...BRAND_PROFILE,
-  positioning: 'Digital Transformation · Technology · Strategy',
+  positioning: 'Digital Transformation · Insurance Technologies · Strategy',
   shortTagline:
     'Professional perspectives and work on digital transformation, technology, and strategy.',
 };

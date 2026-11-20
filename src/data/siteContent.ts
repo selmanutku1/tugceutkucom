@@ -7,7 +7,7 @@ import {
 
 export const BRAND_PROFILE = {
   name: 'Tuğçe Utku',
-  positioning: 'Dijital Dönüşüm · Teknoloji · Strateji',
+  positioning: 'Dijital Dönüşüm · Sigorta Teknolojileri · Strateji',
   shortTagline:
     'Dijital dönüşüm, teknoloji ve strateji üzerine profesyonel görüşler ve çalışmalar.',
   portraitUrl: '/assets/aistudio/tugce-utku_2f46d5a0.jpg',

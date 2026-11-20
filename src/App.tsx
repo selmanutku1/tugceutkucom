@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { RouterProvider, useRouter } from './context/RouterContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { BlogProvider, slugifyTurkish, useBlog } from './context/BlogContext';
@@ -7,6 +8,10 @@ import Footer from './components/Footer';
 import SeoHead, { upsertMetaTag } from './components/SeoHead';
 import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 import MobileBottomBar from './components/MobileBottomBar';
+import {
+  EXECUTIVE_EASE,
+  PAGE_TRANSITION_VARIANTS,
+} from './components/MotionPrimitives';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ExpertisePage from './pages/ExpertisePage';
@@ -71,7 +76,7 @@ function parseBlogSlug(pathname: string): string | null {
 }
 
 function AppShell() {
-  const { pathname } = useRouter();
+  const { pathname, hash } = useRouter();
   const { lang } = useLanguage();
   const { getPosts } = useBlog();
 
@@ -126,12 +131,43 @@ function AppShell() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col selection:bg-blue-700 selection:text-white">
+    <div className="relative min-h-screen flex flex-col selection:bg-brand-navy selection:text-white">
+      {/* Global Soft Diffused (Flu) Logo-Color Ambient Backdrop */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[linear-gradient(145deg,#edf3f9_0%,#f4f8fb_45%,#e9f4f6_80%,#eef3f9_100%)]"
+      >
+        <div className="animate-ambient-slow absolute -top-32 -right-24 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle_at_center,rgba(1,123,134,0.22)_0%,rgba(0,110,120,0.10)_42%,transparent_72%)] blur-[90px]" />
+        <div className="animate-ambient-reverse absolute top-[18%] -left-36 w-[520px] h-[520px] rounded-full bg-[radial-gradient(circle_at_center,rgba(1,34,83,0.17)_0%,rgba(1,82,108,0.09)_46%,transparent_72%)] blur-[100px]" />
+        <div className="animate-ambient-slow absolute top-[54%] right-[8%] w-[480px] h-[480px] rounded-full bg-[radial-gradient(circle_at_center,rgba(0,110,120,0.16)_0%,rgba(196,229,232,0.28)_45%,transparent_74%)] blur-[105px]" />
+        <div className="animate-ambient-reverse absolute -bottom-36 left-[24%] w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle_at_center,rgba(1,34,83,0.16)_0%,rgba(1,123,134,0.10)_45%,transparent_74%)] blur-[110px]" />
+      </div>
+
       <SeoHead description={activeDescription} />
 
       <Navbar />
 
-      <main className="flex-1">{renderPage()}</main>
+      <main className="flex-1 overflow-x-clip">
+        <AnimatePresence
+          mode="wait"
+          onExitComplete={() => {
+            if (!hash) {
+              window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            }
+          }}
+        >
+          <motion.div
+            key={`${normalizedPath}-${lang}`}
+            variants={PAGE_TRANSITION_VARIANTS}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            style={{ willChange: 'transform, opacity' }}
+          >
+            {renderPage()}
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
       <Footer />
 
@@ -144,12 +180,17 @@ function AppShell() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <BlogProvider>
-        <RouterProvider>
-          <AppShell />
-        </RouterProvider>
-      </BlogProvider>
-    </LanguageProvider>
+    <MotionConfig
+      reducedMotion="user"
+      transition={{ duration: 0.44, ease: EXECUTIVE_EASE }}
+    >
+      <LanguageProvider>
+        <BlogProvider>
+          <RouterProvider>
+            <AppShell />
+          </RouterProvider>
+        </BlogProvider>
+      </LanguageProvider>
+    </MotionConfig>
   );
 }

@@ -64,16 +64,17 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     const nextPath = normalizePath(rawPath || '/');
     const nextHash = rawHash ? `#${rawHash}` : '';
     const fullUrl = `${nextPath}${nextHash}`;
+    const currentPath = normalizePath(window.location.pathname);
+    const isSamePath = currentPath === nextPath;
 
-    if (
-      normalizePath(window.location.pathname) !== nextPath ||
-      window.location.hash !== nextHash
-    ) {
+    if (!isSamePath || window.location.hash !== nextHash) {
       window.history.pushState({}, '', fullUrl);
     }
     setLocation({ pathname: nextPath, hash: nextHash });
 
-    if (!nextHash) {
+    // For route changes, scroll reset happens inside AnimatePresence onExitComplete
+    // so the exiting page never jumps upward mid-transition.
+    if (isSamePath && !nextHash) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);

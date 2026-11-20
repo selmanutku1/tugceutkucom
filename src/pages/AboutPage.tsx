@@ -3,6 +3,7 @@ import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import ExecutivePortrait from '../components/ExecutivePortrait';
+import { Reveal, StaggerGroup, StaggerItem } from '../components/MotionPrimitives';
 
 export default function AboutPage() {
   const { navigate } = useRouter();
@@ -11,11 +12,11 @@ export default function AboutPage() {
   const { brand, aboutPrinciples } = getSiteContent(lang);
 
   return (
-    <div className="bg-white">
+    <div>
       {/* Page Header */}
-      <section className="py-14 sm:py-20 bg-slate-50 border-b border-slate-200/80">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-6 text-center sm:text-left">
-          <p className="text-sm font-medium text-blue-700">
+      <section className="py-14 sm:py-20 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
+        <Reveal immediate className="max-w-4xl mx-auto px-5 sm:px-8 space-y-6 text-center sm:text-left">
+          <p className="text-sm font-medium text-brand-teal">
             {isEn ? 'About' : 'Hakkımda'}
           </p>
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.15] [text-wrap:balance]">
@@ -23,13 +24,18 @@ export default function AboutPage() {
               ? 'Understanding change in the digital world, crafting the right strategy, and creating value.'
               : 'Dijital dünyada değişimi anlamak, doğru stratejiyi geliştirmek ve değer üretmek.'}
           </h1>
-        </div>
+        </Reveal>
       </section>
 
       {/* Main Bio */}
       <section className="py-14 sm:py-20 border-b border-slate-200/80">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-10">
-          <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-slate-100 text-center sm:text-left">
+          <Reveal
+            immediate
+            delay={0.14}
+            direction="left"
+            className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-slate-100 text-center sm:text-left"
+          >
             <ExecutivePortrait size="lg" />
             <div className="space-y-1.5">
               <h2 className="text-2xl font-bold text-slate-900">{brand.name}</h2>
@@ -47,9 +53,13 @@ export default function AboutPage() {
                 <Linkedin className="w-4 h-4" />
               </a>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="space-y-5 text-base sm:text-lg text-slate-600 leading-relaxed text-center sm:text-left">
+          <Reveal
+            immediate
+            delay={0.22}
+            className="space-y-5 text-base sm:text-lg text-slate-600 leading-relaxed text-center sm:text-left"
+          >
             {isEn ? (
               <>
                 <p>
@@ -111,44 +121,43 @@ export default function AboutPage() {
                 </p>
               </>
             )}
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Profesyonel Yaklaşımım */}
-      <section className="py-14 sm:py-20 bg-slate-50 border-b border-slate-200/80">
+      <section className="py-14 sm:py-20 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-10">
-          <div className="space-y-2 text-center sm:text-left">
-            <p className="text-sm font-medium text-blue-700">
+          <Reveal className="space-y-2 text-center sm:text-left">
+            <p className="text-sm font-medium text-brand-teal">
               {isEn ? 'Working Principles' : 'Çalışma İlkeleri'}
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               {isEn ? 'My professional approach' : 'Profesyonel yaklaşımım'}
             </h2>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {aboutPrinciples.map((item, idx) => (
-              <div
-                key={item.title}
-                className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 space-y-2.5 text-center sm:text-left"
-              >
-                <span className="text-xs font-semibold text-blue-700 tabular-nums">
-                  0{idx + 1}
-                </span>
-                <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
+              <StaggerItem key={item.title} className="h-full">
+                <div className="h-full bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 space-y-2.5 text-center sm:text-left transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_12px_28px_-14px_rgba(15,23,42,0.12)]">
+                  <span className="text-xs font-semibold text-brand-teal tabular-nums">
+                    0{idx + 1}
+                  </span>
+                  <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
       {/* Closing CTA */}
       <section className="py-14 sm:py-20">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
+        <Reveal className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
           <p className="text-lg sm:text-xl font-medium text-slate-900 leading-relaxed max-w-2xl mx-auto">
             {isEn
               ? 'Within the constantly evolving dynamics of the digital world, I continue learning, building, and creating new areas of value.'
@@ -158,20 +167,20 @@ export default function AboutPage() {
             <button
               type="button"
               onClick={() => navigate('/iletisim')}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition-colors cursor-pointer"
+              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#012253]/15 cursor-pointer"
             >
               <span>{isEn ? 'Get in Touch' : 'İletişime Geçin'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
             <button
               type="button"
               onClick={() => navigate('/deneyim')}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-800 text-sm font-medium transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-800 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
             >
               {isEn ? 'Experience Page' : 'Deneyim Sayfası'}
             </button>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );

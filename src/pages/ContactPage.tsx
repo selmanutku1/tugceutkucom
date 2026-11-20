@@ -9,8 +9,10 @@ import {
   MessageCircle,
   Send,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { getSiteContent } from '../data/siteContentEn';
 import { useLanguage } from '../context/LanguageContext';
+import { EXECUTIVE_EASE, Reveal } from '../components/MotionPrimitives';
 
 const CONTACT_RECIPIENTS = [
   'tugce.utku@insurup.com',
@@ -144,12 +146,12 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div>
       {/* Page Header */}
-      <section className="border-b border-slate-200/80 bg-white">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-12 sm:pt-16 sm:pb-14">
+      <section className="border-b border-[#012253]/8 bg-transparent">
+        <Reveal immediate className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-12 sm:pt-16 sm:pb-14">
           <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
-            <p className="text-sm font-medium text-blue-700">
+            <p className="text-sm font-medium text-brand-teal">
               {isEn ? 'Contact' : 'İletişim'}
             </p>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
@@ -161,15 +163,15 @@ export default function ContactPage() {
                 : 'Dijital dönüşüm, teknoloji, sigortacılık, ürün stratejisi ve dijital büyüme alanlarında fikir alışverişinde bulunmak, profesyonel bağlantılar kurmak ve iş birliği fırsatlarını değerlendirmek için iletişime geçebilirsiniz.'}
             </p>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Main Content Grid */}
-      <section className="py-12 sm:py-16 bg-slate-50">
+      <section className="py-12 sm:py-16 bg-white/45 backdrop-blur-[2px]">
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left Column: 7 Contact Categories + LinkedIn */}
-            <div className="lg:col-span-5 space-y-6">
+            <Reveal immediate delay={0.14} direction="left" distance={34} className="lg:col-span-5 space-y-6">
               <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 space-y-5 text-center sm:text-left">
                 <div className="space-y-1.5">
                   <h2 className="text-lg font-bold text-slate-900 tracking-tight">
@@ -195,14 +197,14 @@ export default function ContactPage() {
                         }}
                         className={`w-full min-h-[44px] px-4 py-2.5 rounded-xl border text-sm font-medium text-left flex items-center justify-between gap-3 transition-colors cursor-pointer ${
                           selected
-                            ? 'bg-blue-50 border-blue-200 text-blue-800 font-semibold'
+                            ? 'bg-brand-teal-light border-brand-teal-soft text-brand-navy font-semibold'
                             : 'bg-slate-50/70 border-slate-200/80 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                         }`}
                       >
                         <span>{category}</span>
                         <ArrowRight
                           className={`w-4 h-4 shrink-0 ${
-                            selected ? 'text-blue-700' : 'text-slate-400'
+                            selected ? 'text-brand-teal' : 'text-slate-400'
                           }`}
                         />
                       </button>
@@ -235,13 +237,21 @@ export default function ContactPage() {
                   </span>
                 </a>
               </div>
-            </div>
+            </Reveal>
 
             {/* Right Column: Contact Form */}
-            <div className="lg:col-span-7">
+            <Reveal immediate delay={0.22} direction="right" distance={34} className="lg:col-span-7">
               <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                {submitted ? (
-                  <div className="py-8 text-center space-y-5">
+                <AnimatePresence mode="wait">
+                  {submitted ? (
+                    <motion.div
+                      key="contact-submitted"
+                      initial={{ opacity: 0, scale: 0.98, y: 8 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98, y: -8 }}
+                      transition={{ duration: 0.28, ease: EXECUTIVE_EASE }}
+                      className="py-8 text-center space-y-5"
+                    >
                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
@@ -279,9 +289,17 @@ export default function ContactPage() {
                         {isEn ? 'Send Another Message' : 'Yeni Mesaj Gönder'}
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
+                    </motion.div>
+                  ) : (
+                    <motion.form
+                      key="contact-form"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.24, ease: EXECUTIVE_EASE }}
+                      onSubmit={handleSubmit}
+                      className="space-y-5"
+                    >
                     <div className="space-y-1 text-center sm:text-left pb-2 border-b border-slate-100">
                       <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                         {isEn ? 'Send a Message' : 'Mesaj Gönderin'}
@@ -312,7 +330,7 @@ export default function ContactPage() {
                           className="block text-sm font-medium text-slate-700"
                         >
                           {isEn ? 'Full Name' : 'Ad Soyad'}{' '}
-                          <span className="text-blue-700">*</span>
+                          <span className="text-brand-teal">*</span>
                         </label>
                         <input
                           id="contact-name"
@@ -321,7 +339,7 @@ export default function ContactPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder={isEn ? 'Your full name' : 'Adınız ve soyadınız'}
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal transition-colors"
                         />
                       </div>
 
@@ -340,7 +358,7 @@ export default function ContactPage() {
                           placeholder={
                             isEn ? 'Organization name (optional)' : 'Kurum adı (opsiyonel)'
                           }
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal transition-colors"
                         />
                       </div>
                     </div>
@@ -352,7 +370,7 @@ export default function ContactPage() {
                           className="block text-sm font-medium text-slate-700"
                         >
                           {isEn ? 'Email' : 'E-posta'}{' '}
-                          <span className="text-blue-700">*</span>
+                          <span className="text-brand-teal">*</span>
                         </label>
                         <input
                           id="contact-email"
@@ -361,7 +379,7 @@ export default function ContactPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder={isEn ? 'name@company.com' : 'ornek@kurum.com'}
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal transition-colors"
                         />
                       </div>
 
@@ -376,7 +394,7 @@ export default function ContactPage() {
                           id="contact-topic"
                           value={topicIndex}
                           onChange={(e) => setTopicIndex(Number(e.target.value))}
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors"
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 focus:outline-none focus:bg-white focus:border-brand-teal transition-colors"
                         >
                           {contactCategories.map((category, idx) => (
                             <option key={category} value={idx}>
@@ -393,7 +411,7 @@ export default function ContactPage() {
                         className="block text-sm font-medium text-slate-700"
                       >
                         {isEn ? 'Your Message' : 'Mesajınız'}{' '}
-                        <span className="text-blue-700">*</span>
+                        <span className="text-brand-teal">*</span>
                       </label>
                       <textarea
                         id="contact-message"
@@ -406,7 +424,7 @@ export default function ContactPage() {
                             ? 'Share a brief summary of your project, consulting need, or collaboration inquiry.'
                             : 'Projeniz, danışmanlık ihtiyacınız veya iş birliği talebiniz hakkında kısa bilgi paylaşabilirsiniz.'
                         }
-                        className="w-full px-3.5 py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 transition-colors resize-y"
+                        className="w-full px-3.5 py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal transition-colors resize-y"
                       />
                     </div>
 
@@ -453,7 +471,7 @@ export default function ContactPage() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 disabled:opacity-60 rounded-xl transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-brand-navy hover:bg-brand-navy-hover disabled:opacity-60 rounded-xl transition-colors cursor-pointer"
                       >
                         {submitting ? (
                           <>
@@ -478,10 +496,11 @@ export default function ContactPage() {
                         <span>{isEn ? 'Message on WhatsApp' : 'WhatsApp ile Yaz'}</span>
                       </a>
                     </div>
-                  </form>
-                )}
+                    </motion.form>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>

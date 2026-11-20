@@ -17,9 +17,28 @@ import { slugifyTurkish, useBlog } from '../context/BlogContext';
 import { upsertLinkTag, upsertMetaTag } from '../components/SeoHead';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import ExecutivePortrait from '../components/ExecutivePortrait';
+import {
+  ReadingProgressBar,
+  Reveal,
+  StaggerGroup,
+  StaggerItem,
+} from '../components/MotionPrimitives';
 
 interface BlogDetailPageProps {
   slug: string;
+}
+
+function XBrandIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
 }
 
 export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
@@ -65,11 +84,11 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     const fullTitle = `${post.title} | ${brand.name}`;
     const keywords = [...post.tags, post.categoryLabel, brand.name].join(', ');
     const isCustomPost = post.id.startsWith('custom-');
-    const ogImageUrl = isCustomPost
-      ? post.coverImage
-        ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}`
-        : `${origin}/og-covers/theme-${post.coverTheme}.png`
-      : `${origin}/og-covers/${post.slug}.png`;
+    const ogImageUrl = post.coverImage
+      ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}`
+      : isCustomPost
+        ? `${origin}/og-covers/theme-${post.coverTheme}.png`
+        : `${origin}/og-covers/${post.slug}.png`;
 
     document.title = fullTitle;
     upsertMetaTag('name', 'description', post.spot);
@@ -201,7 +220,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
   if (!post && isLoading) {
     return (
-      <section className="py-20 sm:py-28 bg-white">
+      <section className="py-20 sm:py-28 bg-transparent">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 space-y-5 animate-pulse">
           <div className="h-4 w-32 bg-slate-200 rounded" />
           <div className="h-10 w-3/4 bg-slate-200 rounded" />
@@ -214,9 +233,9 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
   if (!post) {
     return (
-      <section className="py-20 sm:py-28 bg-white">
+      <section className="py-20 sm:py-28 bg-transparent">
         <div className="max-w-2xl mx-auto px-5 sm:px-8 text-center space-y-5">
-          <p className="text-sm font-medium text-blue-700">Blog</p>
+          <p className="text-sm font-medium text-brand-teal">Blog</p>
           <h1 className="text-2xl sm:text-4xl font-bold text-slate-900">
             {isEn ? 'Article not found.' : 'Aradığınız yazı bulunamadı.'}
           </h1>
@@ -229,7 +248,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             <button
               type="button"
               onClick={() => navigate('/blog')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-brand-navy hover:bg-brand-navy-hover rounded-xl transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>{isEn ? 'Back to All Articles' : 'Tüm Yazılara Dön'}</span>
@@ -246,6 +265,9 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
     currentUrl
   )}`;
+  const xShareUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(
+    currentUrl
+  )}&text=${encodeURIComponent(post.title)}`;
 
   const handleCopyLink = async () => {
     try {
@@ -268,10 +290,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   };
 
   return (
-    <article className="bg-white">
+    <article className="bg-white/55 backdrop-blur-[2px]">
+      <ReadingProgressBar />
+
       {/* Header Area */}
-      <header className="border-b border-slate-200/80 bg-white">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 pt-10 pb-10 sm:pt-14 sm:pb-12 space-y-6">
+      <header className="border-b border-[#012253]/8 bg-white/40">
+        <Reveal immediate className="max-w-4xl mx-auto px-5 sm:px-8 pt-10 pb-10 sm:pt-14 sm:pb-12 space-y-6">
           {/* 1. Breadcrumb */}
           <nav
             aria-label={isEn ? 'Breadcrumb' : 'Sayfa yolu'}
@@ -304,7 +328,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
           {/* 2. Category + 3. Title + 4. Spot */}
           <div className="space-y-4 text-center sm:text-left">
-            <p className="text-sm font-semibold text-blue-700">{post.categoryLabel}</p>
+            <p className="text-sm font-semibold text-brand-teal">{post.categoryLabel}</p>
             <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold tracking-tight text-slate-900 leading-[1.16] [text-wrap:balance]">
               {post.title}
             </h1>
@@ -329,15 +353,26 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <a
                 href={linkedInShareUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={isEn ? 'Share on LinkedIn' : "LinkedIn'de paylaş"}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-[#0A66C2] text-xs font-semibold text-slate-700 hover:text-[#0A66C2] transition-colors"
               >
                 <Linkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
-                <span>{isEn ? 'Share on LinkedIn' : "LinkedIn'de Paylaş"}</span>
+                <span>LinkedIn</span>
+              </a>
+              <a
+                href={xShareUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={isEn ? 'Share on X' : "X'te paylaş"}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-900 text-xs font-semibold text-slate-700 hover:text-slate-950 transition-colors"
+              >
+                <XBrandIcon className="w-3.5 h-3.5" />
+                <span>X</span>
               </a>
               <button
                 type="button"
@@ -360,12 +395,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               </button>
             </div>
           </div>
-        </div>
+        </Reveal>
       </header>
 
       {/* 7. Cover Image */}
-      <div className="max-w-4xl mx-auto px-5 sm:px-8 pt-8 sm:pt-10">
-        <div className="rounded-2xl overflow-hidden border border-slate-200">
+      <Reveal immediate delay={0.14} distance={32} className="max-w-4xl mx-auto px-5 sm:px-8 pt-8 sm:pt-10">
+        <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
           <BlogCoverVisual
             theme={post.coverTheme}
             coverImage={post.coverImage}
@@ -373,51 +408,55 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             categoryLabel={post.categoryLabel}
           />
         </div>
-      </div>
+      </Reveal>
 
       {/* Main Content + 8. Table of Contents */}
       <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-14 space-y-10">
         {post.sections.length > 1 && (
-          <aside
-            aria-label={isEn ? 'Table of Contents' : 'İçindekiler'}
-            className="bg-slate-50 border border-slate-200/90 rounded-2xl p-6 space-y-3"
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <List className="w-4 h-4 text-blue-700" />
-              <span>{isEn ? 'Table of Contents' : 'İçindekiler'}</span>
-            </div>
-            <ol className="space-y-2 text-sm text-slate-600">
-              {post.sections.map((section, idx) => (
-                <li key={section.id}>
-                  <button
-                    type="button"
-                    onClick={() => scrollToHeading(section.id)}
-                    className="text-left hover:text-blue-700 transition-colors cursor-pointer flex items-baseline gap-2"
-                  >
-                    <span className="text-xs font-semibold text-slate-400">
-                      0{idx + 1}.
-                    </span>
-                    <span>{section.heading}</span>
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </aside>
+          <Reveal direction="left" distance={28}>
+            <aside
+              aria-label={isEn ? 'Table of Contents' : 'İçindekiler'}
+              className="bg-slate-50 border border-slate-200/90 rounded-2xl p-6 space-y-3"
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <List className="w-4 h-4 text-brand-teal" />
+                <span>{isEn ? 'Table of Contents' : 'İçindekiler'}</span>
+              </div>
+              <ol className="space-y-2 text-sm text-slate-600">
+                {post.sections.map((section, idx) => (
+                  <li key={section.id}>
+                    <button
+                      type="button"
+                      onClick={() => scrollToHeading(section.id)}
+                      className="text-left hover:text-brand-teal transition-colors cursor-pointer flex items-baseline gap-2"
+                    >
+                      <span className="text-xs font-semibold text-slate-400">
+                        0{idx + 1}.
+                      </span>
+                      <span>{section.heading}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </aside>
+          </Reveal>
         )}
 
         {/* 9. Article Body */}
         <div className="space-y-10">
           {post.sections.map((section) => (
-            <section key={section.id} id={section.id} className="scroll-mt-24 space-y-4">
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                {section.heading}
-              </h2>
-              <div className="space-y-4 text-base sm:text-[17px] text-slate-700 leading-[1.8]">
-                {section.paragraphs.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
-              </div>
-            </section>
+            <Reveal key={section.id} distance={28}>
+              <section id={section.id} className="scroll-mt-24 space-y-4">
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                  {section.heading}
+                </h2>
+                <div className="space-y-4 text-base sm:text-[17px] text-slate-700 leading-[1.8]">
+                  {section.paragraphs.map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                </div>
+              </section>
+            </Reveal>
           ))}
         </div>
 
@@ -436,90 +475,125 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           </div>
         )}
 
-        {/* 12. Bottom Share Bar */}
-        <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={() => navigate('/blog')}
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+        {/* 12. Dedicated End-of-Article Social Share Panel */}
+        <Reveal>
+          <section
+            aria-label={isEn ? 'Share this article' : 'Bu yazıyı paylaş'}
+            className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-5 sm:p-6 space-y-5"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>{isEn ? 'Back to All Articles' : 'Tüm Yazılara Dön'}</span>
-          </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-left">
+                <p className="text-sm font-semibold text-slate-900">
+                  {isEn ? 'Share this article' : 'Bu yazıyı paylaş'}
+                </p>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  {isEn
+                    ? 'Found it valuable? Share it directly with your network.'
+                    : 'Yazıyı faydalı bulduysanız ağınızla hızlıca paylaşabilirsiniz.'}
+                </p>
+              </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2.5">
-            <a
-              href={linkedInShareUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0A66C2] hover:bg-[#0958a8] text-sm font-semibold text-white transition-colors"
-            >
-              <Linkedin className="w-4 h-4" />
-              <span>{isEn ? 'Share on LinkedIn' : "LinkedIn'de Paylaş"}</span>
-            </a>
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5">
+                <a
+                  href={linkedInShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={isEn ? 'Share on LinkedIn' : "LinkedIn'de paylaş"}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-[#0A66C2] hover:bg-[#0A66C2]/[0.05] text-sm font-semibold text-slate-800 hover:text-[#0A66C2] transition-all duration-200 hover:-translate-y-0.5"
+                >
+                  <Linkedin className="w-4 h-4 text-[#0A66C2]" />
+                  <span>LinkedIn</span>
+                </a>
 
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span className="text-emerald-700">
-                    {isEn ? 'Link Copied' : 'Bağlantı Kopyalandı'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-4 h-4" />
-                  <span>{isEn ? 'Copy Link' : 'Bağlantıyı Kopyala'}</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+                <a
+                  href={xShareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={isEn ? 'Share on X' : "X'te paylaş"}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-900 hover:bg-slate-900 text-sm font-semibold text-slate-800 hover:text-white transition-all duration-200 hover:-translate-y-0.5"
+                >
+                  <XBrandIcon className="w-4 h-4" />
+                  <span>X</span>
+                </a>
 
-        {/* 10. Author Bio Card */}
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
-          <ExecutivePortrait size="md" />
-          <div className="space-y-2.5 min-w-0">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-                {isEn ? 'About the Author' : 'Yazar Hakkında'}
-              </p>
-              <h3 className="text-lg font-bold text-slate-900 mt-0.5">{brand.name}</h3>
-              <p className="text-xs font-medium text-slate-500">{brand.positioning}</p>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  aria-label={isEn ? 'Copy article link' : 'Yazı bağlantısını kopyala'}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-brand-teal hover:text-brand-teal text-sm font-medium text-slate-700 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-600" />
+                      <span className="text-emerald-700">
+                        {isEn ? 'Copied' : 'Kopyalandı'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="w-4 h-4" />
+                      <span>{isEn ? 'Copy Link' : 'Bağlantı'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              {isEn
-                ? 'Working across digital marketing, product strategy, and insurance technologies—bringing technology, marketing, and business strategy together to support sustainable growth for brands and digital products.'
-                : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında çalışıyorum. Teknoloji, pazarlama ve iş stratejisini bir araya getirerek markaların ve dijital ürünlerin sürdürülebilir büyümesini destekleyen projelerde yer alıyorum.'}
-            </p>
-            <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm">
+
+            <div className="pt-4 border-t border-slate-200/80 flex justify-center sm:justify-start">
               <button
                 type="button"
-                onClick={() => navigate('/hakkimda')}
-                className="font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
+                onClick={() => navigate('/blog')}
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand-teal transition-colors cursor-pointer"
               >
-                {isEn ? 'About Me →' : 'Hakkımda →'}
+                <ArrowLeft className="w-4 h-4" />
+                <span>{isEn ? 'Back to All Articles' : 'Tüm Yazılara Dön'}</span>
               </button>
-              <a
-                href={brand.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-slate-600 hover:text-slate-900"
-              >
-                {isEn ? 'LinkedIn Profile' : 'LinkedIn Profili'}
-              </a>
+            </div>
+          </section>
+        </Reveal>
+
+        {/* 10. Author Bio Card */}
+        <Reveal>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
+            <ExecutivePortrait size="md" />
+            <div className="space-y-2.5 min-w-0">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-brand-teal">
+                  {isEn ? 'About the Author' : 'Yazar Hakkında'}
+                </p>
+                <h3 className="text-lg font-bold text-slate-900 mt-0.5">{brand.name}</h3>
+                <p className="text-xs font-medium text-slate-500">{brand.positioning}</p>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {isEn
+                  ? 'Working across digital marketing, product strategy, and insurance technologies—bringing technology, marketing, and business strategy together to support sustainable growth for brands and digital products.'
+                  : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında çalışıyorum. Teknoloji, pazarlama ve iş stratejisini bir araya getirerek markaların ve dijital ürünlerin sürdürülebilir büyümesini destekleyen projelerde yer alıyorum.'}
+              </p>
+              <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm">
+                <button
+                  type="button"
+                  onClick={() => navigate('/hakkimda')}
+                  className="font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer"
+                >
+                  {isEn ? 'About Me →' : 'Hakkımda →'}
+                </button>
+                <a
+                  href={brand.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-slate-600 hover:text-slate-900"
+                >
+                  {isEn ? 'LinkedIn Profile' : 'LinkedIn Profili'}
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
 
       {/* 11. Related Articles */}
       {relatedPosts.length > 0 && (
-        <section className="py-14 sm:py-16 bg-slate-50 border-t border-slate-200/80">
+        <section className="py-14 sm:py-16 bg-white/40 border-t border-[#012253]/8">
           <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
               <h2 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -528,66 +602,65 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               <button
                 type="button"
                 onClick={() => navigate('/blog')}
-                className="text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
+                className="text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer"
               >
                 {isEn ? 'All Articles →' : 'Tüm Yazılarım →'}
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relatedPosts.map((related) => (
-                <article
-                  key={related.id}
-                  className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-colors overflow-hidden flex flex-col"
-                >
-                  <a
-                    href={`/blog/${related.slug}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(`/blog/${related.slug}`);
-                    }}
-                    className="block overflow-hidden"
-                  >
-                    <BlogCoverVisual
-                      theme={related.coverTheme}
-                      coverImage={related.coverImage}
-                      title={related.title}
-                      categoryLabel={related.categoryLabel}
-                    />
-                  </a>
-                  <div className="p-5 flex-1 flex flex-col justify-between gap-4 text-center sm:text-left">
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-blue-700">
-                        {related.categoryLabel}
-                      </p>
-                      <h3 className="text-base font-semibold text-slate-900 leading-snug">
-                        <a
-                          href={`/blog/${related.slug}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            navigate(`/blog/${related.slug}`);
-                          }}
-                          className="hover:text-blue-700 transition-colors"
-                        >
-                          {related.title}
-                        </a>
-                      </h3>
-                    </div>
+                <StaggerItem key={related.id} className="h-full">
+                  <article className="group h-full bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_14px_30px_-14px_rgba(15,23,42,0.14)] overflow-hidden flex flex-col">
                     <a
                       href={`/blog/${related.slug}`}
                       onClick={(e) => {
                         e.preventDefault();
                         navigate(`/blog/${related.slug}`);
                       }}
-                      className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800"
+                      className="block overflow-hidden"
                     >
-                      <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <BlogCoverVisual
+                        theme={related.coverTheme}
+                        coverImage={related.coverImage}
+                        title={related.title}
+                        categoryLabel={related.categoryLabel}
+                      />
                     </a>
-                  </div>
-                </article>
+                    <div className="p-5 flex-1 flex flex-col justify-between gap-4 text-center sm:text-left">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-brand-teal">
+                          {related.categoryLabel}
+                        </p>
+                        <h3 className="text-base font-semibold text-slate-900 leading-snug">
+                          <a
+                            href={`/blog/${related.slug}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              navigate(`/blog/${related.slug}`);
+                            }}
+                            className="hover:text-brand-navy transition-colors"
+                          >
+                            {related.title}
+                          </a>
+                        </h3>
+                      </div>
+                      <a
+                        href={`/blog/${related.slug}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/blog/${related.slug}`);
+                        }}
+                        className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover"
+                      >
+                        <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
+                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                      </a>
+                    </div>
+                  </article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGroup>
           </div>
         </section>
       )}

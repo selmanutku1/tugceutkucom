@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { getSiteContent } from '../data/siteContentEn';
 import { useBlog } from '../context/BlogContext';
 import { useRouter } from '../context/RouterContext';
@@ -7,15 +8,35 @@ import { useLanguage } from '../context/LanguageContext';
 import ExecutivePortrait from '../components/ExecutivePortrait';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import LinkedInPostsSection from '../components/LinkedInPostsSection';
+import {
+  AccordionBody,
+  EXECUTIVE_EASE,
+  Reveal,
+  StaggerGroup,
+  StaggerItem,
+} from '../components/MotionPrimitives';
 
 export default function HomePage() {
   const { navigate } = useRouter();
   const { lang } = useLanguage();
   const { getPosts } = useBlog();
   const isEn = lang === 'en';
+  const prefersReduced = useReducedMotion();
 
-  const { brand, expertiseAreas, approachPillars, projectItems, faqCategories } =
-    getSiteContent(lang);
+  const heroRef = useRef<HTMLElement | null>(null);
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const portraitY = useTransform(heroScrollProgress, [0, 1], [0, 26]);
+
+  const {
+    brand,
+    expertiseAreas,
+    approachPillars,
+    projectItems,
+    faqCategories,
+  } = getSiteContent(lang);
   const posts = getPosts(lang);
 
   const [openPreviewFaqId, setOpenPreviewFaqId] = useState<string | null>('soru-1');
@@ -31,55 +52,85 @@ export default function HomePage() {
   return (
     <div>
       {/* 1. HERO ALANI */}
-      <section className="bg-white border-b border-slate-200/80">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pt-18 sm:pb-22">
+      <section
+        ref={heroRef}
+        className="relative overflow-hidden bg-transparent border-b border-[#012253]/8"
+      >
+        {/* Soft Logo-Color Accent Glow for Hero */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+        >
+          <div className="animate-ambient-slow absolute -top-24 -right-20 w-[440px] h-[440px] rounded-full bg-gradient-to-br from-[#017B86]/18 via-[#C4E5E8]/45 to-transparent blur-3xl" />
+          <div className="animate-ambient-reverse absolute -bottom-28 -left-20 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-[#012253]/14 via-[#EBF1F8]/55 to-transparent blur-3xl" />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pt-18 sm:pb-22">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* Left: Main Editorial Positioning */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <p className="text-sm font-medium text-blue-700">{brand.positioning}</p>
+            <StaggerGroup
+              immediate
+              staggerDelay={0.09}
+              className="lg:col-span-7 space-y-6 text-center lg:text-left"
+            >
+              <StaggerItem distance={22}>
+                <p className="text-sm font-medium text-brand-teal">{brand.positioning}</p>
+              </StaggerItem>
 
-              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
-                {isEn
-                  ? 'Technology and the right strategy sit at the heart of digital transformation.'
-                  : 'Dijital dönüşümün merkezinde teknoloji ve doğru strateji var.'}
-              </h1>
-
-              <div className="space-y-3 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                <p>
+              <StaggerItem distance={28}>
+                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
                   {isEn
-                    ? 'With experience spanning digital marketing, product strategy, and insurance technologies, I focus on the shifting dynamics of the digital world.'
-                    : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında edindiğim deneyimle dijital dünyanın değişen dinamiklerine odaklanıyorum.'}
-                </p>
-                <p className="text-sm sm:text-base text-slate-500">
-                  {isEn
-                    ? 'By uniting technology, marketing, and business strategy, I contribute to initiatives that advance digital products, grow brands, and build sustainable business models.'
-                    : 'Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin gelişimini, markaların büyümesini ve sürdürülebilir iş modellerini destekleyen çalışmalarda yer alıyorum.'}
-                </p>
-              </div>
+                    ? 'Technology and the right strategy sit at the heart of digital transformation.'
+                    : 'Dijital dönüşümün merkezinde teknoloji ve doğru strateji var.'}
+                </h1>
+              </StaggerItem>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => navigate('/hakkimda')}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
-                >
-                  <span>{isEn ? 'About Me' : 'Hakkımda'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              <StaggerItem distance={24}>
+                <div className="space-y-3 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  <p>
+                    {isEn
+                      ? 'With experience spanning digital marketing, product strategy, and insurance technologies, I focus on the shifting dynamics of the digital world.'
+                      : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında edindiğim deneyimle dijital dünyanın değişen dinamiklerine odaklanıyorum.'}
+                  </p>
+                  <p className="text-sm sm:text-base text-slate-500">
+                    {isEn
+                      ? 'By uniting technology, marketing, and business strategy, I contribute to initiatives that advance digital products, grow brands, and build sustainable business models.'
+                      : 'Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin gelişimini, markaların büyümesini ve sürdürülebilir iş modellerini destekleyen çalışmalarda yer alıyorum.'}
+                  </p>
+                </div>
+              </StaggerItem>
 
-                <button
-                  type="button"
-                  onClick={() => navigate('/uzmanlik-alanlarim')}
-                  className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
-                >
-                  {isEn ? 'Areas of Expertise' : 'Uzmanlık Alanlarım'}
-                </button>
-              </div>
-            </div>
+              <StaggerItem distance={20}>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/hakkimda')}
+                    className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:text-base font-semibold text-white bg-brand-navy hover:bg-brand-navy-hover rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#012253]/15 active:translate-y-0 cursor-pointer whitespace-nowrap"
+                  >
+                    <span>{isEn ? 'About Me' : 'Hakkımda'}</span>
+                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                  </button>
 
-            {/* Right: Compact Executive Portrait Card */}
-            <div className="lg:col-span-5">
-              <div className="bg-slate-50 rounded-2xl p-6 sm:p-7 border border-slate-200/90 space-y-6">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/uzmanlik-alanlarim')}
+                    className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/70 rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer whitespace-nowrap"
+                  >
+                    {isEn ? 'Areas of Expertise' : 'Uzmanlık Alanlarım'}
+                  </button>
+                </div>
+              </StaggerItem>
+            </StaggerGroup>
+
+            {/* Right: Compact Executive Portrait Card with Subtle Slide-In & Scroll Depth */}
+            <motion.div
+              initial={prefersReduced ? false : { opacity: 0, x: 34, y: 12 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ duration: 0.68, delay: 0.18, ease: EXECUTIVE_EASE }}
+              style={prefersReduced ? undefined : { y: portraitY }}
+              className="lg:col-span-5"
+            >
+              <div className="bg-white/75 backdrop-blur-md rounded-2xl p-6 sm:p-7 border border-white/80 ring-1 ring-[#012253]/8 space-y-6 transition-all duration-300 hover:bg-white/85 hover:shadow-[0_14px_34px_-16px_rgba(1,34,83,0.16)]">
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
                   <ExecutivePortrait size="md" />
                   <div className="min-w-0 space-y-1">
@@ -99,7 +150,7 @@ export default function HomePage() {
                           : 'Tuğçe Utku LinkedIn Profili'
                       }
                       title="LinkedIn"
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#0A66C2] hover:bg-[#0958a8] text-white transition-colors mt-1.5"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#0A66C2] hover:bg-[#0958a8] text-white transition-all duration-200 hover:-translate-y-0.5 mt-1.5"
                     >
                       <Linkedin className="w-4 h-4" />
                     </a>
@@ -129,15 +180,15 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* 2. KISA TANITIM */}
-      <section className="py-16 sm:py-22 bg-slate-50 border-b border-slate-200/80">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-6 text-center sm:text-left">
-          <p className="text-sm font-medium text-blue-700">
+      <section className="py-16 sm:py-22 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
+        <Reveal className="max-w-4xl mx-auto px-5 sm:px-8 space-y-6 text-center sm:text-left">
+          <p className="text-sm font-medium text-brand-teal">
             {isEn ? 'Introduction' : 'Kısa Tanıtım'}
           </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -171,21 +222,21 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/hakkimda')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer transition-colors"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer transition-colors"
             >
               <span>{isEn ? 'More About Me' : 'Hakkımda Daha Fazla'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* 3. UZMANLIK ALANLARIM */}
-      <section className="py-16 sm:py-22 bg-white border-b border-slate-200/80">
+      <section className="py-16 sm:py-22 bg-transparent border-b border-[#012253]/8">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
+          <Reveal className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
-              <p className="text-sm font-medium text-blue-700">
+              <p className="text-sm font-medium text-brand-teal">
                 {isEn ? 'Areas of Expertise' : 'Uzmanlık Alanlarım'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -198,39 +249,38 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/uzmanlik-alanlarim')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer whitespace-nowrap shrink-0"
             >
               <span>{isEn ? 'All Expertise Areas' : 'Tüm Uzmanlık Alanlarım'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {expertiseAreas.map((area) => (
-              <div
-                key={area.id}
-                className="bg-slate-50/70 rounded-2xl p-6 sm:p-8 border border-slate-200/90 space-y-3 text-center sm:text-left"
-              >
-                <p className="text-sm font-semibold text-blue-700 tabular-nums">
-                  {area.number}
-                </p>
-                <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
-                  {area.title}
-                </h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  {area.homeSummary}
-                </p>
-              </div>
+              <StaggerItem key={area.id}>
+                <div className="h-full bg-white/75 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-[#012253]/8 space-y-3 text-center sm:text-left transition-all duration-200 hover:-translate-y-1 hover:bg-white/92 hover:border-brand-teal/25 hover:shadow-[0_14px_30px_-14px_rgba(1,34,83,0.14)]">
+                  <p className="text-sm font-semibold text-brand-teal tabular-nums">
+                    {area.number}
+                  </p>
+                  <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
+                    {area.title}
+                  </h3>
+                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                    {area.homeSummary}
+                  </p>
+                </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
       {/* 4. DENEYİM VE YAKLAŞIM */}
-      <section className="py-16 sm:py-22 bg-slate-50 border-b border-slate-200/80">
+      <section className="py-16 sm:py-22 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="max-w-2xl mx-auto sm:mx-0 space-y-3 text-center sm:text-left">
-            <p className="text-sm font-medium text-blue-700">
+          <Reveal className="max-w-2xl mx-auto sm:mx-0 space-y-3 text-center sm:text-left">
+            <p className="text-sm font-medium text-brand-teal">
               {isEn ? 'Experience & Approach' : 'Deneyim ve Yaklaşım'}
             </p>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -243,48 +293,47 @@ export default function HomePage() {
                 ? 'I bring together experience ranging from digital marketing operations to technology product marketing under a cohesive strategic perspective.'
                 : 'Dijital pazarlama operasyonlarından teknoloji ürünlerinin pazarlanmasına kadar farklı alanlarda edindiğim deneyimi stratejik bir bakış açısıyla değerlendiriyorum.'}
             </p>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {approachPillars.map((pillar, idx) => (
-              <div
-                key={pillar.title}
-                className="pt-6 border-t border-slate-200 space-y-2.5 text-center md:text-left"
-              >
-                <span className="text-sm font-semibold text-blue-700 tabular-nums">
-                  0{idx + 1}
-                </span>
-                <h3 className="text-lg font-semibold text-slate-900">
-                  {pillar.title}
-                </h3>
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  {pillar.description}
-                </p>
-              </div>
+              <StaggerItem key={pillar.title}>
+                <div className="pt-6 border-t border-slate-200 space-y-2.5 text-center md:text-left">
+                  <span className="text-sm font-semibold text-brand-teal tabular-nums">
+                    0{idx + 1}
+                  </span>
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                    {pillar.description}
+                  </p>
+                </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
 
-          <div className="text-center sm:text-left">
+          <Reveal className="text-center sm:text-left">
             <button
               type="button"
               onClick={() => navigate('/deneyim')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer"
             >
               <span>
                 {isEn ? 'Explore Experience' : 'Deneyim Geçmişini İncele'}
               </span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* 5. ÖNE ÇIKAN PROJELER (KONU BAZLI) */}
-      <section className="py-16 sm:py-22 bg-white border-b border-slate-200/80">
+      <section className="py-16 sm:py-22 bg-transparent border-b border-[#012253]/8">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
+          <Reveal className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
-              <p className="text-sm font-medium text-blue-700">
+              <p className="text-sm font-medium text-brand-teal">
                 {isEn ? 'Featured Projects' : 'Öne Çıkan Projeler'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -297,52 +346,51 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/projeler')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer whitespace-nowrap shrink-0"
             >
               <span>{isEn ? 'Explore Projects' : 'Projeleri İnceleyin'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {projectItems.map((project) => (
-              <div
-                key={project.id}
-                className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 flex flex-col justify-between gap-4 text-center sm:text-left"
-              >
-                <div className="space-y-2.5">
-                  <p className="text-xs font-semibold text-blue-700 tabular-nums">
-                    {project.number}
-                  </p>
-                  <h3 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight">
-                    {project.topicTitle}
-                  </h3>
-                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                    {project.homeSummary}
-                  </p>
+              <StaggerItem key={project.id}>
+                <div className="h-full bg-white/75 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-[#012253]/8 flex flex-col justify-between gap-4 text-center sm:text-left transition-all duration-200 hover:-translate-y-1 hover:bg-white/92 hover:border-brand-teal/25 hover:shadow-[0_14px_30px_-14px_rgba(1,34,83,0.14)]">
+                  <div className="space-y-2.5">
+                    <p className="text-xs font-semibold text-brand-teal tabular-nums">
+                      {project.number}
+                    </p>
+                    <h3 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight">
+                      {project.topicTitle}
+                    </h3>
+                    <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                      {project.homeSummary}
+                    </p>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/projeler')}
+                      className="group inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-brand-teal cursor-pointer transition-colors"
+                    >
+                      <span>{isEn ? 'View scope of work' : 'Çalışma kapsamını gör'}</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/projeler')}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-blue-700 cursor-pointer transition-colors"
-                  >
-                    <span>{isEn ? 'View scope of work' : 'Çalışma kapsamını gör'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
       {/* 6. İÇGÖRÜLER — SON 3 BLOG YAZISI */}
-      <section className="py-16 sm:py-22 bg-slate-50 border-b border-slate-200/80">
+      <section className="py-16 sm:py-22 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-12">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
+          <Reveal className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
-              <p className="text-sm font-medium text-blue-700">
+              <p className="text-sm font-medium text-brand-teal">
                 {isEn ? 'Insights & Blog' : 'İçgörüler & Blog'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -360,90 +408,89 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/blog')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer whitespace-nowrap shrink-0"
             >
               <span>{isEn ? 'All Articles' : 'Tüm Yazılarım'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {latestPosts.map((post) => (
-              <article
-                key={post.id}
-                className="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden flex flex-col justify-between"
-              >
-                <div>
-                  <a
-                    href={`/blog/${post.slug}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(`/blog/${post.slug}`);
-                    }}
-                    className="block"
-                  >
-                    <BlogCoverVisual
-                      theme={post.coverTheme}
-                      coverImage={post.coverImage}
-                      title={post.title}
-                      categoryLabel={post.categoryLabel}
-                    />
-                  </a>
+              <StaggerItem key={post.id} className="h-full">
+                <article className="group h-full bg-white/85 backdrop-blur-md rounded-2xl border border-[#012253]/8 overflow-hidden flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:bg-white hover:border-brand-teal/25 hover:shadow-[0_14px_30px_-14px_rgba(1,34,83,0.16)]">
+                  <div>
+                    <a
+                      href={`/blog/${post.slug}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(`/blog/${post.slug}`);
+                      }}
+                      className="block overflow-hidden"
+                    >
+                      <BlogCoverVisual
+                        theme={post.coverTheme}
+                        coverImage={post.coverImage}
+                        title={post.title}
+                        categoryLabel={post.categoryLabel}
+                      />
+                    </a>
 
-                  <div className="p-6 space-y-3 text-center sm:text-left">
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500">
-                      <span className="font-medium text-blue-700">
-                        {post.categoryLabel}
-                      </span>
-                      <span aria-hidden="true">·</span>
-                      <span>{post.publishedAt}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>{post.readingTime}</span>
+                    <div className="p-6 space-y-3 text-center sm:text-left">
+                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500">
+                        <span className="font-medium text-brand-teal">
+                          {post.categoryLabel}
+                        </span>
+                        <span aria-hidden="true">·</span>
+                        <span>{post.publishedAt}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{post.readingTime}</span>
+                      </div>
+
+                      <h3 className="text-lg font-semibold text-slate-900 leading-snug group-hover:text-brand-navy transition-colors">
+                        <a
+                          href={`/blog/${post.slug}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/blog/${post.slug}`);
+                          }}
+                        >
+                          {post.title}
+                        </a>
+                      </h3>
+
+                      <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+                        {post.spot}
+                      </p>
                     </div>
-
-                    <h3 className="text-lg font-semibold text-slate-900 leading-snug group-hover:text-blue-700 transition-colors">
-                      <a
-                        href={`/blog/${post.slug}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigate(`/blog/${post.slug}`);
-                        }}
-                      >
-                        {post.title}
-                      </a>
-                    </h3>
-
-                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
-                      {post.spot}
-                    </p>
                   </div>
-                </div>
 
-                <div className="px-6 pb-6 pt-2 text-center sm:text-left">
-                  <a
-                    href={`/blog/${post.slug}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(`/blog/${post.slug}`);
-                    }}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
-                  >
-                    <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
-              </article>
+                  <div className="px-6 pb-6 pt-2 text-center sm:text-left">
+                    <a
+                      href={`/blog/${post.slug}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate(`/blog/${post.slug}`);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover transition-colors"
+                    >
+                      <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                    </a>
+                  </div>
+                </article>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
       {/* 7. SIKÇA SORULAN SORULAR (KISA ÖN İZLEME) */}
-      <section className="py-16 sm:py-22 bg-white border-b border-slate-200/80">
+      <section className="py-16 sm:py-22 bg-transparent border-b border-[#012253]/8">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 space-y-10">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
+          <Reveal className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-5 text-center sm:text-left">
             <div className="max-w-2xl space-y-3">
-              <p className="text-sm font-medium text-blue-700">
+              <p className="text-sm font-medium text-brand-teal">
                 {isEn ? 'Frequently Asked Questions' : 'Sıkça Sorulan Sorular'}
               </p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
@@ -459,14 +506,14 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/sss')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer whitespace-nowrap shrink-0"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover cursor-pointer whitespace-nowrap shrink-0"
             >
               <span>{isEn ? 'View All Questions' : 'Tüm Soruları Görüntüle'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
-          </div>
+          </Reveal>
 
-          <div className="divide-y divide-slate-200 border-t border-b border-slate-200">
+          <Reveal className="divide-y divide-slate-200 border-t border-b border-slate-200">
             {previewFaqs.map((faq) => {
               const isOpen = openPreviewFaqId === faq.id;
               return (
@@ -477,31 +524,32 @@ export default function HomePage() {
                     aria-expanded={isOpen}
                     className="w-full py-5 min-h-[52px] text-left flex items-center justify-between gap-4 cursor-pointer group"
                   >
-                    <span className="text-base font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
+                    <span className="text-base font-semibold text-slate-900 group-hover:text-brand-teal transition-colors">
                       {faq.question}
                     </span>
                     <ChevronDown
                       className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-blue-700' : ''
+                        isOpen ? 'rotate-180 text-brand-teal' : ''
                       }`}
                     />
                   </button>
-                  {isOpen && (
-                    <div className="pb-5 pr-6 space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
-                      <p>{faq.answer}</p>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/sss#${faq.id}`)}
-                        className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
-                      >
-                        {isEn ? 'View on FAQ page →' : 'SSS sayfasında görüntüle →'}
-                      </button>
-                    </div>
-                  )}
+                  <AccordionBody
+                    isOpen={isOpen}
+                    className="pb-5 pr-6 space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed"
+                  >
+                    <p>{faq.answer}</p>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/sss#${faq.id}`)}
+                      className="text-xs font-semibold text-brand-teal hover:underline cursor-pointer"
+                    >
+                      {isEn ? 'View on FAQ page →' : 'SSS sayfasında görüntüle →'}
+                    </button>
+                  </AccordionBody>
                 </div>
               );
             })}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -509,9 +557,9 @@ export default function HomePage() {
       <LinkedInPostsSection />
 
       {/* 9. İLETİŞİM CTA */}
-      <section className="py-16 sm:py-22 bg-white border-b border-slate-200/80">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
-          <p className="text-sm font-medium text-blue-700">
+      <section className="py-16 sm:py-22 bg-transparent border-b border-[#012253]/8">
+        <Reveal className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
+          <p className="text-sm font-medium text-brand-teal">
             {isEn ? 'Contact' : 'İletişim'}
           </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
@@ -528,13 +576,13 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/iletisim')}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm sm:text-base font-semibold transition-colors cursor-pointer"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-sm sm:text-base font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#012253]/15 active:translate-y-0 cursor-pointer"
             >
               <span>{isEn ? 'Get in Touch' : 'İletişime Geçin'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );

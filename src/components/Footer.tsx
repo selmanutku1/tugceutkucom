@@ -22,7 +22,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-950 text-slate-400 pb-20 md:pb-0">
+    <footer className="bg-brand-navy-deep text-slate-300/90 pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-14 space-y-8">
         {/* Brand & Positioning */}
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-left">
@@ -36,7 +36,7 @@ export default function Footer() {
             >
               <BrandLogo theme="dark" />
             </a>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <p className="text-sm text-slate-300/80 leading-relaxed">
               {brand.shortTagline}
             </p>
           </div>
@@ -45,9 +45,9 @@ export default function Footer() {
             href={brand.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-800 hover:border-slate-700 text-sm font-medium text-slate-200 hover:text-white transition-colors shrink-0"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/15 hover:border-brand-teal-mid/60 bg-white/[0.03] hover:bg-white/[0.06] text-sm font-medium text-slate-100 hover:text-white transition-colors shrink-0"
           >
-            <Linkedin className="w-4 h-4 text-[#0A66C2]" />
+            <Linkedin className="w-4 h-4 text-[#56D0DA]" />
             <span>LinkedIn</span>
           </a>
         </div>
@@ -55,7 +55,7 @@ export default function Footer() {
         {/* Full Menu Row */}
         <nav
           aria-label={isEn ? 'Footer navigation' : 'Alt menü'}
-          className="pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2.5 text-sm"
+          className="pt-6 border-t border-white/10 flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2.5 text-sm"
         >
           {footerLinks.map((link) => (
             <a
@@ -65,7 +65,7 @@ export default function Footer() {
                 e.preventDefault();
                 navigate(link.path);
               }}
-              className="text-slate-300 hover:text-white transition-colors"
+              className="text-slate-300 hover:text-[#6EE0E8] transition-colors"
             >
               {link.label}
             </a>
@@ -73,12 +73,12 @@ export default function Footer() {
         </nav>
 
         {/* Quiet Copyright */}
-        <div className="pt-6 border-t border-slate-800/80 text-xs text-slate-500 text-center md:text-left">
+        <div className="pt-6 border-t border-white/10 text-xs text-slate-400 text-center md:text-left">
           <p>
             <button
               type="button"
               onClick={() => navigate('/yonetim')}
-              className="hover:text-slate-300 transition-colors cursor-pointer"
+              className="hover:text-[#6EE0E8] transition-colors cursor-pointer"
               title={isEn ? 'Blog Management' : 'Blog Yönetim Paneli'}
             >
               © {brand.name}

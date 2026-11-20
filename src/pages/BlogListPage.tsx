@@ -10,12 +10,14 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { getBlogData } from '../data/blogPostsEn';
 import { BlogCategoryKey } from '../types';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useBlog } from '../context/BlogContext';
 import BlogCoverVisual from '../components/BlogCoverVisual';
+import { EXECUTIVE_EASE, Reveal } from '../components/MotionPrimitives';
 
 const PAGE_SIZE = 3;
 
@@ -157,12 +159,12 @@ export default function BlogListPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div>
       {/* Page Header + Prominent Title & Tag Search Bar */}
-      <section className="border-b border-slate-200/80 bg-white">
+      <section className="border-b border-[#012253]/8 bg-transparent">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-12 sm:pt-16 sm:pb-14 space-y-8">
-          <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
-            <p className="text-sm font-medium text-blue-700">
+          <Reveal immediate className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left space-y-4">
+            <p className="text-sm font-medium text-brand-teal">
               {isEn ? 'Blog & Insights' : 'Blog ve İçgörüler'}
             </p>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.14] [text-wrap:balance]">
@@ -182,10 +184,10 @@ export default function BlogListPage() {
                   : 'Karar vericiler, teknoloji ekipleri ve sigorta sektörü profesyonelleri için uygulanabilir perspektifler sunmayı hedefliyorum.'}
               </p>
             </div>
-          </div>
+          </Reveal>
 
           {/* Search Bar Across Article Titles & Content Tags */}
-          <div className="max-w-2xl mx-auto sm:mx-0 space-y-3">
+          <Reveal immediate delay={0.12} className="max-w-2xl mx-auto sm:mx-0 space-y-3">
             <div className="relative">
               <Search
                 className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -205,7 +207,7 @@ export default function BlogListPage() {
                     ? 'Search across article titles and content tags'
                     : 'Makale başlıkları ve içerik etiketlerinde ara'
                 }
-                className="w-full pl-12 pr-11 py-3.5 text-sm sm:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full pl-12 pr-11 py-3.5 text-sm sm:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal focus:ring-2 focus:ring-brand-teal-soft transition-all"
               />
               {searchQuery && (
                 <button
@@ -235,8 +237,8 @@ export default function BlogListPage() {
                     onClick={() => handleTagClick(tag)}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                       isActiveTag
-                        ? 'bg-blue-700 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                        ? 'bg-brand-navy text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-brand-teal-light hover:text-brand-teal'
                     }`}
                   >
                     <Hash className="w-3 h-3 opacity-70" />
@@ -245,21 +247,21 @@ export default function BlogListPage() {
                 );
               })}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Featured Article (shown on page 1 of default view) */}
       {isDefaultView && safePage === 1 && featuredPost && (
-        <section className="py-12 sm:py-16 bg-slate-50 border-b border-slate-200/80">
-          <div className="max-w-6xl mx-auto px-5 sm:px-8">
+        <section className="py-12 sm:py-16 bg-white/45 backdrop-blur-[2px] border-b border-[#012253]/8">
+          <Reveal immediate delay={0.18} distance={36} className="max-w-6xl mx-auto px-5 sm:px-8">
             <div className="mb-5 text-center sm:text-left">
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand-teal">
                 {isEn ? 'Featured Article' : 'Öne Çıkan Yazı'}
               </p>
             </div>
 
-            <article className="group bg-white rounded-2xl border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+            <article className="group bg-white rounded-2xl border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all duration-300 hover:border-slate-300 hover:shadow-[0_16px_36px_-18px_rgba(15,23,42,0.16)]">
               <a
                 href={`/blog/${featuredPost.slug}`}
                 onClick={(e) => {
@@ -280,7 +282,7 @@ export default function BlogListPage() {
               <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between gap-6 text-center sm:text-left">
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs font-medium text-slate-500">
-                    <span className="text-blue-700 font-semibold">
+                    <span className="text-brand-teal font-semibold">
                       {featuredPost.categoryLabel}
                     </span>
                     <span className="inline-flex items-center gap-1">
@@ -300,7 +302,7 @@ export default function BlogListPage() {
                         e.preventDefault();
                         navigate(`/blog/${featuredPost.slug}`);
                       }}
-                      className="hover:text-blue-700 transition-colors"
+                      className="hover:text-brand-navy transition-colors"
                     >
                       {featuredPost.title}
                     </a>
@@ -317,7 +319,7 @@ export default function BlogListPage() {
                         key={tag}
                         type="button"
                         onClick={() => handleTagClick(tag)}
-                        className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-50 text-xs font-medium text-slate-600 hover:text-blue-700 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-brand-teal-light text-xs font-medium text-slate-600 hover:text-brand-teal transition-colors cursor-pointer"
                       >
                         <span className="opacity-60">#</span>
                         <span>{tag}</span>
@@ -333,10 +335,10 @@ export default function BlogListPage() {
                       e.preventDefault();
                       navigate(`/blog/${featuredPost.slug}`);
                     }}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover transition-colors"
                   >
                     <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </a>
 
                   <a
@@ -356,15 +358,15 @@ export default function BlogListPage() {
                 </div>
               </div>
             </article>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* Category Filter Tabs & Article Grid */}
-      <section ref={listSectionRef} className="py-12 sm:py-16 bg-white scroll-mt-18">
+      <section ref={listSectionRef} className="py-12 sm:py-16 bg-transparent scroll-mt-18">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 space-y-8">
           {/* Category Tabs & Active Search Result Summary */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+          <Reveal className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
             <div
               role="tablist"
               aria-label={isEn ? 'Blog categories' : 'Blog kategorileri'}
@@ -379,13 +381,20 @@ export default function BlogListPage() {
                     role="tab"
                     aria-selected={active}
                     onClick={() => handleCategoryChange(filter.key)}
-                    className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
                       active
-                        ? 'bg-slate-900 text-white'
+                        ? 'text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 hover:text-slate-900'
                     }`}
                   >
-                    {filter.label}
+                    {active && (
+                      <motion.span
+                        layoutId="blog-category-active"
+                        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                        className="absolute inset-0 rounded-lg bg-brand-navy"
+                      />
+                    )}
+                    <span className="relative z-10">{filter.label}</span>
                   </button>
                 );
               })}
@@ -401,22 +410,35 @@ export default function BlogListPage() {
                 <button
                   type="button"
                   onClick={() => handleSearchChange('')}
-                  className="font-semibold text-blue-700 hover:underline cursor-pointer"
+                  className="font-semibold text-brand-teal hover:underline cursor-pointer"
                 >
                   {isEn ? 'Clear' : 'Temizle'}
                 </button>
               </div>
             )}
-          </div>
+          </Reveal>
 
-          {/* Articles Grid */}
+          {/* Articles Grid with Smooth Filter Transitions */}
           {paginatedPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-colors overflow-hidden flex flex-col"
-                >
+            <motion.div
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <AnimatePresence mode="popLayout">
+                {paginatedPosts.map((post, idx) => (
+                  <motion.article
+                    key={post.id}
+                    layout
+                    initial={{ opacity: 0, y: 16, scale: 0.985 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                    transition={{
+                      duration: 0.34,
+                      delay: idx * 0.04,
+                      ease: EXECUTIVE_EASE,
+                    }}
+                    className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_14px_30px_-14px_rgba(15,23,42,0.14)] overflow-hidden flex flex-col"
+                  >
                   <a
                     href={`/blog/${post.slug}`}
                     onClick={(e) => {
@@ -436,7 +458,7 @@ export default function BlogListPage() {
                   <div className="p-6 flex-1 flex flex-col justify-between gap-5 text-center sm:text-left">
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 text-xs text-slate-500">
-                        <span className="font-semibold text-blue-700">
+                        <span className="font-semibold text-brand-teal">
                           {post.categoryLabel}
                         </span>
                         <span>{post.publishedAt}</span>
@@ -450,7 +472,7 @@ export default function BlogListPage() {
                             e.preventDefault();
                             navigate(`/blog/${post.slug}`);
                           }}
-                          className="hover:text-blue-700 transition-colors"
+                          className="hover:text-brand-navy transition-colors"
                         >
                           {post.title}
                         </a>
@@ -475,8 +497,8 @@ export default function BlogListPage() {
                               onClick={() => handleTagClick(tag)}
                               className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                                 isMatched
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                                  ? 'bg-brand-teal-light text-brand-navy ring-1 ring-brand-teal-soft'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-brand-teal-light hover:text-brand-teal'
                               }`}
                             >
                               <span className="opacity-60">#</span>
@@ -494,10 +516,10 @@ export default function BlogListPage() {
                           e.preventDefault();
                           navigate(`/blog/${post.slug}`);
                         }}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:text-brand-teal-hover transition-colors"
                       >
                         <span>{isEn ? 'Read More' : 'Devamını Oku'}</span>
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </a>
 
                       <a
@@ -516,9 +538,10 @@ export default function BlogListPage() {
                       </a>
                     </div>
                   </div>
-                </article>
-              ))}
-            </div>
+                </motion.article>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           ) : (
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center space-y-4">
               <p className="text-base font-semibold text-slate-900">
@@ -538,7 +561,7 @@ export default function BlogListPage() {
                   setSearchQuery('');
                   setCurrentPage(1);
                 }}
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-brand-teal bg-brand-teal-light hover:bg-brand-teal-soft rounded-lg transition-colors cursor-pointer"
               >
                 {isEn ? 'Reset Filters' : 'Filtreleri Temizle'}
               </button>
@@ -580,7 +603,7 @@ export default function BlogListPage() {
                     aria-label={isEn ? `Page ${item}` : `Sayfa ${item}`}
                     className={`min-w-[40px] h-10 px-3 inline-flex items-center justify-center rounded-lg text-sm font-semibold tabular-nums transition-colors cursor-pointer ${
                       safePage === item
-                        ? 'bg-blue-700 text-white border border-blue-700'
+                        ? 'bg-brand-navy text-white border border-brand-navy'
                         : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >

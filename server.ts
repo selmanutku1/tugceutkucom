@@ -26,6 +26,7 @@ const DEFAULT_CONTACT_RECIPIENTS = [
 
 const DASHBOARD_PASSCODE = process.env.DASHBOARD_PASSCODE || '2027';
 const CUSTOM_POSTS_FILE = path.resolve(__dirname, 'data', 'custom-blog-posts.json');
+const DELETED_BLOG_IDS_FILE = path.resolve(__dirname, 'data', 'deleted-blog-ids.json');
 
 async function readCustomPostsFile(): Promise<unknown[]> {
   try {
@@ -40,6 +41,21 @@ async function readCustomPostsFile(): Promise<unknown[]> {
 async function writeCustomPostsFile(posts: unknown[]): Promise<void> {
   await fs.mkdir(path.dirname(CUSTOM_POSTS_FILE), { recursive: true });
   await fs.writeFile(CUSTOM_POSTS_FILE, JSON.stringify(posts, null, 2), 'utf8');
+}
+
+async function readDeletedBlogIdsFile(): Promise<string[]> {
+  try {
+    const raw = await fs.readFile(DELETED_BLOG_IDS_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeDeletedBlogIdsFile(ids: string[]): Promise<void> {
+  await fs.mkdir(path.dirname(DELETED_BLOG_IDS_FILE), { recursive: true });
+  await fs.writeFile(DELETED_BLOG_IDS_FILE, JSON.stringify(ids, null, 2), 'utf8');
 }
 
 function getContactRecipients(): string[] {
@@ -681,10 +697,16 @@ async function startServer() {
     }
   });
 
-  // Custom Blog Posts API (protected by dashboard passcode for writes)
+  const { BLOG_POSTS } = await import('./src/data/blogPosts.ts');
+  const builtInPostIds = new Set(BLOG_POSTS.map((p) => p.id));
+
+  // Blog Posts API (supports both newly added posts and edits/deletions of built-in posts)
   app.get('/api/blog-posts', async (_req: Request, res: Response) => {
-    const posts = await readCustomPostsFile();
-    res.json({ posts });
+    const [posts, deletedIds] = await Promise.all([
+      readCustomPostsFile(),
+      readDeletedBlogIdsFile(),
+    ]);
+    res.json({ posts, deletedIds });
   });
 
   app.post('/api/blog-posts', async (req: Request, res: Response) => {
@@ -702,6 +724,12 @@ async function startServer() {
       const existing = await readCustomPostsFile();
       const updated = [post, ...existing.filter((p) => (p as { id?: string })?.id !== post.id)];
       await writeCustomPostsFile(updated);
+
+      const deletedIds = await readDeletedBlogIdsFile();
+      if (deletedIds.includes(post.id)) {
+        await writeDeletedBlogIdsFile(deletedIds.filter((item) => item !== post.id));
+      }
+
       res.json({ ok: true, post });
     } catch (error) {
       console.error('Failed to persist custom blog post:', error);
@@ -723,11 +751,20 @@ async function startServer() {
     }
     try {
       const existing = await readCustomPostsFile();
-      const updated = existing.map((p) => ((p as { id?: string })?.id === id ? post : p));
+      const existsInFile = existing.some((p) => (p as { id?: string })?.id === id);
+      const updated = existsInFile
+        ? existing.map((p) => ((p as { id?: string })?.id === id ? post : p))
+        : [post, ...existing];
       await writeCustomPostsFile(updated);
+
+      const deletedIds = await readDeletedBlogIdsFile();
+      if (deletedIds.includes(id)) {
+        await writeDeletedBlogIdsFile(deletedIds.filter((item) => item !== id));
+      }
+
       res.json({ ok: true, post });
     } catch (error) {
-      console.error('Failed to update custom blog post:', error);
+      console.error('Failed to update blog post:', error);
       res.status(500).json({ ok: false, error: 'Yazı güncellenemedi.' });
     }
   });
@@ -739,13 +776,24 @@ async function startServer() {
       return;
     }
     const { id } = req.params;
+    const mode = String(req.query.mode || '');
     try {
       const existing = await readCustomPostsFile();
       const updated = existing.filter((p) => (p as { id?: string })?.id !== id);
       await writeCustomPostsFile(updated);
+
+      const deletedIds = await readDeletedBlogIdsFile();
+      if (mode === 'reset' || mode === 'restore') {
+        if (deletedIds.includes(id)) {
+          await writeDeletedBlogIdsFile(deletedIds.filter((item) => item !== id));
+        }
+      } else if (builtInPostIds.has(id) && !deletedIds.includes(id)) {
+        await writeDeletedBlogIdsFile([...deletedIds, id]);
+      }
+
       res.json({ ok: true });
     } catch (error) {
-      console.error('Failed to delete custom blog post:', error);
+      console.error('Failed to delete blog post:', error);
       res.status(500).json({ ok: false, error: 'Yazı silinemedi.' });
     }
   });
@@ -900,7 +948,7 @@ async function startServer() {
 
       const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
       const extraEntries = customPosts
-        .filter((p) => p.slug)
+        .filter((p) => p.slug && !xml.includes(`/blog/${p.slug}`))
         .map(
           (p) =>
             `  <url>\n    <loc>${escapeHtml(`${baseUrl}/blog/${p.slug}`)}</loc>\n    <lastmod>${escapeHtml(p.publishedIso || new Date().toISOString().slice(0, 10))}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`
@@ -925,7 +973,7 @@ async function startServer() {
 
       const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
       const extraLines = customPosts
-        .filter((p) => p.slug && p.title)
+        .filter((p) => p.slug && p.title && !txt.includes(`/blog/${p.slug}`))
         .map((p) => `- [${p.title}](${baseUrl}/blog/${p.slug}): ${p.spot || ''}`)
         .join('\n');
 
@@ -950,7 +998,7 @@ async function startServer() {
 
       const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
       const extraItems = customPosts
-        .filter((p) => p.slug && p.title)
+        .filter((p) => p.slug && p.title && !rss.includes(`/blog/${p.slug}`))
         .map((p) => {
           const link = `${baseUrl}/blog/${p.slug}`;
           const pubDate = p.publishedIso
@@ -984,14 +1032,24 @@ async function startServer() {
     coverImage?: string;
   }
 
-  const { BLOG_POSTS } = await import('./src/data/blogPosts.ts');
-
   async function findBlogMetaBySlug(rawSlug: string): Promise<StoredCustomBlog | undefined> {
     const clean = rawSlug.replace(/^\/+|\/+$/g, '').toLowerCase();
-    const customPosts = (await readCustomPostsFile()) as StoredCustomBlog[];
-    const customHit = customPosts.find((p) => (p.slug || '').toLowerCase() === clean);
+    const [customPosts, deletedIds] = await Promise.all([
+      readCustomPostsFile() as Promise<StoredCustomBlog[]>,
+      readDeletedBlogIdsFile(),
+    ]);
+    const deletedSet = new Set(deletedIds);
+    const customHit = customPosts.find(
+      (p) => !deletedSet.has(p.id || '') && (p.slug || '').toLowerCase() === clean
+    );
     if (customHit) return customHit;
-    return BLOG_POSTS.find((p) => p.slug.toLowerCase() === clean);
+    const overriddenIds = new Set(customPosts.map((p) => p.id || ''));
+    return BLOG_POSTS.find(
+      (p) =>
+        !deletedSet.has(p.id) &&
+        !overriddenIds.has(p.id) &&
+        p.slug.toLowerCase() === clean
+    );
   }
 
   app.get('/api/blog-cover/:slug', async (req: Request, res: Response) => {
