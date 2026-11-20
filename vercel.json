@@ -5,8 +5,12 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/blog/(.*)",
-      "destination": "/index.html"
+      "source": "/blog/:slug",
+      "destination": "/api/blog-meta?slug=:slug"
+    },
+    {
+      "source": "/blog/:slug/",
+      "destination": "/api/blog-meta?slug=:slug"
     },
     {
       "source": "/(.*)",

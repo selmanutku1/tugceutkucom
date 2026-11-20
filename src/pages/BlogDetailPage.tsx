@@ -64,6 +64,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     const canonicalUrl = `${origin}/blog/${post.slug}`;
     const fullTitle = `${post.title} | ${brand.name}`;
     const keywords = [...post.tags, post.categoryLabel, brand.name].join(', ');
+    const isCustomPost = post.id.startsWith('custom-');
+    const ogImageUrl = isCustomPost
+      ? post.coverImage
+        ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}`
+        : `${origin}/og-covers/theme-${post.coverTheme}.png`
+      : `${origin}/og-covers/${post.slug}.png`;
 
     document.title = fullTitle;
     upsertMetaTag('name', 'description', post.spot);
@@ -80,11 +86,18 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     upsertMetaTag('property', 'og:description', post.spot);
     upsertMetaTag('property', 'og:url', canonicalUrl);
     upsertMetaTag('property', 'og:locale', isEn ? 'en_US' : 'tr_TR');
+    upsertMetaTag('property', 'og:image', ogImageUrl);
+    upsertMetaTag('property', 'og:image:secure_url', ogImageUrl);
+    upsertMetaTag('property', 'og:image:type', 'image/png');
+    upsertMetaTag('property', 'og:image:width', '1200');
+    upsertMetaTag('property', 'og:image:height', '630');
+    upsertMetaTag('property', 'og:image:alt', post.title);
     upsertMetaTag('property', 'article:published_time', post.publishedIso);
     upsertMetaTag('property', 'article:author', brand.name);
     upsertMetaTag('property', 'article:section', post.categoryLabel);
     upsertMetaTag('name', 'twitter:title', fullTitle);
     upsertMetaTag('name', 'twitter:description', post.spot);
+    upsertMetaTag('name', 'twitter:image', ogImageUrl);
 
     const allText = post.sections
       .map((section) => `${section.heading}. ${section.paragraphs.join(' ')}`)
@@ -103,6 +116,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           alternativeHeadline: post.spot,
           description: post.spot,
           abstract: post.spot,
+          image: {
+            '@type': 'ImageObject',
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+          },
           keywords: post.tags.join(', '),
           about: post.tags.map((tag) => ({
             '@type': 'Thing',

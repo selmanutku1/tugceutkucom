@@ -972,15 +972,168 @@ async function startServer() {
 
   app.get(['/auth/linkedin/callback', '/auth/linkedin/callback/'], oauthCallbackHandler);
 
+  // Serve real binary JPEG/PNG blog cover image for custom & built-in posts (for LinkedIn/WhatsApp OG previews)
+  interface StoredCustomBlog {
+    id?: string;
+    slug?: string;
+    title?: string;
+    spot?: string;
+    categoryLabel?: string;
+    publishedIso?: string;
+    coverTheme?: string;
+    coverImage?: string;
+  }
+
+  const { BLOG_POSTS } = await import('./src/data/blogPosts.ts');
+
+  async function findBlogMetaBySlug(rawSlug: string): Promise<StoredCustomBlog | undefined> {
+    const clean = rawSlug.replace(/^\/+|\/+$/g, '').toLowerCase();
+    const customPosts = (await readCustomPostsFile()) as StoredCustomBlog[];
+    const customHit = customPosts.find((p) => (p.slug || '').toLowerCase() === clean);
+    if (customHit) return customHit;
+    return BLOG_POSTS.find((p) => p.slug.toLowerCase() === clean);
+  }
+
+  app.get('/api/blog-cover/:slug', async (req: Request, res: Response) => {
+    const slug = String(req.params.slug || '').replace(/^\/+|\/+$/g, '');
+    const post = await findBlogMetaBySlug(slug);
+
+    if (post?.coverImage && post.coverImage.startsWith('data:image/')) {
+      const match = post.coverImage.match(/^data:(image\/(?:jpeg|jpg|png));base64,(.+)$/i);
+      if (match) {
+        const mime = match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase();
+        const buffer = Buffer.from(match[2], 'base64');
+        res.setHeader('Content-Type', mime);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.send(buffer);
+        return;
+      }
+    }
+
+    const candidates = [
+      path.resolve(__dirname, IS_PROD ? 'dist' : 'public', 'og-covers', `${slug}.png`),
+      path.resolve(
+        __dirname,
+        IS_PROD ? 'dist' : 'public',
+        'og-covers',
+        `theme-${post?.coverTheme || 'transformation'}.png`
+      ),
+    ];
+
+    for (const filePath of candidates) {
+      try {
+        const fileBuf = await fs.readFile(filePath);
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.send(fileBuf);
+        return;
+      } catch {
+        // Try next candidate
+      }
+    }
+
+    res.status(404).end();
+  });
+
+  function injectBlogOgTags(
+    html: string,
+    baseUrl: string,
+    slug: string,
+    post?: StoredCustomBlog
+  ): string {
+    if (!post || !post.title) return html;
+    const title = `${post.title} | Tuğçe Utku`;
+    const description =
+      post.spot ||
+      'Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve strateji üzerine analizler ve içgörüler.';
+    const canonicalUrl = `${baseUrl}/blog/${encodeURIComponent(post.slug || slug)}`;
+    const hasCustomUploadedImage = Boolean(
+      post.coverImage && post.coverImage.startsWith('data:image/')
+    );
+    const isCustom = Boolean(post.id && post.id.startsWith('custom-'));
+    const imageUrl = hasCustomUploadedImage
+      ? `${baseUrl}/api/blog-cover/${encodeURIComponent(post.slug || slug)}`
+      : isCustom
+        ? `${baseUrl}/og-covers/theme-${post.coverTheme || 'transformation'}.png`
+        : `${baseUrl}/og-covers/${post.slug || slug}.png`;
+    const imageType =
+      hasCustomUploadedImage && post.coverImage?.startsWith('data:image/jpeg')
+        ? 'image/jpeg'
+        : 'image/png';
+
+    const eTitle = escapeHtml(title);
+    const eDesc = escapeHtml(description);
+    const eCanonical = escapeHtml(canonicalUrl);
+    const eImage = escapeHtml(imageUrl);
+    const eAlt = escapeHtml(post.title);
+
+    const stripped = html
+      .replace(/<title>[\s\S]*?<\/title>/i, `<title>${eTitle}</title>`)
+      .replace(/<meta\s+name="description"[^>]*>\s*/gi, '')
+      .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, '')
+      .replace(/<meta\s+property="og:[^"]+"[^>]*>\s*/gi, '')
+      .replace(/<meta\s+property="article:[^"]+"[^>]*>\s*/gi, '')
+      .replace(/<meta\s+name="twitter:[^"]+"[^>]*>\s*/gi, '');
+
+    const metaBlock = `
+    <meta name="description" content="${eDesc}" />
+    <link rel="canonical" href="${eCanonical}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Tuğçe Utku" />
+    <meta property="og:locale" content="tr_TR" />
+    <meta property="og:url" content="${eCanonical}" />
+    <meta property="og:title" content="${eTitle}" />
+    <meta property="og:description" content="${eDesc}" />
+    <meta property="og:image" content="${eImage}" />
+    <meta property="og:image:secure_url" content="${eImage}" />
+    <meta property="og:image:type" content="${imageType}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="${eAlt}" />
+    <meta property="article:published_time" content="${escapeHtml(post.publishedIso || '')}" />
+    <meta property="article:section" content="${escapeHtml(post.categoryLabel || 'Blog')}" />
+    <meta property="article:author" content="Tuğçe Utku" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${eTitle}" />
+    <meta name="twitter:description" content="${eDesc}" />
+    <meta name="twitter:image" content="${eImage}" />
+`;
+
+    return stripped.replace(/<\/title>/i, `</title>${metaBlock}`);
+  }
+
   if (!IS_PROD) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
+    app.get('/blog/:slug', async (req: Request, res: Response, next) => {
+      try {
+        const slug = String(req.params.slug || '');
+        const post = await findBlogMetaBySlug(slug);
+        const rawHtml = await fs.readFile(path.resolve(__dirname, 'index.html'), 'utf8');
+        const transformed = await vite.transformIndexHtml(req.originalUrl, rawHtml);
+        const finalHtml = injectBlogOgTags(transformed, resolveBaseUrl(req), slug, post);
+        res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(finalHtml);
+      } catch (err) {
+        next(err);
+      }
+    });
+
     app.use(vite.middlewares);
   } else {
     const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
+
+    app.get('/blog/:slug', async (req: Request, res: Response) => {
+      const slug = String(req.params.slug || '');
+      const post = await findBlogMetaBySlug(slug);
+      const rawHtml = await fs.readFile(path.join(distPath, 'index.html'), 'utf8');
+      const finalHtml = injectBlogOgTags(rawHtml, resolveBaseUrl(req), slug, post);
+      res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(finalHtml);
+    });
+
     app.get('*', (_req: Request, res: Response) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
