@@ -17,20 +17,22 @@ export default function BrandLogo({
 
   if (variant === 'icon') {
     return (
-      <div
-        className={`inline-flex items-center justify-center select-none shrink-0 ${
-          isDark ? 'bg-white p-1.5 rounded-xl ring-1 ring-white/15' : ''
-        }`}
-      >
+      <div className="inline-flex items-center justify-center select-none shrink-0">
         {!imgError ? (
           <img
             src={MONOGRAM_LOGO}
             alt="TU — Tuğçe Utku"
             onError={() => setImgError(true)}
-            className="h-9 w-auto object-contain"
+            className={`h-9 w-auto object-contain ${
+              isDark ? 'brightness-0 invert opacity-95' : ''
+            }`}
           />
         ) : (
-          <span className="font-display text-sm font-extrabold tracking-tight text-[#0e2753]">
+          <span
+            className={`font-display text-sm font-extrabold tracking-tight ${
+              isDark ? 'text-white' : 'text-[#0e2753]'
+            }`}
+          >
             TU
           </span>
         )}
@@ -39,22 +41,24 @@ export default function BrandLogo({
   }
 
   return (
-    <div
-      className={`inline-flex items-center select-none whitespace-nowrap shrink-0 ${
-        isDark ? 'bg-white px-3.5 py-2 rounded-xl ring-1 ring-white/15' : ''
-      }`}
-    >
+    <div className="inline-flex items-center select-none whitespace-nowrap shrink-0">
       {!imgError ? (
         <img
           src={FULL_BRAND_LOGO}
           alt="Tuğçe Utku"
           onError={() => setImgError(true)}
-          className={`w-auto object-contain ${
-            isDark ? 'h-8 sm:h-9' : 'h-9 sm:h-11'
+          className={`w-auto object-contain transition-opacity ${
+            isDark
+              ? 'h-9 sm:h-10 brightness-0 invert opacity-95 hover:opacity-100'
+              : 'h-9 sm:h-11'
           }`}
         />
       ) : (
-        <span className="font-display text-sm font-bold tracking-[0.14em] uppercase text-[#0e2753]">
+        <span
+          className={`font-display text-sm font-bold tracking-[0.14em] uppercase ${
+            isDark ? 'text-white' : 'text-[#0e2753]'
+          }`}
+        >
           TUĞÇE UTKU
         </span>
       )}
