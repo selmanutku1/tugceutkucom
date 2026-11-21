@@ -4,8 +4,13 @@ import type { Request, Response } from 'express';
 import nodemailer from 'nodemailer';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createServer as createViteServer } from 'vite';
+
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -698,6 +703,7 @@ async function startServer() {
   });
 
   const { BLOG_POSTS } = await import('./src/data/blogPosts.ts');
+  const { BLOG_POSTS_EN } = await import('./src/data/blogPostsEn.ts');
   const builtInPostIds = new Set(BLOG_POSTS.map((p) => p.id));
 
   // Blog Posts API (supports both newly added posts and edits/deletions of built-in posts)
@@ -913,11 +919,24 @@ async function startServer() {
     path.resolve(__dirname, IS_PROD ? 'dist' : 'public', filename);
 
   const resolveBaseUrl = (req: Request) => {
+    const rawHost = String(req.headers['x-forwarded-host'] || req.get('host') || '')
+      .split(',')[0]
+      .trim();
+    const rawProto = String(req.headers['x-forwarded-proto'] || req.protocol || 'https')
+      .split(',')[0]
+      .trim();
+    const proto = rawProto === 'http' || rawProto === 'https' ? rawProto : 'https';
+
+    if (
+      rawHost &&
+      !/^(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/i.test(rawHost)
+    ) {
+      return `${proto}://${rawHost}`;
+    }
+
     const envUrl = process.env.APP_URL?.trim();
     if (envUrl) return envUrl.replace(/\/+$/, '');
-    const proto = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'https';
-    const host = req.get('host');
-    return host ? `${proto}://${host}` : 'https://www.tugceutku.com';
+    return rawHost ? `${proto}://${rawHost}` : 'https://www.tugceutku.com';
   };
 
   interface CustomPostRecord {
@@ -1030,10 +1049,203 @@ async function startServer() {
     publishedIso?: string;
     coverTheme?: string;
     coverImage?: string;
+    isOverriddenOrCustom?: boolean;
   }
 
-  async function findBlogMetaBySlug(rawSlug: string): Promise<StoredCustomBlog | undefined> {
-    const clean = rawSlug.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const SLUG_ARTWORK_FILE: Record<string, string> = {
+    'dijital-donusumun-merkezinde-teknoloji-ve-dogru-strateji-var':
+      'src/assets/images/blog_cover_transformation_1795277561057.jpg',
+    'yapay-zeka-sigortacilik-sektorunu-nasil-donusturuyor':
+      'src/assets/images/blog_cover_ai_insurance_1795277562127.jpg',
+    'sigorta-sektorunde-crm-teknolojilerinin-stratejik-onemi':
+      'src/assets/images/blog_cover_insurtech_crm_1795277564004.jpg',
+    'dijitallesmek-ile-gercekten-donusmek-arasindaki-fark':
+      'src/assets/images/blog_cover_process_redesign_1795278310290.jpg',
+    'sigortacilikta-dijital-donusum-teknolojiden-daha-fazlasi':
+      'src/assets/images/blog_cover_hybrid_trust_1795278309838.jpg',
+    'sigorta-acenteleri-icin-dijitallesmenin-yeni-donemi':
+      'src/assets/images/blog_cover_digital_agency_1795278311004.jpg',
+    'sigortacilikta-yapay-zeka-otomasyondan-akilli-karar-sistemlerine':
+      'src/assets/images/blog_cover_decision_engine_1795278310251.jpg',
+    'yapay-zeka-caginda-musteri-deneyimi-nasil-degisiyor':
+      'src/assets/images/blog_cover_cx_digital_1795277584069.jpg',
+    'b2b-pazarlamada-lead-sayisindan-daha-onemli-olan-nedir':
+      'src/assets/images/blog_cover_growth_clean_1795277581886.jpg',
+    'saas-urunlerinde-self-servis-satis-modeli-nasil-kurgulanir':
+      'src/assets/images/blog_cover_saas_funnel_1795278310588.jpg',
+    'pazarlama-ve-satis-ekipleri-neden-ayni-hedefe-odaklanmali':
+      'src/assets/images/blog_cover_strategy_clean_1795277583363.jpg',
+    'teknoloji-sirketlerinde-urun-pazarlamasinin-stratejik-rolu':
+      'src/assets/images/blog_cover_product_positioning_1795278311179.jpg',
+  };
+
+  const THEME_ARTWORK_FILE: Record<string, string> = {
+    photo: 'src/assets/images/blog_cover_transformation_1795277561057.jpg',
+    transformation: 'src/assets/images/blog_cover_process_redesign_1795278310290.jpg',
+    insurtech: 'src/assets/images/blog_cover_insurtech_crm_1795277564004.jpg',
+    ai: 'src/assets/images/blog_cover_ai_insurance_1795277562127.jpg',
+    growth: 'src/assets/images/blog_cover_growth_clean_1795277581886.jpg',
+    strategy: 'src/assets/images/blog_cover_strategy_clean_1795277583363.jpg',
+  };
+
+  const OG_CACHE_DIR = '/tmp/tugce-og-cache';
+
+  async function renderDynamicBlogCoverJpg(
+    post: StoredCustomBlog
+  ): Promise<Buffer | null> {
+    const title = (post.title || '').trim();
+    if (!title) return null;
+
+    const categoryLabel = (post.categoryLabel || 'Blog').trim();
+    const slugKey = (post.slug || '').toLowerCase();
+    const themeKey = (post.coverTheme || 'transformation').toLowerCase();
+    const bgRel =
+      SLUG_ARTWORK_FILE[slugKey] ||
+      THEME_ARTWORK_FILE[themeKey] ||
+      THEME_ARTWORK_FILE.transformation;
+    const bgPath = path.resolve(__dirname, bgRel);
+    const logoPath = resolvePublicFile('assets/aistudio/IMG_8969_35f4cedb.png');
+    const fontBold = '/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf';
+
+    const cacheKey = crypto
+      .createHash('sha1')
+      .update(`${slugKey}|${title}|${categoryLabel}|${themeKey}`)
+      .digest('hex')
+      .slice(0, 16);
+    const cacheFile = path.join(OG_CACHE_DIR, `${cacheKey}.jpg`);
+
+    try {
+      return await fs.readFile(cacheFile);
+    } catch {
+      // Cache miss -> render below
+    }
+
+    try {
+      await fs.mkdir(OG_CACHE_DIR, { recursive: true });
+      const pt = title.length > 62 ? 40 : title.length > 48 ? 44 : 48;
+      await execFileAsync('convert', [
+        bgPath,
+        '-resize',
+        '1200x630^',
+        '-gravity',
+        'center',
+        '-extent',
+        '1200x630',
+        '(',
+        '-size',
+        '630x1200',
+        'gradient:#01122EEB-#01153618',
+        '-rotate',
+        '-90',
+        ')',
+        '-gravity',
+        'NorthWest',
+        '-compose',
+        'over',
+        '-composite',
+        '-fill',
+        '#6EE0E8',
+        '-draw',
+        'circle 76,72 82,72',
+        '-stroke',
+        'rgba(255,255,255,0.18)',
+        '-strokewidth',
+        '1',
+        '-draw',
+        'line 72,534 1128,534',
+        '-stroke',
+        'none',
+        '-background',
+        'none',
+        '-fill',
+        '#8EE6EC',
+        '-font',
+        fontBold,
+        '-pointsize',
+        '20',
+        '-gravity',
+        'NorthWest',
+        '-annotate',
+        '+96+58',
+        categoryLabel,
+        '(',
+        '-size',
+        '760x',
+        '-background',
+        'none',
+        '-fill',
+        '#FFFFFF',
+        '-font',
+        fontBold,
+        '-pointsize',
+        String(pt),
+        '-interline-spacing',
+        '8',
+        '-gravity',
+        'West',
+        `caption:${title}`,
+        ')',
+        '-gravity',
+        'West',
+        '-geometry',
+        '+72-12',
+        '-compose',
+        'over',
+        '-composite',
+        '-fill',
+        'rgba(255,255,255,0.82)',
+        '-font',
+        fontBold,
+        '-pointsize',
+        '17',
+        '-gravity',
+        'SouthWest',
+        '-annotate',
+        '+72+40',
+        'T U Ğ Ç E   U T K U',
+        '(',
+        logoPath,
+        '-resize',
+        'x42',
+        '-channel',
+        'RGB',
+        '-evaluate',
+        'set',
+        '100%',
+        '+channel',
+        ')',
+        '-gravity',
+        'SouthEast',
+        '-geometry',
+        '+72+30',
+        '-compose',
+        'over',
+        '-composite',
+        '-strip',
+        '-sampling-factor',
+        '4:2:0',
+        '-quality',
+        '86',
+        cacheFile,
+      ]);
+      return await fs.readFile(cacheFile);
+    } catch (err) {
+      console.error('Dynamic OG cover render failed:', err);
+      return null;
+    }
+  }
+
+  async function findBlogMetaBySlug(
+    rawSlug: string,
+    lang: 'tr' | 'en' = 'tr'
+  ): Promise<StoredCustomBlog | undefined> {
+    let decoded = rawSlug;
+    try {
+      decoded = decodeURIComponent(rawSlug);
+    } catch {
+      decoded = rawSlug;
+    }
+    const clean = decoded.replace(/^\/+|\/+$/g, '').toLowerCase();
     const [customPosts, deletedIds] = await Promise.all([
       readCustomPostsFile() as Promise<StoredCustomBlog[]>,
       readDeletedBlogIdsFile(),
@@ -1042,19 +1254,24 @@ async function startServer() {
     const customHit = customPosts.find(
       (p) => !deletedSet.has(p.id || '') && (p.slug || '').toLowerCase() === clean
     );
-    if (customHit) return customHit;
+    if (customHit) {
+      return { ...customHit, isOverriddenOrCustom: true };
+    }
     const overriddenIds = new Set(customPosts.map((p) => p.id || ''));
-    return BLOG_POSTS.find(
+    const baseList = lang === 'en' ? BLOG_POSTS_EN : BLOG_POSTS;
+    const baseHit = baseList.find(
       (p) =>
         !deletedSet.has(p.id) &&
         !overriddenIds.has(p.id) &&
         p.slug.toLowerCase() === clean
     );
+    return baseHit ? { ...baseHit, isOverriddenOrCustom: false } : undefined;
   }
 
   app.get('/api/blog-cover/:slug', async (req: Request, res: Response) => {
     const slug = String(req.params.slug || '').replace(/^\/+|\/+$/g, '');
-    const post = await findBlogMetaBySlug(slug);
+    const lang = req.query.lang === 'en' ? 'en' : 'tr';
+    const post = await findBlogMetaBySlug(slug, lang);
 
     if (post?.coverImage && post.coverImage.startsWith('data:image/')) {
       const match = post.coverImage.match(/^data:(image\/(?:jpeg|jpg|png));base64,(.+)$/i);
@@ -1062,27 +1279,35 @@ async function startServer() {
         const mime = match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase();
         const buffer = Buffer.from(match[2], 'base64');
         res.setHeader('Content-Type', mime);
-        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Content-Length', String(buffer.length));
+        res.setHeader('Cache-Control', 'public, max-age=86400');
         res.send(buffer);
         return;
       }
     }
 
+    if (post && (post.isOverriddenOrCustom || lang === 'en')) {
+      const rendered = await renderDynamicBlogCoverJpg(post);
+      if (rendered) {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Content-Length', String(rendered.length));
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.send(rendered);
+        return;
+      }
+    }
+
     const candidates = [
-      path.resolve(__dirname, IS_PROD ? 'dist' : 'public', 'og-covers', `${slug}.png`),
-      path.resolve(
-        __dirname,
-        IS_PROD ? 'dist' : 'public',
-        'og-covers',
-        `theme-${post?.coverTheme || 'transformation'}.png`
-      ),
+      resolvePublicFile(path.join('og-covers', `${post?.slug || slug}.jpg`)),
+      resolvePublicFile(path.join('og-covers', `theme-${post?.coverTheme || 'transformation'}.jpg`)),
     ];
 
     for (const filePath of candidates) {
       try {
         const fileBuf = await fs.readFile(filePath);
-        res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Content-Length', String(fileBuf.length));
+        res.setHeader('Cache-Control', 'public, max-age=86400');
         res.send(fileBuf);
         return;
       } catch {
@@ -1093,31 +1318,54 @@ async function startServer() {
     res.status(404).end();
   });
 
+  // Backwards-compatible fallback if any external platform requests an old .png og-cover path
+  app.get('/og-covers/:name.png', async (req: Request, res: Response) => {
+    const cleanName = String(req.params.name || '').replace(/[^a-z0-9-]/gi, '');
+    const jpgPath = resolvePublicFile(path.join('og-covers', `${cleanName}.jpg`));
+    try {
+      const fileBuf = await fs.readFile(jpgPath);
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Content-Length', String(fileBuf.length));
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(fileBuf);
+    } catch {
+      res.status(404).end();
+    }
+  });
+
   function injectBlogOgTags(
     html: string,
     baseUrl: string,
     slug: string,
-    post?: StoredCustomBlog
+    post?: StoredCustomBlog,
+    lang: 'tr' | 'en' = 'tr'
   ): string {
     if (!post || !post.title) return html;
     const title = `${post.title} | Tuğçe Utku`;
     const description =
       post.spot ||
-      'Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve strateji üzerine analizler ve içgörüler.';
-    const canonicalUrl = `${baseUrl}/blog/${encodeURIComponent(post.slug || slug)}`;
+      (lang === 'en'
+        ? 'Insights and analyses on digital transformation, insurance technologies, artificial intelligence, and strategy.'
+        : 'Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve strateji üzerine analizler ve içgörüler.');
+    const resolvedSlug = post.slug || slug;
+    const canonicalUrl = `${baseUrl}/blog/${encodeURIComponent(resolvedSlug)}${lang === 'en' ? '?lang=en' : ''}`;
     const hasCustomUploadedImage = Boolean(
       post.coverImage && post.coverImage.startsWith('data:image/')
     );
-    const isCustom = Boolean(post.id && post.id.startsWith('custom-'));
-    const imageUrl = hasCustomUploadedImage
-      ? `${baseUrl}/api/blog-cover/${encodeURIComponent(post.slug || slug)}`
-      : isCustom
-        ? `${baseUrl}/og-covers/theme-${post.coverTheme || 'transformation'}.png`
-        : `${baseUrl}/og-covers/${post.slug || slug}.png`;
+    const needsDynamicCover =
+      hasCustomUploadedImage || Boolean(post.isOverriddenOrCustom) || lang === 'en';
+    const coverHash = crypto
+      .createHash('sha1')
+      .update(`${resolvedSlug}|${post.title}|${post.coverTheme || ''}|${post.coverImage?.length || 0}`)
+      .digest('hex')
+      .slice(0, 8);
+    const imageUrl = needsDynamicCover
+      ? `${baseUrl}/api/blog-cover/${encodeURIComponent(resolvedSlug)}?v=${coverHash}${lang === 'en' ? '&lang=en' : ''}`
+      : `${baseUrl}/og-covers/${encodeURIComponent(resolvedSlug)}.jpg`;
     const imageType =
-      hasCustomUploadedImage && post.coverImage?.startsWith('data:image/jpeg')
-        ? 'image/jpeg'
-        : 'image/png';
+      hasCustomUploadedImage && post.coverImage?.startsWith('data:image/png')
+        ? 'image/png'
+        : 'image/jpeg';
 
     const eTitle = escapeHtml(title);
     const eDesc = escapeHtml(description);
@@ -1127,18 +1375,18 @@ async function startServer() {
 
     const stripped = html
       .replace(/<title>[\s\S]*?<\/title>/i, `<title>${eTitle}</title>`)
-      .replace(/<meta\s+name="description"[^>]*>\s*/gi, '')
-      .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, '')
-      .replace(/<meta\s+property="og:[^"]+"[^>]*>\s*/gi, '')
-      .replace(/<meta\s+property="article:[^"]+"[^>]*>\s*/gi, '')
-      .replace(/<meta\s+name="twitter:[^"]+"[^>]*>\s*/gi, '');
+      .replace(/<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, '')
+      .replace(
+        /<meta\b[^>]*\b(?:property=["'](?:og:|article:)[^"']*["']|name=["'](?:description|twitter:[^"']*)["'])[^>]*>\s*/gi,
+        ''
+      );
 
     const metaBlock = `
     <meta name="description" content="${eDesc}" />
     <link rel="canonical" href="${eCanonical}" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Tuğçe Utku" />
-    <meta property="og:locale" content="tr_TR" />
+    <meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'tr_TR'}" />
     <meta property="og:url" content="${eCanonical}" />
     <meta property="og:title" content="${eTitle}" />
     <meta property="og:description" content="${eDesc}" />
@@ -1155,6 +1403,7 @@ async function startServer() {
     <meta name="twitter:title" content="${eTitle}" />
     <meta name="twitter:description" content="${eDesc}" />
     <meta name="twitter:image" content="${eImage}" />
+    <meta name="twitter:image:alt" content="${eAlt}" />
 `;
 
     return stripped.replace(/<\/title>/i, `</title>${metaBlock}`);
@@ -1166,13 +1415,14 @@ async function startServer() {
       appType: 'spa',
     });
 
-    app.get('/blog/:slug', async (req: Request, res: Response, next) => {
+    app.get(['/blog/:slug', '/blog/:slug/'], async (req: Request, res: Response, next) => {
       try {
         const slug = String(req.params.slug || '');
-        const post = await findBlogMetaBySlug(slug);
+        const lang = req.query.lang === 'en' ? 'en' : 'tr';
+        const post = await findBlogMetaBySlug(slug, lang);
         const rawHtml = await fs.readFile(path.resolve(__dirname, 'index.html'), 'utf8');
         const transformed = await vite.transformIndexHtml(req.originalUrl, rawHtml);
-        const finalHtml = injectBlogOgTags(transformed, resolveBaseUrl(req), slug, post);
+        const finalHtml = injectBlogOgTags(transformed, resolveBaseUrl(req), slug, post, lang);
         res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(finalHtml);
       } catch (err) {
         next(err);
@@ -1184,11 +1434,12 @@ async function startServer() {
     const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
 
-    app.get('/blog/:slug', async (req: Request, res: Response) => {
+    app.get(['/blog/:slug', '/blog/:slug/'], async (req: Request, res: Response) => {
       const slug = String(req.params.slug || '');
-      const post = await findBlogMetaBySlug(slug);
+      const lang = req.query.lang === 'en' ? 'en' : 'tr';
+      const post = await findBlogMetaBySlug(slug, lang);
       const rawHtml = await fs.readFile(path.join(distPath, 'index.html'), 'utf8');
-      const finalHtml = injectBlogOgTags(rawHtml, resolveBaseUrl(req), slug, post);
+      const finalHtml = injectBlogOgTags(rawHtml, resolveBaseUrl(req), slug, post, lang);
       res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8').send(finalHtml);
     });
 

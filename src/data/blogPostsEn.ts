@@ -1,5 +1,5 @@
-import { BlogCategoryKey, BlogPost } from '../types';
-import { BLOG_FILTERS, BLOG_POSTS } from './blogPosts';
+import type { BlogCategoryKey, BlogPost } from '../types';
+import { BLOG_FILTERS, BLOG_POSTS } from './blogPosts.ts';
 import type { Language } from '../context/LanguageContext';
 
 export const BLOG_FILTERS_EN: { key: 'all' | BlogCategoryKey; label: string }[] = [

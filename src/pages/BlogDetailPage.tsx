@@ -83,11 +83,15 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     const fullTitle = `${post.title} | ${brand.name}`;
     const keywords = [...post.tags, post.categoryLabel, brand.name].join(', ');
     const isCustomPost = post.id.startsWith('custom-');
-    const ogImageUrl = post.coverImage
-      ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}`
-      : isCustomPost
-        ? `${origin}/og-covers/theme-${post.coverTheme}.png`
-        : `${origin}/og-covers/${post.slug}.png`;
+    const hasUploadedCover = Boolean(post.coverImage && post.coverImage.startsWith('data:image/'));
+    const ogImageUrl =
+      hasUploadedCover || isCustomPost || isEn
+        ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}${isEn ? '?lang=en' : ''}`
+        : `${origin}/og-covers/${encodeURIComponent(post.slug)}.jpg`;
+    const ogImageType =
+      hasUploadedCover && post.coverImage?.startsWith('data:image/png')
+        ? 'image/png'
+        : 'image/jpeg';
 
     document.title = fullTitle;
     upsertMetaTag('name', 'description', post.spot);
@@ -106,7 +110,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     upsertMetaTag('property', 'og:locale', isEn ? 'en_US' : 'tr_TR');
     upsertMetaTag('property', 'og:image', ogImageUrl);
     upsertMetaTag('property', 'og:image:secure_url', ogImageUrl);
-    upsertMetaTag('property', 'og:image:type', 'image/png');
+    upsertMetaTag('property', 'og:image:type', ogImageType);
     upsertMetaTag('property', 'og:image:width', '1200');
     upsertMetaTag('property', 'og:image:height', '630');
     upsertMetaTag('property', 'og:image:alt', post.title);

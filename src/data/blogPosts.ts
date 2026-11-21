@@ -1,4 +1,4 @@
-import { BlogCategoryKey, BlogPost } from '../types';
+import type { BlogCategoryKey, BlogPost } from '../types';
 
 export const BLOG_FILTERS: { key: 'all' | BlogCategoryKey; label: string }[] = [
   { key: 'all', label: 'Tüm Yazılar' },
