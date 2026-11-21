@@ -5,7 +5,6 @@ import {
   Calendar,
   Check,
   ChevronRight,
-  Clock,
   Link2,
   Linkedin,
   List,
@@ -346,11 +345,6 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 <Calendar className="w-4 h-4" />
                 <time dateTime={post.publishedIso}>{post.publishedAt}</time>
               </span>
-              <span className="text-slate-300 hidden sm:inline">·</span>
-              <span className="inline-flex items-center gap-1.5 text-slate-500">
-                <Clock className="w-4 h-4" />
-                <span>{post.readingTime}</span>
-              </span>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -406,6 +400,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             coverImage={post.coverImage}
             title={post.title}
             categoryLabel={post.categoryLabel}
+            variant="hero"
           />
         </div>
       </Reveal>

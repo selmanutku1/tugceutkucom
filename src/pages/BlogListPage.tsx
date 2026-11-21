@@ -4,7 +4,6 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Hash,
   Linkedin,
   Search,
@@ -275,6 +274,7 @@ export default function BlogListPage() {
                   coverImage={featuredPost.coverImage}
                   title={featuredPost.title}
                   categoryLabel={featuredPost.categoryLabel}
+                  variant="featured"
                   className="h-full w-full"
                 />
               </a>
@@ -288,10 +288,6 @@ export default function BlogListPage() {
                     <span className="inline-flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
                       {featuredPost.publishedAt}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {featuredPost.readingTime}
                     </span>
                   </div>
 
@@ -462,7 +458,6 @@ export default function BlogListPage() {
                           {post.categoryLabel}
                         </span>
                         <span>{post.publishedAt}</span>
-                        <span>{post.readingTime}</span>
                       </div>
 
                       <h3 className="text-lg font-semibold text-slate-900 leading-snug tracking-tight">

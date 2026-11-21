@@ -493,8 +493,6 @@ export default function HomePage() {
                         </span>
                         <span aria-hidden="true">·</span>
                         <span>{post.publishedAt}</span>
-                        <span aria-hidden="true">·</span>
-                        <span>{post.readingTime}</span>
                       </div>
 
                       <h3 className="text-lg font-semibold text-slate-900 leading-snug group-hover:text-brand-navy transition-colors">

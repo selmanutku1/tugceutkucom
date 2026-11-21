@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import aiStrategyPhoto from '../assets/images/blog_ai_strategy_1795090718952.jpg';
+import transformationCover from '../assets/images/blog_cover_transformation_1795277561057.jpg';
+import aiInsuranceCover from '../assets/images/blog_cover_ai_insurance_1795277562127.jpg';
+import insurtechCrmCover from '../assets/images/blog_cover_insurtech_crm_1795277564004.jpg';
+import growthCleanCover from '../assets/images/blog_cover_growth_clean_1795277581886.jpg';
+import strategyCleanCover from '../assets/images/blog_cover_strategy_clean_1795277583363.jpg';
+import cxDigitalCover from '../assets/images/blog_cover_cx_digital_1795277584069.jpg';
 import { BlogPost } from '../types';
 
 interface BlogCoverVisualProps {
@@ -7,7 +12,38 @@ interface BlogCoverVisualProps {
   coverImage?: string;
   title: string;
   categoryLabel: string;
+  variant?: 'card' | 'featured' | 'hero';
   className?: string;
+}
+
+function resolveTopicArtwork(
+  theme: BlogPost['coverTheme'],
+  title: string
+): string {
+  const lowerTitle = title.toLocaleLowerCase('tr');
+
+  if (theme === 'photo') {
+    if (
+      lowerTitle.includes('müşteri deneyimi') ||
+      lowerTitle.includes('customer experience')
+    ) {
+      return cxDigitalCover;
+    }
+    return transformationCover;
+  }
+
+  switch (theme) {
+    case 'transformation':
+      return transformationCover;
+    case 'ai':
+      return aiInsuranceCover;
+    case 'insurtech':
+      return insurtechCrmCover;
+    case 'growth':
+      return growthCleanCover;
+    case 'strategy':
+      return strategyCleanCover;
+  }
 }
 
 export default function BlogCoverVisual({
@@ -15,6 +51,7 @@ export default function BlogCoverVisual({
   coverImage,
   title,
   categoryLabel,
+  variant = 'card',
   className = '',
 }: BlogCoverVisualProps) {
   const [imgError, setImgError] = useState(false);
@@ -38,118 +75,69 @@ export default function BlogCoverVisual({
     );
   }
 
-  if (theme === 'photo' && !imgError) {
-    return (
-      <div
-        className={`relative overflow-hidden bg-slate-900 aspect-[16/9] ${className}`}
-      >
-        <img
-          src={aiStrategyPhoto}
-          alt={title}
-          referrerPolicy="no-referrer"
-          onError={() => setImgError(true)}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
-      </div>
-    );
-  }
+  const artworkSrc = resolveTopicArtwork(theme, title);
 
-  const palette = {
-    photo: {
-      bg: 'from-[#011536] via-[#012253] to-[#014F5C]',
-      stroke: '#6EE0E8',
-      accent: '#017B86',
-      text: 'text-[#8EE6EC]',
-    },
-    transformation: {
-      bg: 'from-[#011536] via-[#012253] to-[#013B5E]',
-      stroke: '#6EE0E8',
-      accent: '#017B86',
-      text: 'text-[#8EE6EC]',
-    },
-    insurtech: {
-      bg: 'from-[#01193F] via-[#013954] to-[#00555E]',
-      stroke: '#8EE6EC',
-      accent: '#017B86',
-      text: 'text-[#A5EDF2]',
-    },
-    ai: {
-      bg: 'from-[#01122E] via-[#012253] to-[#01425A]',
-      stroke: '#7DD9E2',
-      accent: '#017B86',
-      text: 'text-[#8EE6EC]',
-    },
-    growth: {
-      bg: 'from-[#011536] via-[#022B5B] to-[#013850]',
-      stroke: '#94D5DC',
-      accent: '#017B86',
-      text: 'text-[#A5E0E6]',
-    },
-    strategy: {
-      bg: 'from-[#01122E] via-[#012253] to-[#01335A]',
-      stroke: '#76DCE4',
-      accent: '#017B86',
-      text: 'text-[#8EE6EC]',
-    },
-  }[theme];
+  const paddingClass =
+    variant === 'hero'
+      ? 'p-5 sm:p-8 lg:p-10'
+      : variant === 'featured'
+        ? 'p-5 sm:p-7'
+        : 'p-4 sm:p-5';
+
+  const titleClass =
+    variant === 'hero'
+      ? 'text-lg sm:text-3xl lg:text-[34px] leading-[1.18] max-w-[78%]'
+      : variant === 'featured'
+        ? 'text-lg sm:text-2xl leading-[1.22] max-w-[78%] line-clamp-4'
+        : 'text-[15px] sm:text-[17px] leading-[1.28] max-w-[76%] line-clamp-3';
 
   return (
     <div
-      className={`relative overflow-hidden aspect-[16/9] bg-gradient-to-br ${palette.bg} flex items-end p-5 sm:p-6 ${className}`}
+      className={`relative overflow-hidden aspect-[16/9] bg-[#011536] ${paddingClass} flex flex-col justify-between ${className}`}
     >
-      {/* Architectural minimalist geometric pattern */}
-      <svg
-        viewBox="0 0 640 360"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+      <img
+        src={artworkSrc}
+        alt={title}
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full opacity-35 transition-transform duration-500 group-hover:scale-[1.03]"
-      >
-        <defs>
-          <pattern
-            id={`grid-${theme}`}
-            width="48"
-            height="48"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M 48 0 L 0 0 0 48"
-              stroke={palette.stroke}
-              strokeOpacity="0.22"
-              strokeWidth="1"
-            />
-          </pattern>
-        </defs>
-        <rect width="640" height="360" fill={`url(#grid-${theme})`} />
-        <circle
-          cx="510"
-          cy="86"
-          r="138"
-          stroke={palette.stroke}
-          strokeOpacity="0.35"
-          strokeWidth="1.25"
-        />
-        <circle
-          cx="510"
-          cy="86"
-          r="84"
-          stroke={palette.accent}
-          strokeOpacity="0.55"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M 0 265 C 180 185, 340 295, 640 165"
-          stroke={palette.stroke}
-          strokeOpacity="0.55"
-          strokeWidth="1.5"
-        />
-      </svg>
+        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
+      />
 
-      <div className="relative z-10 flex items-center justify-between w-full gap-4">
-        <span className={`text-xs font-medium tracking-wide ${palette.text}`}>
+      {/* Directional Deep Navy scrim for crisp typography contrast over topic artwork */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-r from-[#01122E]/95 via-[#011536]/75 to-[#011536]/15"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-[#01122E]/80 via-transparent to-[#01122E]/30"
+      />
+
+      {/* Category Header */}
+      <div className="relative z-10 flex items-center gap-2 max-w-[82%]">
+        <span
+          aria-hidden="true"
+          className="w-1.5 h-1.5 rounded-full bg-[#6EE0E8] shrink-0"
+        />
+        <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-[#8EE6EC] truncate">
           {categoryLabel}
         </span>
-        <span className="text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+      </div>
+
+      {/* Article Title Overlay */}
+      <div className="relative z-10 my-auto py-2">
+        <p
+          className={`font-bold text-white tracking-tight [text-wrap:balance] drop-shadow-[0_2px_10px_rgba(1,18,46,0.65)] ${titleClass}`}
+        >
+          {title}
+        </p>
+      </div>
+
+      {/* Subtle Brand Footer */}
+      <div className="relative z-10 flex items-center justify-between gap-3 w-full pt-2 border-t border-white/15">
+        <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] text-white/80 uppercase">
+          Tuğçe Utku
+        </span>
+        <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#8EE6EC]/85">
           TU
         </span>
       </div>

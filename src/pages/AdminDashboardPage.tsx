@@ -269,7 +269,6 @@ export default function AdminDashboardPage() {
   const [imageWarning, setImageWarning] = useState<string | null>(null);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [processingImage, setProcessingImage] = useState(false);
-  const [readingTime, setReadingTime] = useState('');
   const [bodyText, setBodyText] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedPost, setSavedPost] = useState<{ post: BlogPost; wasEdit: boolean } | null>(null);
@@ -367,7 +366,6 @@ export default function AdminDashboardPage() {
     setCoverImageMeta(undefined);
     setImageError(null);
     setImageWarning(null);
-    setReadingTime('');
     setBodyText('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -387,7 +385,6 @@ export default function AdminDashboardPage() {
     setCoverImageMeta(post.coverImageMeta);
     setImageError(null);
     setImageWarning(null);
-    setReadingTime(post.readingTime);
     setBodyText(sectionsToBodyText(post.sections));
     setSavedPost(null);
     setConfirmDeleteId(null);
@@ -476,7 +473,6 @@ export default function AdminDashboardPage() {
         coverTheme,
         coverImage: coverImage || undefined,
         coverImageMeta: coverImage ? coverImageMeta : undefined,
-        readingTime: readingTime.trim() || undefined,
         bodyText: bodyText.trim(),
       };
 
@@ -1022,59 +1018,40 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              {/* Tags + Reading Time */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2 space-y-1.5">
-                  <label
-                    htmlFor="post-tags"
-                    className="block text-sm font-medium text-slate-700"
-                  >
-                    {isEn
-                      ? 'Content Tags (comma-separated)'
-                      : 'İçerik Etiketleri (virgülle ayırın)'}
-                  </label>
-                  <input
-                    id="post-tags"
-                    type="text"
-                    value={tagsText}
-                    onChange={(e) => setTagsText(e.target.value)}
-                    placeholder={
-                      isEn
-                        ? 'AI, Insurance CRM, Strategy'
-                        : 'Yapay Zekâ, Sigorta CRM, Strateji'
-                    }
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal"
-                  />
-                  {previewTags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {previewTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 rounded-md bg-slate-100 text-xs font-medium text-slate-600"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="post-reading-time"
-                    className="block text-sm font-medium text-slate-700"
-                  >
-                    {isEn ? 'Reading Time' : 'Okuma Süresi'}
-                  </label>
-                  <input
-                    id="post-reading-time"
-                    type="text"
-                    value={readingTime}
-                    onChange={(e) => setReadingTime(e.target.value)}
-                    placeholder={isEn ? 'Auto (e.g. 4 min)' : 'Otomatik (ör. 4 dk)'}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal"
-                  />
-                </div>
+              {/* Tags */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="post-tags"
+                  className="block text-sm font-medium text-slate-700"
+                >
+                  {isEn
+                    ? 'Content Tags (comma-separated)'
+                    : 'İçerik Etiketleri (virgülle ayırın)'}
+                </label>
+                <input
+                  id="post-tags"
+                  type="text"
+                  value={tagsText}
+                  onChange={(e) => setTagsText(e.target.value)}
+                  placeholder={
+                    isEn
+                      ? 'AI, Insurance CRM, Strategy'
+                      : 'Yapay Zekâ, Sigorta CRM, Strateji'
+                  }
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal"
+                />
+                {previewTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {previewTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2 py-0.5 rounded-md bg-slate-100 text-xs font-medium text-slate-600"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Body Text */}
