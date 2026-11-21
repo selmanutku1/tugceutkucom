@@ -5,6 +5,12 @@ import insurtechCrmCover from '../assets/images/blog_cover_insurtech_crm_1795277
 import growthCleanCover from '../assets/images/blog_cover_growth_clean_1795277581886.jpg';
 import strategyCleanCover from '../assets/images/blog_cover_strategy_clean_1795277583363.jpg';
 import cxDigitalCover from '../assets/images/blog_cover_cx_digital_1795277584069.jpg';
+import processRedesignCover from '../assets/images/blog_cover_process_redesign_1795278310290.jpg';
+import hybridTrustCover from '../assets/images/blog_cover_hybrid_trust_1795278309838.jpg';
+import digitalAgencyCover from '../assets/images/blog_cover_digital_agency_1795278311004.jpg';
+import decisionEngineCover from '../assets/images/blog_cover_decision_engine_1795278310251.jpg';
+import saasFunnelCover from '../assets/images/blog_cover_saas_funnel_1795278310588.jpg';
+import productPositioningCover from '../assets/images/blog_cover_product_positioning_1795278311179.jpg';
 import { BlogPost } from '../types';
 
 interface BlogCoverVisualProps {
@@ -12,38 +18,69 @@ interface BlogCoverVisualProps {
   coverImage?: string;
   title: string;
   categoryLabel: string;
+  slug?: string;
   variant?: 'card' | 'featured' | 'hero';
   className?: string;
 }
 
+const SLUG_ARTWORK_MAP: Record<string, string> = {
+  'dijital-donusumun-merkezinde-teknoloji-ve-dogru-strateji-var': transformationCover,
+  'yapay-zeka-sigortacilik-sektorunu-nasil-donusturuyor': aiInsuranceCover,
+  'sigorta-sektorunde-crm-teknolojilerinin-stratejik-onemi': insurtechCrmCover,
+  'dijitallesmek-ile-gercekten-donusmek-arasindaki-fark': processRedesignCover,
+  'sigortacilikta-dijital-donusum-teknolojiden-daha-fazlasi': hybridTrustCover,
+  'sigorta-acenteleri-icin-dijitallesmenin-yeni-donemi': digitalAgencyCover,
+  'sigortacilikta-yapay-zeka-otomasyondan-akilli-karar-sistemlerine': decisionEngineCover,
+  'yapay-zeka-caginda-musteri-deneyimi-nasil-degisiyor': cxDigitalCover,
+  'b2b-pazarlamada-lead-sayisindan-daha-onemli-olan-nedir': growthCleanCover,
+  'saas-urunlerinde-self-servis-satis-modeli-nasil-kurgulanir': saasFunnelCover,
+  'pazarlama-ve-satis-ekipleri-neden-ayni-hedefe-odaklanmali': strategyCleanCover,
+  'teknoloji-sirketlerinde-urun-pazarlamasinin-stratejik-rolu': productPositioningCover,
+};
+
+const THEME_ARTWORK_POOLS: Record<BlogPost['coverTheme'], string[]> = {
+  photo: [transformationCover, cxDigitalCover, processRedesignCover],
+  transformation: [processRedesignCover, transformationCover, productPositioningCover],
+  insurtech: [insurtechCrmCover, hybridTrustCover, digitalAgencyCover],
+  ai: [aiInsuranceCover, decisionEngineCover, cxDigitalCover],
+  growth: [growthCleanCover, saasFunnelCover, productPositioningCover],
+  strategy: [strategyCleanCover, productPositioningCover, transformationCover],
+};
+
+function hashText(input: string): number {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 function resolveTopicArtwork(
   theme: BlogPost['coverTheme'],
-  title: string
+  title: string,
+  slug?: string
 ): string {
+  if (slug && SLUG_ARTWORK_MAP[slug]) {
+    return SLUG_ARTWORK_MAP[slug];
+  }
+
   const lowerTitle = title.toLocaleLowerCase('tr');
-
-  if (theme === 'photo') {
-    if (
-      lowerTitle.includes('müşteri deneyimi') ||
-      lowerTitle.includes('customer experience')
-    ) {
-      return cxDigitalCover;
-    }
-    return transformationCover;
+  if (lowerTitle.includes('crm')) return insurtechCrmCover;
+  if (lowerTitle.includes('acente') || lowerTitle.includes('agenc')) return digitalAgencyCover;
+  if (lowerTitle.includes('karar') || lowerTitle.includes('decision')) return decisionEngineCover;
+  if (lowerTitle.includes('saas') || lowerTitle.includes('self-servis') || lowerTitle.includes('self-service')) {
+    return saasFunnelCover;
+  }
+  if (lowerTitle.includes('müşteri deneyimi') || lowerTitle.includes('customer experience')) {
+    return cxDigitalCover;
+  }
+  if (lowerTitle.includes('ürün pazarlama') || lowerTitle.includes('product marketing')) {
+    return productPositioningCover;
   }
 
-  switch (theme) {
-    case 'transformation':
-      return transformationCover;
-    case 'ai':
-      return aiInsuranceCover;
-    case 'insurtech':
-      return insurtechCrmCover;
-    case 'growth':
-      return growthCleanCover;
-    case 'strategy':
-      return strategyCleanCover;
-  }
+  const pool = THEME_ARTWORK_POOLS[theme];
+  const index = hashText(slug || title) % pool.length;
+  return pool[index];
 }
 
 export default function BlogCoverVisual({
@@ -51,6 +88,7 @@ export default function BlogCoverVisual({
   coverImage,
   title,
   categoryLabel,
+  slug,
   variant = 'card',
   className = '',
 }: BlogCoverVisualProps) {
@@ -58,7 +96,7 @@ export default function BlogCoverVisual({
 
   useEffect(() => {
     setImgError(false);
-  }, [coverImage, theme]);
+  }, [coverImage, theme, slug]);
 
   if (coverImage && !imgError) {
     return (
@@ -75,7 +113,7 @@ export default function BlogCoverVisual({
     );
   }
 
-  const artworkSrc = resolveTopicArtwork(theme, title);
+  const artworkSrc = resolveTopicArtwork(theme, title, slug);
 
   const paddingClass =
     variant === 'hero'
@@ -90,6 +128,13 @@ export default function BlogCoverVisual({
       : variant === 'featured'
         ? 'text-lg sm:text-2xl leading-[1.22] max-w-[78%] line-clamp-4'
         : 'text-[15px] sm:text-[17px] leading-[1.28] max-w-[76%] line-clamp-3';
+
+  const logoHeightClass =
+    variant === 'hero'
+      ? 'h-7 sm:h-9'
+      : variant === 'featured'
+        ? 'h-6 sm:h-7'
+        : 'h-5 sm:h-6';
 
   return (
     <div
@@ -137,9 +182,11 @@ export default function BlogCoverVisual({
         <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] text-white/80 uppercase">
           Tuğçe Utku
         </span>
-        <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#8EE6EC]/85">
-          TU
-        </span>
+        <img
+          src="/assets/aistudio/IMG_8969_35f4cedb.png"
+          alt="TU — Tuğçe Utku"
+          className={`${logoHeightClass} w-auto object-contain brightness-0 invert opacity-90 shrink-0`}
+        />
       </div>
     </div>
   );

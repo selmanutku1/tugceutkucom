@@ -18,7 +18,7 @@ import { useBlog } from '../context/BlogContext';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import { EXECUTIVE_EASE, Reveal } from '../components/MotionPrimitives';
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 6;
 
 function normalizeForSearch(input: string, locale: string): string {
   return input
@@ -274,6 +274,7 @@ export default function BlogListPage() {
                   coverImage={featuredPost.coverImage}
                   title={featuredPost.title}
                   categoryLabel={featuredPost.categoryLabel}
+                  slug={featuredPost.slug}
                   variant="featured"
                   className="h-full w-full"
                 />
@@ -448,6 +449,7 @@ export default function BlogListPage() {
                       coverImage={post.coverImage}
                       title={post.title}
                       categoryLabel={post.categoryLabel}
+                      slug={post.slug}
                     />
                   </a>
 

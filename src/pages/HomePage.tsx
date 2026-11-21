@@ -483,6 +483,7 @@ export default function HomePage() {
                         coverImage={post.coverImage}
                         title={post.title}
                         categoryLabel={post.categoryLabel}
+                        slug={post.slug}
                       />
                     </a>
 

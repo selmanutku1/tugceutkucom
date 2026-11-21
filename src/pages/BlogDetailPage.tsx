@@ -400,6 +400,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             coverImage={post.coverImage}
             title={post.title}
             categoryLabel={post.categoryLabel}
+            slug={post.slug}
             variant="hero"
           />
         </div>
@@ -620,6 +621,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                         coverImage={related.coverImage}
                         title={related.title}
                         categoryLabel={related.categoryLabel}
+                        slug={related.slug}
                       />
                     </a>
                     <div className="p-5 flex-1 flex flex-col justify-between gap-4 text-center sm:text-left">
