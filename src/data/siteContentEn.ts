@@ -27,7 +27,7 @@ export const EXPERTISE_AREAS_EN: ExpertiseArea[] = [
   {
     id: 'dijital-pazarlama-ve-buyume',
     number: '01',
-    title: 'Digital Marketing & Growth',
+    title: 'Digital Growth & Performance Marketing',
     homeSummary:
       'SEO, performance marketing, digital advertising management, conversion optimization, customer acquisition, and digital brand strategy.',
     pageIntro:
@@ -63,7 +63,7 @@ export const EXPERTISE_AREAS_EN: ExpertiseArea[] = [
   {
     id: 'sigortacilik-teknolojileri-ve-yapay-zeka',
     number: '03',
-    title: 'Insurance Technologies & AI',
+    title: 'Insurance Technologies & Digital Sales Ecosystems',
     homeSummary:
       'Digital insurance, Insurtech, insurance CRM systems, online sales platforms, AI applications, and sector-wide digital transformation.',
     pageIntro:

@@ -17,6 +17,7 @@ import { useLanguage } from '../context/LanguageContext';
 import ExecutivePortrait from '../components/ExecutivePortrait';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import LinkedInPostsSection from '../components/LinkedInPostsSection';
+import ProfileCredentialsStrip from '../components/ProfileCredentialsStrip';
 import {
   AccordionBody,
   EXECUTIVE_EASE,
@@ -140,13 +141,13 @@ export default function HomePage() {
                 <div className="space-y-3 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                   <p>
                     {isEn
-                      ? 'With experience spanning digital marketing, product strategy, and insurance technologies, I focus on the shifting dynamics of the digital world.'
-                      : 'Dijital pazarlama, ürün stratejisi ve sigortacılık teknolojileri alanlarında edindiğim deneyimle dijital dünyanın değişen dinamiklerine odaklanıyorum.'}
+                      ? 'I bring my experience across digital marketing, product management, and insurance technologies into developing digital business models, structuring sales channels, and improving operational workflows.'
+                      : 'Dijital pazarlama, ürün yönetimi ve sigorta teknolojileri alanlarındaki deneyimimi; dijital iş modellerinin geliştirilmesi, satış kanallarının yapılandırılması ve operasyonel süreçlerin iyileştirilmesine yönelik çalışmalara taşıyorum.'}
                   </p>
                   <p className="hidden md:block text-sm sm:text-base text-slate-500">
                     {isEn
-                      ? 'By uniting technology, marketing, and business strategy, I contribute to initiatives that advance digital products, grow brands, and build sustainable business models.'
-                      : 'Teknoloji, pazarlama ve iş stratejisini bir araya getirerek dijital ürünlerin gelişimini, markaların büyümesini ve sürdürülebilir iş modellerini destekleyen çalışmalarda yer alıyorum.'}
+                      ? 'I evaluate technology investments not solely through a software and infrastructure lens, but across business objectives, operational efficiency, customer experience, and commercial performance.'
+                      : 'Teknoloji yatırımlarını yalnızca yazılım ve altyapı perspektifinden değil; iş hedefleri, operasyonel verimlilik, müşteri deneyimi ve ticari performans ekseninde değerlendiriyorum.'}
                   </p>
                 </div>
               </StaggerItem>
@@ -215,18 +216,18 @@ export default function HomePage() {
                   <div className="grid grid-cols-1 gap-2 text-sm text-slate-700">
                     <p>
                       {isEn
-                        ? 'Digital Marketing & Growth'
-                        : 'Dijital Pazarlama ve Büyüme'}
+                        ? 'Digital Growth & Performance Marketing'
+                        : 'Dijital Büyüme ve Performans Pazarlaması'}
                     </p>
                     <p>
                       {isEn
-                        ? 'Product Strategy & SaaS Growth Models'
-                        : 'Ürün Stratejisi ve SaaS Büyüme Modelleri'}
+                        ? 'Digital Product Management & SaaS Business Models'
+                        : 'Dijital Ürün Yönetimi ve SaaS İş Modelleri'}
                     </p>
                     <p>
                       {isEn
-                        ? 'Insurance Technologies & Artificial Intelligence'
-                        : 'Sigortacılık Teknolojileri ve Yapay Zekâ'}
+                        ? 'Insurance Technologies & Digital Sales Ecosystems'
+                        : 'Sigorta Teknolojileri ve Dijital Satış Ekosistemleri'}
                     </p>
                   </div>
                 </div>
@@ -244,29 +245,24 @@ export default function HomePage() {
           </p>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
             {isEn
-              ? "I don't just follow the digital world—I work to understand its transformation."
-              : 'Dijital dünyayı yalnızca takip etmiyor, dönüşümünü anlamaya çalışıyorum.'}
+              ? 'Turning technology into business outcomes, and strategy into sustainable growth.'
+              : 'Teknolojiyi iş sonuçlarına, stratejiyi sürdürülebilir büyümeye dönüştürüyorum.'}
           </h2>
           <div className="space-y-4 text-base text-slate-600 leading-relaxed">
             <p>
               {isEn
-                ? 'I am Tuğçe Utku, a professional with multidisciplinary experience across digital marketing, technology, and product strategy.'
-                : 'Ben Tuğçe Utku. Dijital pazarlama, teknoloji ve ürün stratejisi alanlarında farklı sorumluluklar üstlenmiş bir profesyonelim.'}
+                ? 'With over 10 years of experience in the insurance sector, I work across insurance technologies, digital insurance, digital product strategy, and marketing. Throughout my career, I have taken on responsibilities spanning digital marketing operations, agency management, SaaS product management, digital sales channels, and business development. My core areas of focus include developing insurance CRM systems, online sales platforms, insurance company integrations, and digital distribution models, while integrating technology infrastructures with sales and operational processes.'
+                : 'Sigortacılık sektöründe 10 yılı aşkın deneyimimle sigorta teknolojileri, dijital sigortacılık, dijital ürün stratejisi ve pazarlama alanlarında çalışıyorum. Kariyerim boyunca dijital pazarlama operasyonları, ajans yönetimi, SaaS ürün yönetimi, dijital satış kanalları ve iş geliştirme süreçlerinde farklı sorumluluklar üstlendim. Özellikle sigorta CRM sistemleri, online satış platformları, sigorta şirketi entegrasyonları ve dijital dağıtım modellerinin geliştirilmesi; teknoloji altyapılarının satış ve operasyon süreçleriyle bütünleştirilmesi temel çalışma alanlarımı oluşturuyor.'}
             </p>
             <p>
               {isEn
-                ? 'Throughout my career, I have worked across digital marketing operations, agency management, product marketing, and digital growth strategy.'
-                : 'Kariyerim boyunca dijital pazarlama operasyonlarından ajans yönetimine, ürün pazarlamasından dijital büyüme stratejilerine uzanan farklı alanlarda çalıştım.'}
-            </p>
-            <p>
-              {isEn
-                ? 'I focus particularly on digital transformation in insurance, next-generation business models, artificial intelligence applications, and growth strategies for digital products.'
-                : 'Özellikle sigortacılık sektörünün dijital dönüşümü, yeni nesil iş modelleri, yapay zekâ uygulamaları ve dijital ürünlerin büyüme stratejileri üzerine odaklanıyorum.'}
+                ? 'For me, the true value of technology investments emerges when they deliver operational efficiency, a strong customer experience, and measurable commercial outcomes.'
+                : 'Benim için teknoloji yatırımlarının gerçek değeri; operasyonel verimlilik, güçlü müşteri deneyimi ve ölçülebilir ticari çıktılar üretmesiyle ortaya çıkar.'}
             </p>
             <p className="font-medium text-slate-900">
               {isEn
-                ? 'For me, technology is a tool, and strategy is the core discipline that turns that tool into real value.'
-                : 'Benim için teknoloji bir araç, strateji ise bu aracın değer üretmesini sağlayan temel unsurdur.'}
+                ? 'I work with an approach that connects technology with business objectives and digital strategy with measurable commercial performance.'
+                : 'Teknolojiyi iş hedefleriyle, dijital stratejiyi ölçülebilir ticari performansla buluşturan bir yaklaşımla çalışıyorum.'}
             </p>
           </div>
           <div className="pt-2">
@@ -280,6 +276,9 @@ export default function HomePage() {
             </button>
           </div>
         </Reveal>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 mt-12 sm:mt-14">
+          <ProfileCredentialsStrip />
+        </div>
       </section>
 
       {/* 3. UZMANLIK ALANLARIM */}

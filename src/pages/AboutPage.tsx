@@ -3,6 +3,7 @@ import { getSiteContent } from '../data/siteContentEn';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import ExecutivePortrait from '../components/ExecutivePortrait';
+import ProfileCredentialsStrip from '../components/ProfileCredentialsStrip';
 import { Reveal, StaggerGroup, StaggerItem } from '../components/MotionPrimitives';
 
 export default function AboutPage() {
@@ -58,70 +59,255 @@ export default function AboutPage() {
           <Reveal
             immediate
             delay={0.22}
-            className="space-y-5 text-base sm:text-lg text-slate-600 leading-relaxed text-center sm:text-left"
+            className="space-y-8 text-base sm:text-lg text-slate-600 leading-relaxed text-center sm:text-left"
           >
             {isEn ? (
               <>
-                <p>
-                  I am Tuğçe Utku, a professional working across digital marketing,
-                  product strategy, and insurance technologies.
-                </p>
-                <p>
-                  Throughout my career, I have taken on diverse roles spanning digital
-                  marketing operations, brand management, agency leadership, product
-                  marketing, and digital growth strategies.
-                </p>
-                <p>
-                  A significant part of my work has focused on the digital transformation
-                  of the insurance sector—including the digitalization of insurance
-                  agencies and brokers, online sales channels, CRM technologies, customer
-                  experience, and next-generation insurance models.
-                </p>
-                <p>
-                  I believe product and marketing processes in technology companies cannot
-                  be evaluated independently. A product succeeds not only through strong
-                  technology, but through clear positioning, genuine alignment with user
-                  needs, and a sustainable growth model.
-                </p>
-                <p>
-                  For this reason, I treat marketing not simply as a communication or
-                  visibility exercise, but as a strategic function directly tied to
-                  commercial goals.
+                <div className="space-y-4">
+                  <p>
+                    I have over 10 years of professional experience in insurance and the
+                    digital business world. I have shaped my career at the intersection
+                    of insurance domain knowledge, technology, product strategy, and
+                    digital growth.
+                  </p>
+                  <p>
+                    The responsibilities I have taken on across digital marketing, brand
+                    management, agency leadership, product marketing, and business
+                    development have given me a working perspective that evaluates
+                    technology-driven business models from both operational and commercial
+                    standpoints.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Insurance & Technology Experience
+                  </h3>
+                  <p>
+                    At the center of my work in the insurance sector are digital insurance
+                    models, agency and broker technologies, digital sales channels, and
+                    the integration of insurance workflows with technology.
+                  </p>
+                  <p>
+                    I have assumed diverse responsibilities within the insurance
+                    technology ecosystem through projects spanning Insurance CRM systems,
+                    online sales platforms, multi-carrier insurance integrations, and
+                    digital distribution infrastructure.
+                  </p>
+                  <p>
+                    Throughout these initiatives, I have focused not only on product and
+                    technology development, but also on market positioning, target
+                    audience definition, sales models, user experience, and sustainable
+                    growth dynamics.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Product Strategy & Digital Growth
+                  </h3>
+                  <p>
+                    The success of technology products depends not only on technical
+                    capabilities, but also on the right business model, market
+                    positioning, and alignment with user needs.
+                  </p>
+                  <p>
+                    Accordingly, I approach digital product strategy, SaaS business
+                    models, product marketing, performance marketing, customer
+                    acquisition, and digital sales processes holistically.
+                  </p>
+                  <p>
+                    I evaluate marketing activities not solely by brand awareness and
+                    communication outputs, but through commercial indicators such as
+                    customer acquisition cost, conversion rate, customer lifetime value,
+                    and revenue performance.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Management & Business Development Approach
+                  </h3>
+                  <p>
+                    I connect the experience I have gained in agency management, team
+                    coordination, client relations, project management, and digital
+                    operations directly with strategic goals.
+                  </p>
+                  <p>
+                    I adopt a management approach in which technology, marketing, and
+                    sales functions do not progress independently, and where data,
+                    process, and system integration directly impact business performance.
+                  </p>
+                  <p>
+                    For me, a successful digital product or technology investment must
+                    evolve into a scalable business model that meets user needs,
+                    improves operational workflows, and generates measurable commercial
+                    value.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Areas of Focus
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm sm:text-base text-slate-700">
+                    {[
+                      'Insurance and Digital Insurance',
+                      'Insurance Technologies and Insurtech',
+                      'Insurance CRM and Online Sales Platforms',
+                      'Digital Product Strategy and SaaS Business Models',
+                      'Digital Marketing and Performance Management',
+                      'Business Development and Growth Strategies',
+                      'Artificial Intelligence and Insurance Applications',
+                    ].map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start justify-center sm:justify-start gap-2.5"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="hidden sm:inline text-brand-teal font-semibold"
+                        >
+                          —
+                        </span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="pt-4 font-medium text-slate-900">
+                  I examine business models across the insurance sector as they are
+                  reshaped by technology through the lenses of product, operations,
+                  customer experience, and commercial performance—and continue sharing
+                  my work and industry perspectives in these areas.
                 </p>
               </>
             ) : (
               <>
-                <p>
-                  Ben Tuğçe Utku. Dijital pazarlama, ürün stratejisi ve sigortacılık
-                  teknolojileri alanlarında çalışan bir profesyonelim.
-                </p>
-                <p>
-                  Kariyerim boyunca dijital pazarlama operasyonlarından marka yönetimine,
-                  ajans yönetiminden ürün pazarlamasına ve dijital büyüme stratejilerine
-                  uzanan farklı sorumluluklar üstlendim.
-                </p>
-                <p>
-                  Çalışma hayatımın önemli bir bölümünde sigorta sektörünün
-                  dijitalleşmesine odaklandım. Sigorta acentelerinin ve brokerların dijital
-                  dönüşümü, online satış kanalları, CRM teknolojileri, müşteri deneyimi ve
-                  yeni nesil sigortacılık modelleri bu alandaki temel çalışma konularım
-                  arasında yer alıyor.
-                </p>
-                <p>
-                  Teknoloji şirketlerinde ürün ve pazarlama süreçlerinin birbirinden
-                  bağımsız değerlendirilemeyeceğine inanıyorum. Bir ürünün başarılı olması
-                  yalnızca güçlü bir teknolojiye sahip olmasına değil, doğru
-                  konumlandırılmasına, hedef kitlesinin ihtiyaçlarını karşılamasına ve
-                  sürdürülebilir bir büyüme modeline sahip olmasına bağlıdır.
-                </p>
-                <p>
-                  Bu nedenle pazarlamayı yalnızca iletişim ve görünürlük faaliyeti olarak
-                  değil, iş hedefleriyle doğrudan ilişkili stratejik bir fonksiyon olarak
-                  ele alıyorum.
+                <div className="space-y-4">
+                  <p>
+                    Sigortacılık ve dijital iş dünyasında 10 yılı aşkın profesyonel deneyime
+                    sahibim. Kariyerimi sigortacılık bilgisi, teknoloji, ürün stratejisi ve
+                    dijital büyümenin kesişiminde şekillendirdim.
+                  </p>
+                  <p>
+                    Dijital pazarlama, marka yönetimi, ajans yönetimi, ürün pazarlaması ve
+                    iş geliştirme alanlarında üstlendiğim sorumluluklar, teknoloji odaklı iş
+                    modellerini hem operasyonel hem de ticari açıdan değerlendiren bir
+                    çalışma perspektifi kazandırdı.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Sigortacılık ve Teknoloji Deneyimi
+                  </h3>
+                  <p>
+                    Sigortacılık sektöründeki çalışmalarımın merkezinde dijital sigortacılık
+                    modelleri, acente ve broker teknolojileri, dijital satış kanalları ve
+                    sigorta süreçlerinin teknolojiyle entegrasyonu yer alıyor.
+                  </p>
+                  <p>
+                    Sigorta CRM sistemleri, online satış platformları, çoklu sigorta şirketi
+                    entegrasyonları ve dijital dağıtım altyapıları üzerine yürüttüğüm
+                    çalışmalarla sigorta sektörünün teknoloji ekosisteminde farklı
+                    sorumluluklar üstlendim.
+                  </p>
+                  <p>
+                    Bu süreçlerde yalnızca ürün ve teknoloji geliştirme tarafına değil;
+                    ürünün pazardaki konumlandırılmasına, hedef kitlesine, satış modeline,
+                    kullanıcı deneyimine ve sürdürülebilir büyüme dinamiklerine de
+                    odaklandım.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Ürün Stratejisi ve Dijital Büyüme
+                  </h3>
+                  <p>
+                    Teknoloji ürünlerinin başarısı, teknik yetkinliklerinin yanı sıra doğru
+                    iş modeline, pazar konumlandırmasına ve kullanıcı ihtiyaçlarıyla kurduğu
+                    ilişkiye bağlıdır.
+                  </p>
+                  <p>
+                    Bu doğrultuda dijital ürün stratejisi, SaaS iş modelleri, ürün
+                    pazarlaması, performans pazarlaması, müşteri edinimi ve dijital satış
+                    süreçlerini bütünsel bir yaklaşımla ele alıyorum.
+                  </p>
+                  <p>
+                    Pazarlama faaliyetlerini yalnızca marka bilinirliği ve iletişim
+                    çıktılarıyla değil; müşteri edinme maliyeti, dönüşüm oranı, müşteri
+                    yaşam boyu değeri ve gelir performansı gibi ticari göstergelerle
+                    değerlendiriyorum.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Yönetim ve İş Geliştirme Yaklaşımı
+                  </h3>
+                  <p>
+                    Ajans yönetimi, ekip koordinasyonu, müşteri ilişkileri, proje yönetimi
+                    ve dijital operasyon süreçlerinde edindiğim deneyimi stratejik
+                    hedeflerle ilişkilendiriyorum.
+                  </p>
+                  <p>
+                    Teknoloji, pazarlama ve satış fonksiyonlarının birbirinden bağımsız
+                    ilerlemediği; veri, süreç ve sistem entegrasyonunun iş performansını
+                    doğrudan etkilediği bir yönetim yaklaşımını benimsiyorum.
+                  </p>
+                  <p>
+                    Benim için başarılı bir dijital ürün veya teknoloji yatırımı; kullanıcı
+                    ihtiyacını karşılayan, operasyonel süreçleri iyileştiren,
+                    ölçeklenebilir ve ölçülebilir ticari değer üreten bir iş modeline
+                    dönüşmelidir.
+                  </p>
+                </div>
+
+                <div className="pt-6 border-t border-[#012253]/8 space-y-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    Çalışma Alanlarım
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm sm:text-base text-slate-700">
+                    {[
+                      'Sigortacılık ve Dijital Sigortacılık',
+                      'Sigorta Teknolojileri ve Insurtech',
+                      'Sigorta CRM ve Online Satış Platformları',
+                      'Dijital Ürün Stratejisi ve SaaS İş Modelleri',
+                      'Dijital Pazarlama ve Performans Yönetimi',
+                      'İş Geliştirme ve Büyüme Stratejileri',
+                      'Yapay Zekâ ve Sigortacılık Uygulamaları',
+                    ].map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start justify-center sm:justify-start gap-2.5"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="hidden sm:inline text-brand-teal font-semibold"
+                        >
+                          —
+                        </span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="pt-4 font-medium text-slate-900">
+                  Sigortacılık sektörünün teknolojiyle yeniden şekillenen iş modellerini;
+                  ürün, operasyon, müşteri deneyimi ve ticari performans perspektifleriyle
+                  ele alıyor, bu alanlardaki çalışmalarımı ve sektörel değerlendirmelerimi
+                  paylaşmaya devam ediyorum.
                 </p>
               </>
             )}
           </Reveal>
+        </div>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 mt-12 sm:mt-14">
+          <ProfileCredentialsStrip />
         </div>
       </section>
 

@@ -274,7 +274,7 @@ export const BLOG_POSTS_EN: BlogPost[] = [
     title: 'What Matters More Than Lead Volume in B2B Marketing?',
     spot: 'High inquiry volume does not always translate into healthy growth; ideal customer fit, lead quality, and sales conversion determine true ROI.',
     categoryKey: 'dijital-pazarlama',
-    categoryLabel: 'Digital Marketing & Growth',
+    categoryLabel: 'Digital Growth & Performance Marketing',
     tags: ['B2B Marketing', 'Lead Quality', 'Performance', 'Growth'],
     publishedAt: 'September 24, 2026',
     publishedIso: '2026-09-24',

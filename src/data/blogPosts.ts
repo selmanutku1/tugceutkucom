@@ -272,7 +272,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'B2B Pazarlamada Lead Sayısından Daha Önemli Olan Nedir?',
     spot: 'Yüksek talep hacmi her zaman sağlıklı büyüme anlamına gelmez; doğru hedef kitle, nitelikli talep kalitesi ve satışa dönüşüm oranı gerçek performansı belirler.',
     categoryKey: 'dijital-pazarlama',
-    categoryLabel: 'Dijital Pazarlama ve Büyüme',
+    categoryLabel: 'Dijital Büyüme ve Performans Pazarlaması',
     tags: ['B2B Pazarlama', 'Lead Kalitesi', 'Performans', 'Büyüme'],
     publishedAt: '24 Eylül 2026',
     publishedIso: '2026-09-24',

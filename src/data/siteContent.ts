@@ -24,7 +24,7 @@ export const EXPERTISE_AREAS: ExpertiseArea[] = [
   {
     id: 'dijital-pazarlama-ve-buyume',
     number: '01',
-    title: 'Dijital Pazarlama ve Büyüme',
+    title: 'Dijital Büyüme ve Performans Pazarlaması',
     homeSummary:
       'SEO, performans pazarlaması, dijital reklam yönetimi, dönüşüm optimizasyonu, müşteri kazanımı ve dijital marka stratejileri.',
     pageIntro:
@@ -60,7 +60,7 @@ export const EXPERTISE_AREAS: ExpertiseArea[] = [
   {
     id: 'sigortacilik-teknolojileri-ve-yapay-zeka',
     number: '03',
-    title: 'Sigortacılık Teknolojileri ve Yapay Zekâ',
+    title: 'Sigorta Teknolojileri ve Dijital Satış Ekosistemleri',
     homeSummary:
       'Dijital sigortacılık, Insurtech, sigorta CRM sistemleri, online satış platformları, yapay zekâ uygulamaları ve sektörel dijital dönüşüm.',
     pageIntro:

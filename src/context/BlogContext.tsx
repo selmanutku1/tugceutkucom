@@ -60,7 +60,7 @@ const CATEGORY_LABELS_TR: Record<BlogCategoryKey, string> = {
   'dijital-donusum': 'Dijital Dönüşüm',
   insurtech: 'Insurtech ve Dijital Sigortacılık',
   'yapay-zeka': 'Yapay Zekâ ve Teknoloji',
-  'dijital-pazarlama': 'Dijital Pazarlama ve Büyüme',
+  'dijital-pazarlama': 'Dijital Büyüme ve Performans Pazarlaması',
   'strateji-yonetim': 'Strateji ve Yönetim',
 };
 

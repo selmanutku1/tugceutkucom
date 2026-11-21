@@ -59,8 +59,8 @@ const CATEGORY_OPTIONS: { key: BlogCategoryKey; labelTr: string; labelEn: string
   { key: 'yapay-zeka', labelTr: 'Yapay Zekâ ve Teknoloji', labelEn: 'AI & Technology' },
   {
     key: 'dijital-pazarlama',
-    labelTr: 'Dijital Pazarlama ve Büyüme',
-    labelEn: 'Digital Marketing & Growth',
+    labelTr: 'Dijital Büyüme ve Performans Pazarlaması',
+    labelEn: 'Digital Growth & Performance Marketing',
   },
   { key: 'strateji-yonetim', labelTr: 'Strateji ve Yönetim', labelEn: 'Strategy & Management' },
 ];
