@@ -3,12 +3,17 @@
 
 User-agent: *
 Allow: /
+Allow: /sitemap.xml
+Allow: /rss.xml
+Allow: /api/sitemap
 Disallow: /yonetim
 Disallow: /dashboard
 Disallow: /api/
 
 User-agent: Googlebot
 Allow: /
+Allow: /sitemap.xml
+Allow: /rss.xml
 Disallow: /yonetim
 Disallow: /dashboard
 

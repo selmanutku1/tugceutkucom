@@ -58,7 +58,7 @@ function getPageNumbers(currentPage: number, totalPages: number): (number | 'ell
 export default function BlogListPage() {
   const { navigate } = useRouter();
   const { lang } = useLanguage();
-  const { getPosts } = useBlog();
+  const { getPosts, getFeaturedPost } = useBlog();
   const isEn = lang === 'en';
   const locale = isEn ? 'en' : 'tr';
   const { filters } = getBlogData(lang);
@@ -69,10 +69,7 @@ export default function BlogListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const listSectionRef = useRef<HTMLElement | null>(null);
 
-  const featuredPost = useMemo(
-    () => posts.find((post) => post.featured) || posts[0],
-    [posts]
-  );
+  const featuredPost = useMemo(() => getFeaturedPost(lang), [getFeaturedPost, lang]);
 
   // Compute popular tags across all articles for one-click tag filtering
   const popularTags = useMemo(() => {
@@ -94,7 +91,7 @@ export default function BlogListPage() {
     const normalizedQuery = normalizeForSearch(searchQuery, locale);
 
     return posts.filter((post) => {
-      if (isDefaultView && post.id === featuredPost.id) {
+      if (isDefaultView && featuredPost && post.id === featuredPost.id) {
         return false;
       }
 
@@ -105,16 +102,20 @@ export default function BlogListPage() {
       if (!normalizedQuery) return true;
 
       const normalizedTitle = normalizeForSearch(post.title, locale);
+      const normalizedH1 = post.h1Title
+        ? normalizeForSearch(post.h1Title, locale)
+        : '';
       const normalizedTags = post.tags.map((t) => normalizeForSearch(t, locale));
       const normalizedCategory = normalizeForSearch(post.categoryLabel, locale);
 
       return (
         normalizedTitle.includes(normalizedQuery) ||
+        normalizedH1.includes(normalizedQuery) ||
         normalizedTags.some((tag) => tag.includes(normalizedQuery)) ||
         normalizedCategory.includes(normalizedQuery)
       );
     });
-  }, [posts, selectedCategory, searchQuery, isDefaultView, featuredPost.id, locale]);
+  }, [posts, selectedCategory, searchQuery, isDefaultView, featuredPost, locale]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);

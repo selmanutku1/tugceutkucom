@@ -9,6 +9,7 @@ import { promisify } from 'node:util';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createServer as createViteServer } from 'vite';
+import { fetchPublicFirestoreBlogData } from './api/_firestore.ts';
 
 const execFileAsync = promisify(execFile);
 
@@ -706,13 +707,50 @@ async function startServer() {
   const { BLOG_POSTS_EN } = await import('./src/data/blogPostsEn.ts');
   const builtInPostIds = new Set(BLOG_POSTS.map((p) => p.id));
 
+  async function readMergedBlogState(): Promise<{
+    posts: Array<Record<string, unknown>>;
+    deletedIds: string[];
+  }> {
+    const [filePosts, fileDeletedIds, firestoreData] = await Promise.all([
+      readCustomPostsFile() as Promise<Array<Record<string, unknown>>>,
+      readDeletedBlogIdsFile(),
+      fetchPublicFirestoreBlogData(),
+    ]);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const byId = new Map<string, Record<string, unknown>>();
+    for (const fp of filePosts) {
+      if (typeof fp.id === 'string') byId.set(fp.id, fp);
+    }
+    for (const remote of firestoreData.posts) {
+      byId.set(remote.id, remote as unknown as Record<string, unknown>);
+    }
+    const deletedIds = Array.from(
+      new Set([...fileDeletedIds, ...firestoreData.deletedIds])
+    );
+    const deletedSet = new Set(deletedIds);
+    const visiblePosts = Array.from(byId.values()).filter((p) => {
+      const id = typeof p.id === 'string' ? p.id : '';
+      if (id && deletedSet.has(id)) return false;
+      if (p.trashed === true) return false;
+      if (
+        p.scheduled === true &&
+        typeof p.publishedIso === 'string' &&
+        p.publishedIso > todayIso
+      ) {
+        return false;
+      }
+      return true;
+    });
+    return {
+      posts: visiblePosts,
+      deletedIds,
+    };
+  }
+
   // Blog Posts API (supports both newly added posts and edits/deletions of built-in posts)
   app.get('/api/blog-posts', async (_req: Request, res: Response) => {
-    const [posts, deletedIds] = await Promise.all([
-      readCustomPostsFile(),
-      readDeletedBlogIdsFile(),
-    ]);
-    res.json({ posts, deletedIds });
+    const state = await readMergedBlogState();
+    res.json(state);
   });
 
   app.post('/api/blog-posts', async (req: Request, res: Response) => {
@@ -959,13 +997,14 @@ async function startServer() {
     }
   });
 
-  app.get('/sitemap.xml', async (req: Request, res: Response) => {
+  app.get(['/sitemap.xml', '/sitemap.xml/'], async (req: Request, res: Response) => {
     try {
       const baseUrl = resolveBaseUrl(req);
       let xml = await fs.readFile(resolvePublicFile('sitemap.xml'), 'utf8');
       xml = xml.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl);
 
-      const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
+      const { posts } = await readMergedBlogState();
+      const customPosts = posts as CustomPostRecord[];
       const extraEntries = customPosts
         .filter((p) => p.slug && !xml.includes(`/blog/${p.slug}`))
         .map(
@@ -978,7 +1017,10 @@ async function startServer() {
         xml = xml.replace('</urlset>', `${extraEntries}\n</urlset>`);
       }
 
-      res.type('application/xml; charset=utf-8').send(xml);
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.status(200).send(xml);
     } catch {
       res.status(404).end();
     }
@@ -990,7 +1032,8 @@ async function startServer() {
       let txt = await fs.readFile(resolvePublicFile('llms.txt'), 'utf8');
       txt = txt.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl);
 
-      const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
+      const { posts } = await readMergedBlogState();
+      const customPosts = posts as CustomPostRecord[];
       const extraLines = customPosts
         .filter((p) => p.slug && p.title && !txt.includes(`/blog/${p.slug}`))
         .map((p) => `- [${p.title}](${baseUrl}/blog/${p.slug}): ${p.spot || ''}`)
@@ -1015,7 +1058,8 @@ async function startServer() {
       let rss = await fs.readFile(resolvePublicFile('rss.xml'), 'utf8');
       rss = rss.replace(/https:\/\/www\.tugceutku\.com/g, baseUrl);
 
-      const customPosts = (await readCustomPostsFile()) as CustomPostRecord[];
+      const { posts } = await readMergedBlogState();
+      const customPosts = posts as CustomPostRecord[];
       const extraItems = customPosts
         .filter((p) => p.slug && p.title && !rss.includes(`/blog/${p.slug}`))
         .map((p) => {
@@ -1044,6 +1088,7 @@ async function startServer() {
     id?: string;
     slug?: string;
     title?: string;
+    h1Title?: string;
     spot?: string;
     categoryLabel?: string;
     publishedIso?: string;
@@ -1246,10 +1291,8 @@ async function startServer() {
       decoded = rawSlug;
     }
     const clean = decoded.replace(/^\/+|\/+$/g, '').toLowerCase();
-    const [customPosts, deletedIds] = await Promise.all([
-      readCustomPostsFile() as Promise<StoredCustomBlog[]>,
-      readDeletedBlogIdsFile(),
-    ]);
+    const { posts, deletedIds } = await readMergedBlogState();
+    const customPosts = posts as StoredCustomBlog[];
     const deletedSet = new Set(deletedIds);
     const customHit = customPosts.find(
       (p) => !deletedSet.has(p.id || '') && (p.slug || '').toLowerCase() === clean
@@ -1274,7 +1317,7 @@ async function startServer() {
     const post = await findBlogMetaBySlug(slug, lang);
 
     if (post?.coverImage && post.coverImage.startsWith('data:image/')) {
-      const match = post.coverImage.match(/^data:(image\/(?:jpeg|jpg|png));base64,(.+)$/i);
+      const match = post.coverImage.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/i);
       if (match) {
         const mime = match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase();
         const buffer = Buffer.from(match[2], 'base64');
@@ -1371,7 +1414,7 @@ async function startServer() {
     const eDesc = escapeHtml(description);
     const eCanonical = escapeHtml(canonicalUrl);
     const eImage = escapeHtml(imageUrl);
-    const eAlt = escapeHtml(post.title);
+    const eAlt = escapeHtml(post.h1Title?.trim() || post.title);
 
     const stripped = html
       .replace(/<title>[\s\S]*?<\/title>/i, `<title>${eTitle}</title>`)

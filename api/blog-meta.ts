@@ -1,18 +1,33 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {
+  fetchPublicFirestoreBlogData,
+  isPubliclyVisibleFirestorePost,
+} from './_firestore.js';
 
 interface BlogMetaEntry {
+  id?: string;
   slug: string;
   title: string;
+  h1Title?: string;
   spot: string;
   categoryLabel: string;
   publishedIso: string;
   coverTheme: string;
+  coverImage?: string;
+  coverImageMeta?: {
+    width: number;
+    height: number;
+    format: 'JPEG' | 'PNG';
+    sizeKb: number;
+  };
+  isCustom?: boolean;
 }
 
 const BLOG_META_LIST: BlogMetaEntry[] = [
   {
+    id: 'b1',
     slug: 'dijital-donusumun-merkezinde-teknoloji-ve-dogru-strateji-var',
     title: 'Dijital Dönüşümün Merkezinde Teknoloji ve Doğru Strateji Var',
     spot: 'Teknoloji yatırımları tek başına dönüşüm yaratmaz; kalıcı etki için iş hedefleri, müşteri deneyimi ve ölçülebilir stratejinin aynı eksende buluşması gerekir.',
@@ -21,6 +36,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'photo',
   },
   {
+    id: 'b2',
     slug: 'yapay-zeka-sigortacilik-sektorunu-nasil-donusturuyor',
     title: 'Yapay Zekâ Sigortacılık Sektörünü Nasıl Dönüştürüyor?',
     spot: 'Müşteri iletişiminden hasar ve belge analizine kadar yapay zekâ uygulamaları, sigortacılıkta hız, doğruluk ve karar kalitesini yeniden şekillendiriyor.',
@@ -29,6 +45,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'ai',
   },
   {
+    id: 'b3',
     slug: 'sigorta-sektorunde-crm-teknolojilerinin-stratejik-onemi',
     title: 'Sigorta Sektöründe CRM Teknolojilerinin Stratejik Önemi',
     spot: 'Sigorta acenteleri ve brokerlar için CRM yalnızca bir kayıt defteri değil; portföy koruma, yenileme başarısı ve çapraz satışın merkezidir.',
@@ -37,6 +54,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'insurtech',
   },
   {
+    id: 'b4',
     slug: 'dijitallesmek-ile-gercekten-donusmek-arasindaki-fark',
     title: 'Dijitalleşmek ile Gerçekten Dönüşmek Arasındaki Fark',
     spot: 'Süreçleri yalnızca dijital ortama taşımak hız kazandırır; gerçek dönüşüm ise iş modelini, kültürü ve müşteri değerini yeniden tasarlamakla gerçekleşir.',
@@ -45,6 +63,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'transformation',
   },
   {
+    id: 'b5',
     slug: 'sigortacilikta-dijital-donusum-teknolojiden-daha-fazlasi',
     title: 'Sigortacılıkta Dijital Dönüşüm: Teknolojiden Daha Fazlası',
     spot: 'Sigorta şirketlerinden acente ve brokerlara kadar tüm ekosistemde rekabet avantajı, teknolojiyi güven ve danışmanlık deneyimiyle birleştirmekten geçiyor.',
@@ -53,6 +72,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'insurtech',
   },
   {
+    id: 'b6',
     slug: 'sigorta-acenteleri-icin-dijitallesmenin-yeni-donemi',
     title: 'Sigorta Acenteleri İçin Dijitalleşmenin Yeni Dönemi',
     spot: 'Yeni nesil müşteri beklentileri, acente ve brokerların dijital görünürlükten online teklif süreçlerine kadar çalışma biçimlerini yeniden kurgulamasını gerektiriyor.',
@@ -61,6 +81,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'insurtech',
   },
   {
+    id: 'b7',
     slug: 'sigortacilikta-yapay-zeka-otomasyondan-akilli-karar-sistemlerine',
     title: 'Sigortacılıkta Yapay Zekâ: Otomasyondan Akıllı Karar Sistemlerine',
     spot: 'Rutin süreçlerin otomasyonu yalnızca başlangıç; asıl değer, yapay zekânın risk, fiyatlandırma ve portföy kararlarını destekleyen stratejik bir katmana dönüşmesiyle ortaya çıkıyor.',
@@ -69,6 +90,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'ai',
   },
   {
+    id: 'b8',
     slug: 'yapay-zeka-caginda-musteri-deneyimi-nasil-degisiyor',
     title: 'Yapay Zekâ Çağında Müşteri Deneyimi Nasıl Değişiyor?',
     spot: 'Hızlı yanıt ve kişiselleştirme artık bir ayrıcalık değil standart beklenti haline gelirken, markalar için fark yaratan unsur anlamlı ve tutarlı iletişim kurabilmek oluyor.',
@@ -77,6 +99,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'photo',
   },
   {
+    id: 'b9',
     slug: 'b2b-pazarlamada-lead-sayisindan-daha-onemli-olan-nedir',
     title: 'B2B Pazarlamada Lead Sayısından Daha Önemli Olan Nedir?',
     spot: 'Yüksek talep hacmi her zaman sağlıklı büyüme anlamına gelmez; doğru hedef kitle, nitelikli talep kalitesi ve satışa dönüşüm oranı gerçek performansı belirler.',
@@ -85,6 +108,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'growth',
   },
   {
+    id: 'b10',
     slug: 'saas-urunlerinde-self-servis-satis-modeli-nasil-kurgulanir',
     title: 'SaaS Ürünlerinde Self-Servis Satış Modeli Nasıl Kurgulanır?',
     spot: 'Kullanıcının ürünü hızla anlayıp deneyimleyebildiği self-servis satış kurgusu, ölçeklenebilir SaaS büyümesinin en güçlü kaldıraçlarından biridir.',
@@ -93,6 +117,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'growth',
   },
   {
+    id: 'b11',
     slug: 'pazarlama-ve-satis-ekipleri-neden-ayni-hedefe-odaklanmali',
     title: 'Pazarlama ve Satış Ekipleri Neden Aynı Hedefe Odaklanmalı?',
     spot: 'Pazarlama ve satış ayrı hedeflerle çalıştığında büyüme yavaşlar; ortak veri, ortak dil ve ortak gelir hedefi ise tüm organizasyonu hızlandırır.',
@@ -101,6 +126,7 @@ const BLOG_META_LIST: BlogMetaEntry[] = [
     coverTheme: 'strategy',
   },
   {
+    id: 'b12',
     slug: 'teknoloji-sirketlerinde-urun-pazarlamasinin-stratejik-rolu',
     title: 'Teknoloji Şirketlerinde Ürün Pazarlamasının Stratejik Rolü',
     spot: 'Güçlü bir teknoloji geliştirmek tek başına pazar başarısı getirmez; ürün pazarlaması, ürünün değerini müşterinin diline çeviren stratejik köprüdür.',
@@ -139,6 +165,7 @@ function injectBlogMeta(
   slug: string,
   post?: BlogMetaEntry
 ): string {
+  const headline = post?.h1Title?.trim() || post?.title;
   const title = post
     ? `${post.title} | Tuğçe Utku`
     : 'Blog ve İçgörüler | Tuğçe Utku';
@@ -146,18 +173,53 @@ function injectBlogMeta(
     ? post.spot
     : 'Dijital dönüşüm, sigortacılık teknolojileri, yapay zekâ ve strateji üzerine analizler ve profesyonel içgörüler.';
   const canonicalUrl = `${origin}/blog/${encodeURIComponent(slug)}`;
-  const imageUrl = post
-    ? `${origin}/og-covers/${post.slug}.png`
-    : `${origin}/og-covers/theme-transformation.png`;
+  const validThemes = new Set([
+    'photo',
+    'transformation',
+    'insurtech',
+    'ai',
+    'growth',
+    'strategy',
+  ]);
+  const safeTheme =
+    post?.coverTheme && validThemes.has(post.coverTheme)
+      ? post.coverTheme
+      : 'transformation';
+
+  const hasUploadedDataCover = Boolean(
+    post?.coverImage && post.coverImage.startsWith('data:image/')
+  );
+  const hasHttpsCover = Boolean(
+    post?.coverImage && /^https:\/\//i.test(post.coverImage)
+  );
+  const imageUrl = hasUploadedDataCover
+    ? `${origin}/api/blog-cover/${encodeURIComponent(post!.slug)}?v=${post!.coverImage!.length}`
+    : hasHttpsCover && post?.coverImage
+      ? post.coverImage
+      : post
+        ? post.isCustom
+          ? `${origin}/og-covers/theme-${safeTheme}.jpg`
+          : `${origin}/og-covers/${encodeURIComponent(post.slug)}.jpg`
+        : `${origin}/og-covers/theme-transformation.jpg`;
+
+  const imageType =
+    hasUploadedDataCover && post?.coverImage?.startsWith('data:image/png')
+      ? 'image/png'
+      : hasUploadedDataCover && post?.coverImage?.startsWith('data:image/webp')
+        ? 'image/webp'
+        : 'image/jpeg';
+
+  const imgWidth = String(post?.coverImageMeta?.width || 1200);
+  const imgHeight = String(post?.coverImageMeta?.height || 630);
 
   const eTitle = escapeHtml(title);
   const eDesc = escapeHtml(description);
   const eCanonical = escapeHtml(canonicalUrl);
   const eImage = escapeHtml(imageUrl);
-  const eAlt = escapeHtml(post?.title || 'Tuğçe Utku Blog');
+  const eAlt = escapeHtml(headline || 'Tuğçe Utku Blog');
 
   // Remove homepage meta tags we are overriding so crawlers read only one clean set
-  let out = html
+  const out = html
     .replace(/<title>[\s\S]*?<\/title>/i, `<title>${eTitle}</title>`)
     .replace(/<meta\s+name="description"[^>]*>\s*/gi, '')
     .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, '')
@@ -176,9 +238,9 @@ function injectBlogMeta(
     <meta property="og:description" content="${eDesc}" />
     <meta property="og:image" content="${eImage}" />
     <meta property="og:image:secure_url" content="${eImage}" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="${imageType}" />
+    <meta property="og:image:width" content="${imgWidth}" />
+    <meta property="og:image:height" content="${imgHeight}" />
     <meta property="og:image:alt" content="${eAlt}" />${
       post
         ? `
@@ -191,13 +253,13 @@ function injectBlogMeta(
     <meta name="twitter:title" content="${eTitle}" />
     <meta name="twitter:description" content="${eDesc}" />
     <meta name="twitter:image" content="${eImage}" />
+    <meta name="twitter:image:alt" content="${eAlt}" />
 `;
 
   return out.replace(/<\/title>/i, `</title>${metaBlock}`);
 }
 
 async function loadSpaHtml(origin: string): Promise<string> {
-  // 1. Try local built dist/index.html if bundled alongside function (never unbuilt /src/main.tsx)
   try {
     const builtPath = path.resolve(process.cwd(), 'dist', 'index.html');
     const html = await fs.readFile(builtPath, 'utf8');
@@ -208,7 +270,6 @@ async function loadSpaHtml(origin: string): Promise<string> {
     // Fall through to CDN fetch
   }
 
-  // 2. Fetch live deployed /index.html from Vercel static CDN (never hits /blog/:slug rewrite)
   try {
     const res = await fetch(`${origin}/index.html`, {
       headers: { Accept: 'text/html' },
@@ -245,7 +306,37 @@ export default async function handler(
   }
 
   const cleanSlug = slug.toLowerCase();
-  const post = BLOG_META_LIST.find((item) => item.slug.toLowerCase() === cleanSlug);
+  const { posts: firestorePosts, deletedIds } = await fetchPublicFirestoreBlogData();
+  const deletedSet = new Set(deletedIds);
+
+  const firestoreHit = firestorePosts.find(
+    (item) =>
+      isPubliclyVisibleFirestorePost(item, deletedSet, item.id) &&
+      item.slug.toLowerCase() === cleanSlug
+  );
+  const overriddenIds = new Set(firestorePosts.map((p) => p.id));
+  const builtInHit = !firestoreHit
+    ? BLOG_META_LIST.find(
+        (item) =>
+          (!item.id || (!deletedSet.has(item.id) && !overriddenIds.has(item.id))) &&
+          item.slug.toLowerCase() === cleanSlug
+      )
+    : undefined;
+  const post: BlogMetaEntry | undefined = firestoreHit
+    ? {
+        id: firestoreHit.id,
+        slug: firestoreHit.slug,
+        title: firestoreHit.title,
+        h1Title: firestoreHit.h1Title,
+        spot: firestoreHit.spot,
+        categoryLabel: firestoreHit.categoryLabel,
+        publishedIso: firestoreHit.publishedIso,
+        coverTheme: firestoreHit.coverTheme,
+        coverImage: firestoreHit.coverImage,
+        coverImageMeta: firestoreHit.coverImageMeta,
+        isCustom: !BLOG_META_LIST.some((b) => b.id === firestoreHit.id),
+      }
+    : builtInHit;
 
   const baseHtml = await loadSpaHtml(origin);
   const html = injectBlogMeta(baseHtml, origin, slug, post);

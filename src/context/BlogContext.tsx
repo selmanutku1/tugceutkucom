@@ -3,18 +3,51 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+  type User,
+} from 'firebase/auth';
+import {
+  collection,
+  deleteDoc,
+  deleteField,
+  doc,
+  getDoc,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { BlogCategoryKey, BlogPost, BlogSection } from '../types';
 import { getBlogData } from '../data/blogPostsEn';
 import type { Language } from './LanguageContext';
+import {
+  auth,
+  checkIsUserAdmin,
+  db,
+  googleProvider,
+  handleFirestoreError,
+  OperationType,
+} from '../firebase';
+import { ensureUniqueSlug, slugifyTurkish } from '../utils/slug';
+import { parseBodyToSections, sectionsToBodyText } from '../utils/blogSections';
+import { stripMarkdownForStats } from '../components/RichArticleContent';
+
+export { ensureUniqueSlug, parseBodyToSections, sectionsToBodyText, slugifyTurkish };
 
 const STORAGE_KEY = 'tu_custom_blog_posts_v1';
 const DELETED_IDS_STORAGE_KEY = 'tu_deleted_blog_ids_v1';
+const FEATURED_STORAGE_KEY = 'tu_featured_blog_id_v1';
 
 export interface BlogPostInput {
   title: string;
+  h1Title?: string;
   slug?: string;
   spot: string;
   categoryKey: BlogCategoryKey;
@@ -22,28 +55,63 @@ export interface BlogPostInput {
   coverTheme: BlogPost['coverTheme'];
   coverImage?: string;
   coverImageMeta?: BlogPost['coverImageMeta'];
+  publishedIso?: string;
+  scheduled?: boolean;
+  featured?: boolean;
   readingTime?: string;
   bodyText: string;
+}
+
+interface GetPostsOptions {
+  includeScheduled?: boolean;
 }
 
 interface BlogContextValue {
   customPosts: BlogPost[];
   deletedBaseIds: string[];
+  featuredPostId: string | null;
   isLoading: boolean;
-  getPosts: (lang: Language) => BlogPost[];
+  authUser: User | null;
+  authReady: boolean;
+  isAdmin: boolean;
+  unsyncedLocalCount: number;
+  signInAdminWithGoogle: () => Promise<User>;
+  signOutAdmin: () => Promise<void>;
+  syncPendingLocalPosts: () => Promise<number>;
+  getPosts: (lang: Language, options?: GetPostsOptions) => BlogPost[];
+  getTrashedPosts: (lang: Language) => BlogPost[];
+  getFeaturedPost: (lang: Language) => BlogPost | undefined;
   isBuiltInPost: (id: string) => boolean;
   isModifiedBuiltInPost: (id: string) => boolean;
-  addPost: (input: BlogPostInput, passcode: string) => Promise<BlogPost>;
-  updatePost: (id: string, input: BlogPostInput, passcode: string) => Promise<BlogPost>;
-  deletePost: (id: string, passcode: string) => Promise<void>;
-  resetBuiltInPost: (id: string, passcode: string) => Promise<void>;
+  addPost: (input: BlogPostInput, passcode?: string) => Promise<BlogPost>;
+  updatePost: (id: string, input: BlogPostInput, passcode?: string) => Promise<BlogPost>;
+  deletePost: (id: string, passcode?: string) => Promise<void>;
+  restorePost: (id: string) => Promise<void>;
+  permanentlyDeletePost: (id: string) => Promise<void>;
+  resetBuiltInPost: (id: string, passcode?: string) => Promise<void>;
+  setFeaturedPost: (postId: string | null) => Promise<void>;
 }
 
 const BlogContext = createContext<BlogContextValue>({
   customPosts: [],
   deletedBaseIds: [],
+  featuredPostId: null,
   isLoading: false,
+  authUser: null,
+  authReady: false,
+  isAdmin: false,
+  unsyncedLocalCount: 0,
+  signInAdminWithGoogle: async () => {
+    throw new Error('BlogProvider not mounted');
+  },
+  signOutAdmin: async () => {},
+  syncPendingLocalPosts: async () => 0,
   getPosts: (lang) => getBlogData(lang).posts,
+  getTrashedPosts: () => [],
+  getFeaturedPost: (lang) => {
+    const posts = getBlogData(lang).posts;
+    return posts.find((p) => p.featured) || posts[0];
+  },
   isBuiltInPost: () => false,
   isModifiedBuiltInPost: () => false,
   addPost: async () => {
@@ -53,7 +121,10 @@ const BlogContext = createContext<BlogContextValue>({
     throw new Error('BlogProvider not mounted');
   },
   deletePost: async () => {},
+  restorePost: async () => {},
+  permanentlyDeletePost: async () => {},
   resetBuiltInPost: async () => {},
+  setFeaturedPost: async () => {},
 });
 
 const CATEGORY_LABELS_TR: Record<BlogCategoryKey, string> = {
@@ -64,117 +135,49 @@ const CATEGORY_LABELS_TR: Record<BlogCategoryKey, string> = {
   'strateji-yonetim': 'Strateji ve Yönetim',
 };
 
+const VALID_CATEGORY_KEYS = new Set<BlogCategoryKey>([
+  'dijital-donusum',
+  'insurtech',
+  'yapay-zeka',
+  'dijital-pazarlama',
+  'strateji-yonetim',
+]);
+
+const VALID_COVER_THEMES = new Set<BlogPost['coverTheme']>([
+  'photo',
+  'transformation',
+  'insurtech',
+  'ai',
+  'growth',
+  'strategy',
+]);
+
 const BUILT_IN_TR_POSTS = getBlogData('tr').posts;
 const BUILT_IN_POST_IDS = new Set(BUILT_IN_TR_POSTS.map((p) => p.id));
 
-export function slugifyTurkish(text: string): string {
-  const map: Record<string, string> = {
-    ç: 'c',
-    Ç: 'c',
-    ğ: 'g',
-    Ğ: 'g',
-    ı: 'i',
-    İ: 'i',
-    I: 'i',
-    ö: 'o',
-    Ö: 'o',
-    ş: 's',
-    Ş: 's',
-    ü: 'u',
-    Ü: 'u',
-    â: 'a',
-    Â: 'a',
-    î: 'i',
-    Î: 'i',
-    û: 'u',
-    Û: 'u',
-  };
-
-  return text
-    .split('')
-    .map((ch) => map[ch] ?? ch)
-    .join('')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[’'`"“”]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 90)
-    .replace(/^-+|-+$/g, '');
+export function getTodayIso(): string {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-export function ensureUniqueSlug(rawSlug: string, existingSlugs: Set<string>): string {
-  const cleanBase = slugifyTurkish(rawSlug) || `yazi-${Date.now().toString().slice(-6)}`;
-  if (!existingSlugs.has(cleanBase)) {
-    return cleanBase;
-  }
-
-  let counter = 2;
-  let candidate = `${cleanBase}-${counter}`;
-  while (existingSlugs.has(candidate)) {
-    counter += 1;
-    candidate = `${cleanBase}-${counter}`;
-  }
-  return candidate;
-}
-
-export function parseBodyToSections(bodyText: string, fallbackHeading: string): BlogSection[] {
-  const lines = bodyText.split('\n');
-  const sections: BlogSection[] = [];
-  let currentHeading = '';
-  let currentParagraphs: string[] = [];
-
-  const flush = () => {
-    const cleaned = currentParagraphs.map((p) => p.trim()).filter(Boolean);
-    if (cleaned.length > 0 || currentHeading) {
-      const heading = currentHeading || fallbackHeading;
-      sections.push({
-        id: slugifyTurkish(heading) || `bolum-${sections.length + 1}`,
-        heading,
-        paragraphs: cleaned.length > 0 ? cleaned : [''],
-      });
-    }
-  };
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) continue;
-
-    if (line.startsWith('## ')) {
-      if (currentHeading || currentParagraphs.length > 0) {
-        flush();
-      }
-      currentHeading = line.replace(/^##\s+/, '').trim();
-      currentParagraphs = [];
-    } else {
-      currentParagraphs.push(line);
-    }
-  }
-
-  flush();
-
-  if (sections.length === 0) {
-    return [
-      {
-        id: 'icerik',
-        heading: fallbackHeading,
-        paragraphs: [bodyText.trim() || ''],
-      },
-    ];
-  }
-
-  return sections;
-}
-
-export function sectionsToBodyText(sections: BlogSection[]): string {
-  return sections
-    .map((section) => `## ${section.heading}\n\n${section.paragraphs.join('\n\n')}`)
-    .join('\n\n');
+export function formatTurkishDateFromIso(iso: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const parsed = new Date(`${iso}T12:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return new Intl.DateTimeFormat('tr-TR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(parsed);
 }
 
 function estimateReadingTime(bodyText: string): string {
-  const wordCount = bodyText.trim().split(/\s+/).filter(Boolean).length;
+  const cleanText = stripMarkdownForStats(bodyText);
+  const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.ceil(wordCount / 180));
   return `${minutes} dk okuma`;
 }
@@ -223,31 +226,195 @@ function writeStoredDeletedIds(ids: string[]) {
   }
 }
 
+function readStoredFeaturedId(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(FEATURED_STORAGE_KEY);
+    return raw && raw.trim() ? raw.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredFeaturedId(postId: string | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (postId) {
+      window.localStorage.setItem(FEATURED_STORAGE_KEY, postId);
+    } else {
+      window.localStorage.removeItem(FEATURED_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function sanitizePostPayload(post: BlogPost) {
+  const safeId = post.id.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 128) || `custom-${Date.now()}`;
+  const safeSlug = (
+    slugifyTurkish(post.slug) ||
+    slugifyTurkish(post.h1Title || '') ||
+    slugifyTurkish(post.title) ||
+    `yazi-${Date.now()}`
+  ).slice(0, 120);
+  const categoryKey: BlogCategoryKey = VALID_CATEGORY_KEYS.has(post.categoryKey)
+    ? post.categoryKey
+    : 'dijital-donusum';
+  const coverTheme: BlogPost['coverTheme'] = VALID_COVER_THEMES.has(post.coverTheme)
+    ? post.coverTheme
+    : 'transformation';
+  const categoryLabel = (post.categoryLabel || CATEGORY_LABELS_TR[categoryKey]).trim().slice(0, 120);
+  const rawTags = Array.isArray(post.tags)
+    ? post.tags.map((t) => String(t).trim().slice(0, 80)).filter(Boolean).slice(0, 15)
+    : [];
+  const tags = rawTags.length > 0 ? rawTags : [categoryLabel];
+  const title = post.title.trim().slice(0, 240) || 'Başlıksız Yazı';
+  const h1Title = post.h1Title?.trim().slice(0, 240);
+  const spot = post.spot.trim().slice(0, 1000) || title;
+  const publishedIso = /^\d{4}-\d{2}-\d{2}$/.test(post.publishedIso)
+    ? post.publishedIso
+    : getTodayIso();
+  const publishedAt = (post.publishedAt || formatTurkishDateFromIso(publishedIso)).trim().slice(0, 60);
+  const readingTime = (post.readingTime || '3 dk okuma').trim().slice(0, 40);
+  const sections = (Array.isArray(post.sections) && post.sections.length > 0
+    ? post.sections
+    : [{ id: 'icerik', heading: h1Title || title, paragraphs: [spot] }]
+  ).slice(0, 50);
+
+  if (post.coverImage && post.coverImage.length > 750_000) {
+    throw new Error(
+      'Kapak görseli boyutu veritabanı sınırını aşıyor. Lütfen daha küçük veya sıkıştırılmış bir görsel yükleyin.'
+    );
+  }
+
+  const payload: Record<string, unknown> = {
+    id: safeId,
+    slug: safeSlug,
+    title,
+    spot,
+    categoryKey,
+    categoryLabel,
+    tags,
+    publishedAt,
+    publishedIso,
+    readingTime,
+    coverTheme,
+    sections,
+  };
+
+  if (h1Title) {
+    payload.h1Title = h1Title;
+  }
+
+  if (post.coverImage) {
+    payload.coverImage = post.coverImage;
+    if (
+      post.coverImageMeta &&
+      Number.isInteger(post.coverImageMeta.width) &&
+      Number.isInteger(post.coverImageMeta.height) &&
+      (post.coverImageMeta.format === 'JPEG' || post.coverImageMeta.format === 'PNG') &&
+      Number.isInteger(post.coverImageMeta.sizeKb)
+    ) {
+      payload.coverImageMeta = {
+        width: Math.max(1, Math.min(10000, post.coverImageMeta.width)),
+        height: Math.max(1, Math.min(10000, post.coverImageMeta.height)),
+        format: post.coverImageMeta.format,
+        sizeKb: Math.max(0, Math.min(10240, post.coverImageMeta.sizeKb)),
+      };
+    }
+  }
+
+  if (typeof post.featured === 'boolean') {
+    payload.featured = post.featured;
+  }
+
+  if (typeof post.scheduled === 'boolean') {
+    payload.scheduled = post.scheduled;
+  }
+
+  if (typeof post.trashed === 'boolean') {
+    payload.trashed = post.trashed;
+  }
+
+  if (post.trashedAt && post.trashedAt.trim().length >= 10) {
+    payload.trashedAt = post.trashedAt.trim().slice(0, 40);
+  }
+
+  const serializedSize = JSON.stringify(payload).length;
+  if (serializedSize > 920_000) {
+    throw new Error(
+      'Yazı içindeki görseller ve metin toplam boyutu veritabanı sınırını (~920 KB) aşıyor. Lütfen yazı içi görsel sayısını veya boyutunu azaltın.'
+    );
+  }
+
+  return payload;
+}
+
+function normalizeFirestoreDocToBlogPost(raw: Record<string, unknown>, docId: string): BlogPost | null {
+  if (typeof raw.title !== 'string' || typeof raw.slug !== 'string') return null;
+  const categoryKey: BlogCategoryKey = VALID_CATEGORY_KEYS.has(raw.categoryKey as BlogCategoryKey)
+    ? (raw.categoryKey as BlogCategoryKey)
+    : 'dijital-donusum';
+  const coverTheme: BlogPost['coverTheme'] = VALID_COVER_THEMES.has(
+    raw.coverTheme as BlogPost['coverTheme']
+  )
+    ? (raw.coverTheme as BlogPost['coverTheme'])
+    : 'transformation';
+
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : docId,
+    slug: raw.slug,
+    title: raw.title,
+    h1Title: typeof raw.h1Title === 'string' && raw.h1Title.trim() ? raw.h1Title : undefined,
+    spot: typeof raw.spot === 'string' ? raw.spot : '',
+    categoryKey,
+    categoryLabel:
+      typeof raw.categoryLabel === 'string' && raw.categoryLabel
+        ? raw.categoryLabel
+        : CATEGORY_LABELS_TR[categoryKey],
+    tags: Array.isArray(raw.tags)
+      ? raw.tags.map((item) => String(item))
+      : [CATEGORY_LABELS_TR[categoryKey]],
+    publishedAt: typeof raw.publishedAt === 'string' ? raw.publishedAt : '',
+    publishedIso:
+      typeof raw.publishedIso === 'string'
+        ? raw.publishedIso
+        : getTodayIso(),
+    readingTime: typeof raw.readingTime === 'string' ? raw.readingTime : '3 dk okuma',
+    coverTheme,
+    coverImage: typeof raw.coverImage === 'string' && raw.coverImage ? raw.coverImage : undefined,
+    coverImageMeta:
+      raw.coverImage && raw.coverImageMeta && typeof raw.coverImageMeta === 'object'
+        ? (raw.coverImageMeta as BlogPost['coverImageMeta'])
+        : undefined,
+    featured: typeof raw.featured === 'boolean' ? raw.featured : undefined,
+    scheduled: typeof raw.scheduled === 'boolean' ? raw.scheduled : undefined,
+    trashed: typeof raw.trashed === 'boolean' ? raw.trashed : undefined,
+    trashedAt: typeof raw.trashedAt === 'string' ? raw.trashedAt : undefined,
+    sections: Array.isArray(raw.sections) ? (raw.sections as BlogSection[]) : [],
+  };
+}
+
 function buildBlogPostFromInput(
   input: BlogPostInput,
   resolvedSlug: string,
   existing?: BlogPost
 ): BlogPost {
-  const now = new Date();
   const id = existing?.id || `custom-${Date.now()}`;
-
-  const publishedIso = existing?.publishedIso || now.toISOString().slice(0, 10);
-  const publishedAt =
-    existing?.publishedAt ||
-    new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(now);
-
-  const cleanedTags = input.tags
-    .map((t) => t.trim())
-    .filter(Boolean);
+  const requestedIso =
+    input.publishedIso && /^\d{4}-\d{2}-\d{2}$/.test(input.publishedIso)
+      ? input.publishedIso
+      : existing?.publishedIso || getTodayIso();
+  const publishedAt = formatTurkishDateFromIso(requestedIso);
+  const cleanedTags = input.tags.map((t) => t.trim()).filter(Boolean).slice(0, 15);
+  const cleanedTitle = input.title.trim();
+  const cleanedH1 = input.h1Title?.trim() || undefined;
 
   return {
     id,
     slug: resolvedSlug,
-    title: input.title.trim(),
+    title: cleanedTitle,
+    h1Title: cleanedH1,
     spot: input.spot.trim(),
     categoryKey: input.categoryKey,
     categoryLabel: CATEGORY_LABELS_TR[input.categoryKey],
@@ -256,77 +423,217 @@ function buildBlogPostFromInput(
         ? cleanedTags
         : [CATEGORY_LABELS_TR[input.categoryKey]],
     publishedAt,
-    publishedIso,
+    publishedIso: requestedIso,
     readingTime: input.readingTime?.trim() || estimateReadingTime(input.bodyText),
     coverTheme: input.coverTheme,
     coverImage: input.coverImage || undefined,
     coverImageMeta: input.coverImage ? input.coverImageMeta : undefined,
-    featured: existing?.featured,
-    sections: parseBodyToSections(input.bodyText, input.title.trim()),
+    featured: typeof input.featured === 'boolean' ? input.featured : existing?.featured,
+    scheduled: Boolean(input.scheduled),
+    trashed: false,
+    sections: parseBodyToSections(input.bodyText, cleanedH1 || cleanedTitle),
   };
 }
 
 export function BlogProvider({ children }: { children: ReactNode }) {
-  const [customPosts, setCustomPosts] = useState<BlogPost[]>(() => readStoredPosts());
+  const initialLocalPostsRef = useRef<BlogPost[]>(readStoredPosts());
+  const [customPosts, setCustomPosts] = useState<BlogPost[]>(() => initialLocalPostsRef.current);
   const [deletedBaseIds, setDeletedBaseIds] = useState<string[]>(() =>
     readStoredDeletedIds()
   );
+  const [featuredPostId, setFeaturedPostId] = useState<string | null>(() =>
+    readStoredFeaturedId()
+  );
+  const [firestorePostIds, setFirestorePostIds] = useState<Set<string> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  // Track Firebase Auth state
   useEffect(() => {
-    let active = true;
-    const syncFromServer = async () => {
-      try {
-        const res = await fetch('/api/blog-posts');
-        if (!res.ok) return;
-        const data = (await res.json()) as {
-          posts?: BlogPost[];
-          deletedIds?: string[];
-        };
-        if (active && Array.isArray(data.posts) && data.posts.length > 0) {
-          setCustomPosts((localPosts) => {
-            const byId = new Map<string, BlogPost>();
-            for (const p of data.posts!) byId.set(p.id, p);
-            for (const p of localPosts) {
-              if (!byId.has(p.id)) byId.set(p.id, p);
-            }
-            const merged = Array.from(byId.values()).sort((a, b) =>
-              b.publishedIso.localeCompare(a.publishedIso)
-            );
-            writeStoredPosts(merged);
-            return merged;
-          });
-        }
-        if (active && Array.isArray(data.deletedIds) && data.deletedIds.length > 0) {
-          setDeletedBaseIds((localIds) => {
-            const merged = Array.from(new Set([...data.deletedIds!, ...localIds]));
-            writeStoredDeletedIds(merged);
-            return merged;
-          });
-        }
-      } catch {
-        // Offline or static host fallback — localStorage remains active
-      } finally {
-        if (active) setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setAuthUser(user);
+      if (user) {
+        const adminOk = await checkIsUserAdmin(user);
+        setIsAdmin(adminOk);
+      } else {
+        setIsAdmin(false);
+      }
+      setAuthReady(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Subscribe to persistent Firestore blogPosts, deletedBlogIds, and siteSettings/featuredBlog
+  useEffect(() => {
+    let resolvedPosts = false;
+    let resolvedDeletes = false;
+    let resolvedFeatured = false;
+    const markLoaded = () => {
+      if (resolvedPosts && resolvedDeletes && resolvedFeatured) {
+        setIsLoading(false);
       }
     };
 
-    syncFromServer();
+    const unsubPosts = onSnapshot(
+      collection(db, 'blogPosts'),
+      (snapshot) => {
+        const remotePosts: BlogPost[] = [];
+        const remoteIds = new Set<string>();
+        snapshot.forEach((docSnap) => {
+          const parsed = normalizeFirestoreDocToBlogPost(
+            docSnap.data() as Record<string, unknown>,
+            docSnap.id
+          );
+          if (parsed) {
+            remotePosts.push(parsed);
+            remoteIds.add(parsed.id);
+          }
+        });
+
+        remotePosts.sort((a, b) => b.publishedIso.localeCompare(a.publishedIso));
+        setFirestorePostIds(remoteIds);
+
+        const unsyncedLocals = initialLocalPostsRef.current.filter(
+          (localPost) => !remoteIds.has(localPost.id) && !BUILT_IN_POST_IDS.has(localPost.id)
+        );
+        const combined = [...unsyncedLocals, ...remotePosts].sort((a, b) =>
+          b.publishedIso.localeCompare(a.publishedIso)
+        );
+
+        setCustomPosts(combined);
+        writeStoredPosts(combined);
+        resolvedPosts = true;
+        markLoaded();
+      },
+      (error) => {
+        resolvedPosts = true;
+        markLoaded();
+        handleFirestoreError(error, OperationType.LIST, 'blogPosts');
+      }
+    );
+
+    const unsubDeletes = onSnapshot(
+      collection(db, 'deletedBlogIds'),
+      (snapshot) => {
+        const ids: string[] = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data() as { postId?: string };
+          ids.push(typeof data.postId === 'string' && data.postId ? data.postId : docSnap.id);
+        });
+        setDeletedBaseIds(ids);
+        writeStoredDeletedIds(ids);
+        resolvedDeletes = true;
+        markLoaded();
+      },
+      (error) => {
+        resolvedDeletes = true;
+        markLoaded();
+        handleFirestoreError(error, OperationType.LIST, 'deletedBlogIds');
+      }
+    );
+
+    const unsubFeatured = onSnapshot(
+      doc(db, 'siteSettings', 'featuredBlog'),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as { featuredPostId?: unknown };
+          const id =
+            typeof data.featuredPostId === 'string' && data.featuredPostId.trim()
+              ? data.featuredPostId.trim()
+              : null;
+          setFeaturedPostId(id);
+          writeStoredFeaturedId(id);
+        } else {
+          setFeaturedPostId(null);
+          writeStoredFeaturedId(null);
+        }
+        resolvedFeatured = true;
+        markLoaded();
+      },
+      (error) => {
+        resolvedFeatured = true;
+        markLoaded();
+        handleFirestoreError(error, OperationType.GET, 'siteSettings/featuredBlog');
+      }
+    );
+
     return () => {
-      active = false;
+      unsubPosts();
+      unsubDeletes();
+      unsubFeatured();
     };
+  }, []);
+
+  const unsyncedLocalCount = firestorePostIds
+    ? initialLocalPostsRef.current.filter(
+        (p) => !firestorePostIds.has(p.id) && !BUILT_IN_POST_IDS.has(p.id)
+      ).length
+    : 0;
+
+  const syncPendingLocalPosts = useCallback(async (): Promise<number> => {
+    const user = auth.currentUser;
+    if (!user || !isAdmin || !firestorePostIds) return 0;
+
+    const toSync = initialLocalPostsRef.current.filter(
+      (p) => !firestorePostIds.has(p.id) && !BUILT_IN_POST_IDS.has(p.id)
+    );
+    if (toSync.length === 0) return 0;
+
+    let synced = 0;
+    for (const post of toSync) {
+      const path = `blogPosts/${post.id}`;
+      try {
+        const sanitized = sanitizePostPayload(post);
+        await setDoc(doc(db, 'blogPosts', String(sanitized.id)), {
+          ...sanitized,
+          authorId: user.uid,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        synced += 1;
+      } catch (error) {
+        handleFirestoreError(error, OperationType.CREATE, path);
+      }
+    }
+
+    initialLocalPostsRef.current = initialLocalPostsRef.current.filter(
+      (p) => !toSync.some((syncedPost) => syncedPost.id === p.id)
+    );
+    return synced;
+  }, [firestorePostIds, isAdmin]);
+
+  useEffect(() => {
+    if (authReady && isAdmin && unsyncedLocalCount > 0) {
+      void syncPendingLocalPosts().catch((err) => {
+        console.warn('Auto-sync of local posts paused:', err);
+      });
+    }
+  }, [authReady, isAdmin, syncPendingLocalPosts, unsyncedLocalCount]);
+
+  const signInAdminWithGoogle = useCallback(async () => {
+    const cred = await signInWithPopup(auth, googleProvider);
+    const adminOk = await checkIsUserAdmin(cred.user);
+    setIsAdmin(adminOk);
+    return cred.user;
+  }, []);
+
+  const signOutAdmin = useCallback(async () => {
+    await signOut(auth);
+    setIsAdmin(false);
   }, []);
 
   const isBuiltInPost = useCallback((id: string) => BUILT_IN_POST_IDS.has(id), []);
 
   const isModifiedBuiltInPost = useCallback(
     (id: string) =>
-      BUILT_IN_POST_IDS.has(id) && customPosts.some((p) => p.id === id),
+      BUILT_IN_POST_IDS.has(id) && customPosts.some((p) => p.id === id && !p.trashed),
     [customPosts]
   );
 
   const getPosts = useCallback(
-    (lang: Language) => {
+    (lang: Language, options?: GetPostsOptions) => {
       const basePosts = getBlogData(lang).posts;
       const baseIdSet = new Set(basePosts.map((p) => p.id));
       const deletedSet = new Set(deletedBaseIds);
@@ -334,6 +641,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       const newCustomPosts: BlogPost[] = [];
 
       for (const post of customPosts) {
+        if (post.trashed) continue;
         if (baseIdSet.has(post.id)) {
           overridesById.set(post.id, post);
         } else {
@@ -345,51 +653,150 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         .filter((p) => !deletedSet.has(p.id))
         .map((p) => overridesById.get(p.id) ?? p);
 
-      return [...newCustomPosts, ...mergedBasePosts];
+      const combined = [...newCustomPosts, ...mergedBasePosts];
+      const todayIso = getTodayIso();
+      const visible = options?.includeScheduled
+        ? combined
+        : combined.filter((p) => !(p.scheduled && p.publishedIso > todayIso));
+
+      return visible.sort((a, b) => b.publishedIso.localeCompare(a.publishedIso));
     },
     [customPosts, deletedBaseIds]
   );
 
+  const getTrashedPosts = useCallback(
+    (lang: Language): BlogPost[] => {
+      const basePosts = getBlogData(lang).posts;
+      const baseById = new Map(basePosts.map((p) => [p.id, p]));
+      const deletedSet = new Set(deletedBaseIds);
+      const result: BlogPost[] = [];
+      const addedIds = new Set<string>();
+
+      for (const post of customPosts) {
+        if (post.trashed || (BUILT_IN_POST_IDS.has(post.id) && deletedSet.has(post.id))) {
+          result.push(post);
+          addedIds.add(post.id);
+        }
+      }
+
+      for (const deletedId of deletedBaseIds) {
+        if (addedIds.has(deletedId)) continue;
+        const base = baseById.get(deletedId);
+        if (base) {
+          result.push({ ...base, trashed: true });
+          addedIds.add(deletedId);
+        }
+      }
+
+      return result.sort((a, b) =>
+        (b.trashedAt || b.publishedIso).localeCompare(a.trashedAt || a.publishedIso)
+      );
+    },
+    [customPosts, deletedBaseIds]
+  );
+
+  const getFeaturedPost = useCallback(
+    (lang: Language): BlogPost | undefined => {
+      const posts = getPosts(lang);
+      if (featuredPostId) {
+        const chosen = posts.find((p) => p.id === featuredPostId);
+        if (chosen) return chosen;
+      }
+      return posts.find((p) => p.featured) || posts[0];
+    },
+    [featuredPostId, getPosts]
+  );
+
+  const setFeaturedPost = useCallback(async (postId: string | null) => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Öne çıkan yazıyı değiştirmek için yönetici Google hesabınızla giriş yapmalısınız.');
+    }
+
+    const docRef = doc(db, 'siteSettings', 'featuredBlog');
+    const path = 'siteSettings/featuredBlog';
+
+    if (!postId) {
+      try {
+        await deleteDoc(docRef);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, path);
+      }
+      return;
+    }
+
+    const cleanId = postId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 128);
+    if (!cleanId) return;
+
+    try {
+      const existingSnap = await getDoc(docRef);
+      if (existingSnap.exists()) {
+        await updateDoc(docRef, {
+          featuredPostId: cleanId,
+          updatedBy: user.uid,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await setDoc(docRef, {
+          id: 'featuredBlog',
+          featuredPostId: cleanId,
+          updatedBy: user.uid,
+          updatedAt: serverTimestamp(),
+        });
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  }, []);
+
   const addPost = useCallback(
-    async (input: BlogPostInput, passcode: string): Promise<BlogPost> => {
+    async (input: BlogPostInput): Promise<BlogPost> => {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('Yazı kaydetmek için yönetici Google hesabınızla giriş yapmalısınız.');
+      }
+
       const deletedSet = new Set(deletedBaseIds);
       const customIdSet = new Set(customPosts.map((p) => p.id));
       const existingSlugs = new Set([
-        ...customPosts.map((p) => p.slug),
+        ...customPosts.filter((p) => !p.trashed).map((p) => p.slug),
         ...BUILT_IN_TR_POSTS.filter(
           (p) => !deletedSet.has(p.id) && !customIdSet.has(p.id)
         ).map((p) => p.slug),
       ]);
-      const desiredSlug = input.slug?.trim() || input.title;
+      const desiredSlug = input.slug?.trim() || input.h1Title?.trim() || input.title;
       const uniqueSlug = ensureUniqueSlug(desiredSlug, existingSlugs);
       const candidate = buildBlogPostFromInput(input, uniqueSlug);
-
-      setCustomPosts((prev) => {
-        const next = [candidate, ...prev];
-        writeStoredPosts(next);
-        return next;
-      });
+      const sanitized = sanitizePostPayload(candidate);
+      const docId = String(sanitized.id);
+      const path = `blogPosts/${docId}`;
 
       try {
-        await fetch('/api/blog-posts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-dashboard-passcode': passcode,
-          },
-          body: JSON.stringify({ post: candidate }),
+        await setDoc(doc(db, 'blogPosts', docId), {
+          ...sanitized,
+          authorId: user.uid,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
         });
-      } catch {
-        // Already saved locally
+        if (input.featured) {
+          await setFeaturedPost(docId);
+        }
+      } catch (error) {
+        handleFirestoreError(error, OperationType.CREATE, path);
       }
 
-      return candidate;
+      return { ...candidate, id: docId, slug: String(sanitized.slug) };
     },
-    [customPosts, deletedBaseIds]
+    [customPosts, deletedBaseIds, setFeaturedPost]
   );
 
   const updatePost = useCallback(
-    async (id: string, input: BlogPostInput, passcode: string): Promise<BlogPost> => {
+    async (id: string, input: BlogPostInput): Promise<BlogPost> => {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('Yazı güncellemek için yönetici Google hesabınızla giriş yapmalısınız.');
+      }
+
       const existing =
         customPosts.find((p) => p.id === id) ||
         BUILT_IN_TR_POSTS.find((p) => p.id === id);
@@ -397,102 +804,200 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       const deletedSet = new Set(deletedBaseIds);
       const customIdSet = new Set(customPosts.map((p) => p.id));
       const existingSlugs = new Set([
-        ...customPosts.filter((p) => p.id !== id).map((p) => p.slug),
+        ...customPosts.filter((p) => p.id !== id && !p.trashed).map((p) => p.slug),
         ...BUILT_IN_TR_POSTS.filter(
           (p) => p.id !== id && !deletedSet.has(p.id) && !customIdSet.has(p.id)
         ).map((p) => p.slug),
       ]);
 
-      const desiredSlug = input.slug?.trim() || input.title || existing?.slug || '';
+      const desiredSlug =
+        input.slug?.trim() || input.h1Title?.trim() || input.title || existing?.slug || '';
       const uniqueSlug = ensureUniqueSlug(desiredSlug, existingSlugs);
       const updated = buildBlogPostFromInput(input, uniqueSlug, existing);
-
-      setCustomPosts((prev) => {
-        const hasExisting = prev.some((p) => p.id === id);
-        const next = hasExisting
-          ? prev.map((p) => (p.id === id ? updated : p))
-          : [updated, ...prev];
-        writeStoredPosts(next);
-        return next;
-      });
-
-      if (deletedBaseIds.includes(id)) {
-        setDeletedBaseIds((prev) => {
-          const next = prev.filter((item) => item !== id);
-          writeStoredDeletedIds(next);
-          return next;
-        });
-      }
+      const sanitized = sanitizePostPayload(updated);
+      const docId = String(sanitized.id);
+      const path = `blogPosts/${docId}`;
+      const docRef = doc(db, 'blogPosts', docId);
 
       try {
-        await fetch(`/api/blog-posts/${encodeURIComponent(id)}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-dashboard-passcode': passcode,
-          },
-          body: JSON.stringify({ post: updated }),
-        });
-      } catch {
-        // Already updated locally
+        const existingSnap = await getDoc(docRef);
+        if (!existingSnap.exists()) {
+          await setDoc(docRef, {
+            ...sanitized,
+            authorId: user.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        } else {
+          const updateFields: Record<string, unknown> = {
+            slug: sanitized.slug,
+            title: sanitized.title,
+            h1Title: sanitized.h1Title ?? deleteField(),
+            spot: sanitized.spot,
+            categoryKey: sanitized.categoryKey,
+            categoryLabel: sanitized.categoryLabel,
+            tags: sanitized.tags,
+            publishedAt: sanitized.publishedAt,
+            publishedIso: sanitized.publishedIso,
+            readingTime: sanitized.readingTime,
+            coverTheme: sanitized.coverTheme,
+            sections: sanitized.sections,
+            coverImage: sanitized.coverImage ?? deleteField(),
+            coverImageMeta: sanitized.coverImageMeta ?? deleteField(),
+            scheduled: Boolean(sanitized.scheduled),
+            trashed: false,
+            trashedAt: deleteField(),
+            updatedAt: serverTimestamp(),
+          };
+          if (typeof sanitized.featured === 'boolean') {
+            updateFields.featured = sanitized.featured;
+          }
+          await updateDoc(docRef, updateFields);
+        }
+
+        if (input.featured === true) {
+          await setFeaturedPost(docId);
+        } else if (input.featured === false && featuredPostId === docId) {
+          await setFeaturedPost(null);
+        }
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, path);
       }
 
-      return updated;
+      if (deletedBaseIds.includes(id)) {
+        const deletedPath = `deletedBlogIds/${id}`;
+        try {
+          await deleteDoc(doc(db, 'deletedBlogIds', id));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, deletedPath);
+        }
+      }
+
+      return { ...updated, id: docId, slug: String(sanitized.slug) };
     },
-    [customPosts, deletedBaseIds]
+    [customPosts, deletedBaseIds, featuredPostId, setFeaturedPost]
   );
 
-  const deletePost = useCallback(async (id: string, passcode: string) => {
-    setCustomPosts((prev) => {
-      const next = prev.filter((p) => p.id !== id);
-      writeStoredPosts(next);
-      return next;
-    });
+  const deletePost = useCallback(
+    async (id: string) => {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('Yazı silmek için yönetici Google hesabınızla giriş yapmalısınız.');
+      }
 
-    if (BUILT_IN_POST_IDS.has(id)) {
-      setDeletedBaseIds((prev) => {
-        if (prev.includes(id)) return prev;
-        const next = [...prev, id];
-        writeStoredDeletedIds(next);
-        return next;
-      });
+      const trashedAt = new Date().toISOString();
+      const docRef = doc(db, 'blogPosts', id);
+      const path = `blogPosts/${id}`;
+
+      try {
+        const existingSnap = await getDoc(docRef);
+        if (existingSnap.exists()) {
+          await updateDoc(docRef, {
+            trashed: true,
+            trashedAt,
+            updatedAt: serverTimestamp(),
+          });
+        } else if (!BUILT_IN_POST_IDS.has(id)) {
+          const localMatch = initialLocalPostsRef.current.find((p) => p.id === id);
+          if (localMatch) {
+            const sanitized = sanitizePostPayload({ ...localMatch, trashed: true, trashedAt });
+            await setDoc(docRef, {
+              ...sanitized,
+              authorId: user.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+            initialLocalPostsRef.current = initialLocalPostsRef.current.filter((p) => p.id !== id);
+          }
+        }
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, path);
+      }
+
+      if (BUILT_IN_POST_IDS.has(id)) {
+        const deletedPath = `deletedBlogIds/${id}`;
+        try {
+          await setDoc(doc(db, 'deletedBlogIds', id), {
+            postId: id,
+            deletedBy: user.uid,
+            createdAt: serverTimestamp(),
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, deletedPath);
+        }
+      }
+
+      if (featuredPostId === id) {
+        await setFeaturedPost(null);
+      }
+    },
+    [featuredPostId, setFeaturedPost]
+  );
+
+  const restorePost = useCallback(async (id: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Yazıyı geri yüklemek için yönetici Google hesabınızla giriş yapmalısınız.');
     }
 
+    const docRef = doc(db, 'blogPosts', id);
+    const path = `blogPosts/${id}`;
     try {
-      await fetch(`/api/blog-posts/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: {
-          'x-dashboard-passcode': passcode,
-        },
-      });
-    } catch {
-      // Already removed locally
+      const existingSnap = await getDoc(docRef);
+      if (existingSnap.exists()) {
+        await updateDoc(docRef, {
+          trashed: false,
+          trashedAt: deleteField(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+
+    if (BUILT_IN_POST_IDS.has(id)) {
+      const deletedPath = `deletedBlogIds/${id}`;
+      try {
+        await deleteDoc(doc(db, 'deletedBlogIds', id));
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, deletedPath);
+      }
     }
   }, []);
 
-  const resetBuiltInPost = useCallback(async (id: string, passcode: string) => {
-    setCustomPosts((prev) => {
-      const next = prev.filter((p) => p.id !== id);
-      writeStoredPosts(next);
-      return next;
-    });
+  const permanentlyDeletePost = useCallback(async (id: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Yazıyı kalıcı olarak silmek için yönetici Google hesabınızla giriş yapmalısınız.');
+    }
 
-    setDeletedBaseIds((prev) => {
-      if (!prev.includes(id)) return prev;
-      const next = prev.filter((item) => item !== id);
-      writeStoredDeletedIds(next);
-      return next;
-    });
-
+    initialLocalPostsRef.current = initialLocalPostsRef.current.filter((p) => p.id !== id);
+    const path = `blogPosts/${id}`;
     try {
-      await fetch(`/api/blog-posts/${encodeURIComponent(id)}?mode=reset`, {
-        method: 'DELETE',
-        headers: {
-          'x-dashboard-passcode': passcode,
-        },
-      });
-    } catch {
-      // Already reset locally
+      await deleteDoc(doc(db, 'blogPosts', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  }, []);
+
+  const resetBuiltInPost = useCallback(async (id: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Yazıyı sıfırlamak için yönetici Google hesabınızla giriş yapmalısınız.');
+    }
+
+    const path = `blogPosts/${id}`;
+    try {
+      await deleteDoc(doc(db, 'blogPosts', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+
+    const deletedPath = `deletedBlogIds/${id}`;
+    try {
+      await deleteDoc(doc(db, 'deletedBlogIds', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, deletedPath);
     }
   }, []);
 
@@ -501,14 +1006,27 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       value={{
         customPosts,
         deletedBaseIds,
+        featuredPostId,
         isLoading,
+        authUser,
+        authReady,
+        isAdmin,
+        unsyncedLocalCount,
+        signInAdminWithGoogle,
+        signOutAdmin,
+        syncPendingLocalPosts,
         getPosts,
+        getTrashedPosts,
+        getFeaturedPost,
         isBuiltInPost,
         isModifiedBuiltInPost,
         addPost,
         updatePost,
         deletePost,
+        restorePost,
+        permanentlyDeletePost,
         resetBuiltInPost,
+        setFeaturedPost,
       }}
     >
       {children}

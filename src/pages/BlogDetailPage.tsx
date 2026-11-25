@@ -16,6 +16,10 @@ import { slugifyTurkish, useBlog } from '../context/BlogContext';
 import { upsertLinkTag, upsertMetaTag } from '../components/SeoHead';
 import BlogCoverVisual from '../components/BlogCoverVisual';
 import ExecutivePortrait from '../components/ExecutivePortrait';
+import RichArticleContent, {
+  extractOutlineFromSections,
+  stripMarkdownForStats,
+} from '../components/RichArticleContent';
 import {
   ReadingProgressBar,
   Reveal,
@@ -43,7 +47,7 @@ function XBrandIcon({ className = 'w-4 h-4' }: { className?: string }) {
 export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   const { navigate } = useRouter();
   const { lang } = useLanguage();
-  const { getPosts, isLoading } = useBlog();
+  const { getPosts, isBuiltInPost, isLoading } = useBlog();
   const isEn = lang === 'en';
   const posts = getPosts(lang);
   const { brand } = getSiteContent(lang);
@@ -58,10 +62,16 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
       return (
         itemSlug === cleanSlug ||
         itemSlug === normalizedSlug ||
+        (item.h1Title ? slugifyTurkish(item.h1Title) === normalizedSlug : false) ||
         slugifyTurkish(item.title) === normalizedSlug
       );
     });
   }, [posts, slug]);
+
+  const outlineItems = useMemo(
+    () => (post ? extractOutlineFromSections(post.sections) : []),
+    [post]
+  );
 
   const relatedPosts = useMemo(() => {
     if (!post) return [];
@@ -80,14 +90,24 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     const origin =
       typeof window !== 'undefined' ? window.location.origin : 'https://www.tugceutku.com';
     const canonicalUrl = `${origin}/blog/${post.slug}`;
+    const displayH1 = post.h1Title?.trim() || post.title;
     const fullTitle = `${post.title} | ${brand.name}`;
     const keywords = [...post.tags, post.categoryLabel, brand.name].join(', ');
-    const isCustomPost = post.id.startsWith('custom-');
-    const hasUploadedCover = Boolean(post.coverImage && post.coverImage.startsWith('data:image/'));
-    const ogImageUrl =
-      hasUploadedCover || isCustomPost || isEn
-        ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}${isEn ? '?lang=en' : ''}`
-        : `${origin}/og-covers/${encodeURIComponent(post.slug)}.jpg`;
+    const isCustomPost = !isBuiltInPost(post.id);
+    const hasUploadedCover = Boolean(
+      post.coverImage && post.coverImage.startsWith('data:image/')
+    );
+    const hasHttpCover = Boolean(
+      post.coverImage && /^https?:\/\//i.test(post.coverImage)
+    );
+    const coverVersion = hasUploadedCover ? `?v=${post.coverImage?.length || 1}` : '';
+    const ogImageUrl = hasUploadedCover
+      ? `${origin}/api/blog-cover/${encodeURIComponent(post.slug)}${coverVersion}`
+      : hasHttpCover && post.coverImage
+        ? post.coverImage
+        : isCustomPost
+          ? `${origin}/og-covers/theme-${post.coverTheme || 'transformation'}.jpg`
+          : `${origin}/og-covers/${encodeURIComponent(post.slug)}.jpg`;
     const ogImageType =
       hasUploadedCover && post.coverImage?.startsWith('data:image/png')
         ? 'image/png'
@@ -111,9 +131,9 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     upsertMetaTag('property', 'og:image', ogImageUrl);
     upsertMetaTag('property', 'og:image:secure_url', ogImageUrl);
     upsertMetaTag('property', 'og:image:type', ogImageType);
-    upsertMetaTag('property', 'og:image:width', '1200');
-    upsertMetaTag('property', 'og:image:height', '630');
-    upsertMetaTag('property', 'og:image:alt', post.title);
+    upsertMetaTag('property', 'og:image:width', String(post.coverImageMeta?.width || 1200));
+    upsertMetaTag('property', 'og:image:height', String(post.coverImageMeta?.height || 630));
+    upsertMetaTag('property', 'og:image:alt', displayH1);
     upsertMetaTag('property', 'article:published_time', post.publishedIso);
     upsertMetaTag('property', 'article:author', brand.name);
     upsertMetaTag('property', 'article:section', post.categoryLabel);
@@ -121,10 +141,12 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     upsertMetaTag('name', 'twitter:description', post.spot);
     upsertMetaTag('name', 'twitter:image', ogImageUrl);
 
-    const allText = post.sections
-      .map((section) => `${section.heading}. ${section.paragraphs.join(' ')}`)
-      .join(' ');
-    const wordCount = allText.trim().split(/\s+/).filter(Boolean).length;
+    const allText = stripMarkdownForStats(
+      post.sections
+        .map((section) => `${section.heading}. ${section.paragraphs.join(' ')}`)
+        .join(' ')
+    );
+    const wordCount = allText.split(/\s+/).filter(Boolean).length;
     const minutesMatch = post.readingTime.match(/\d+/);
     const timeRequired = `PT${minutesMatch ? minutesMatch[0] : '5'}M`;
 
@@ -134,15 +156,15 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
         {
           '@type': 'BlogPosting',
           '@id': `${canonicalUrl}#article`,
-          headline: post.title,
-          alternativeHeadline: post.spot,
+          headline: displayH1,
+          alternativeHeadline: post.title !== displayH1 ? post.title : post.spot,
           description: post.spot,
           abstract: post.spot,
           image: {
             '@type': 'ImageObject',
             url: ogImageUrl,
-            width: 1200,
-            height: 630,
+            width: post.coverImageMeta?.width || 1200,
+            height: post.coverImageMeta?.height || 630,
           },
           keywords: post.tags.join(', '),
           about: post.tags.map((tag) => ({
@@ -198,7 +220,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             {
               '@type': 'ListItem',
               position: 3,
-              name: post.title,
+              name: displayH1,
               item: canonicalUrl,
             },
           ],
@@ -219,7 +241,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
       const el = document.getElementById('blog-detail-jsonld');
       if (el) el.remove();
     };
-  }, [post, brand.name, brand.linkedin, isEn]);
+  }, [post, brand.name, brand.linkedin, isEn, isBuiltInPost]);
 
   if (!post && isLoading) {
     return (
@@ -262,15 +284,20 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     );
   }
 
+  const displayH1 = post.h1Title?.trim() || post.title;
+  const hasDistinctArticleTitle = Boolean(
+    post.h1Title?.trim() && post.h1Title.trim() !== post.title.trim()
+  );
+
   const origin =
-    typeof window !== 'undefined' ? window.location.origin : 'https://tugceutku.com';
+    typeof window !== 'undefined' ? window.location.origin : 'https://www.tugceutku.com';
   const currentUrl = `${origin}/blog/${post.slug}`;
   const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
     currentUrl
   )}`;
   const xShareUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(
     currentUrl
-  )}&text=${encodeURIComponent(post.title)}`;
+  )}&text=${encodeURIComponent(displayH1)}`;
 
   const handleCopyLink = async () => {
     try {
@@ -329,18 +356,26 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             <span className="text-slate-700 font-medium">{post.categoryLabel}</span>
           </nav>
 
-          {/* 2. Category + 3. Title + 4. Spot */}
+          {/* 2. Category + Article Display Title (if distinct from H1) + H1 + Spot */}
           <div className="space-y-4 text-center sm:text-left">
-            <p className="text-sm font-semibold text-brand-teal">{post.categoryLabel}</p>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1">
+              <p className="text-sm font-semibold text-brand-teal">{post.categoryLabel}</p>
+              {hasDistinctArticleTitle && (
+                <>
+                  <span className="text-slate-300 hidden sm:inline">·</span>
+                  <p className="text-sm font-medium text-slate-600">{post.title}</p>
+                </>
+              )}
+            </div>
             <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold tracking-tight text-slate-900 leading-[1.16] [text-wrap:balance]">
-              {post.title}
+              {displayH1}
             </h1>
             <p className="geo-summary text-base sm:text-lg text-slate-600 leading-relaxed">
               {post.spot}
             </p>
           </div>
 
-          {/* 5. Author & Date + 6. Reading Time + Share */}
+          {/* 5. Author & Date + Share */}
           <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-sm text-slate-600">
               <span className="font-semibold text-slate-900">{brand.name}</span>
@@ -412,7 +447,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
       {/* Main Content + 8. Table of Contents */}
       <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-14 space-y-10">
-        {post.sections.length > 1 && (
+        {outlineItems.length > 1 && (
           <Reveal direction="left" distance={28}>
             <aside
               aria-label={isEn ? 'Table of Contents' : 'İçindekiler'}
@@ -423,17 +458,35 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 <span>{isEn ? 'Table of Contents' : 'İçindekiler'}</span>
               </div>
               <ol className="space-y-2 text-sm text-slate-600">
-                {post.sections.map((section, idx) => (
-                  <li key={section.id}>
+                {outlineItems.map((item, idx) => (
+                  <li
+                    key={`${item.id}-${idx}`}
+                    className={
+                      item.level === 3
+                        ? 'pl-5'
+                        : item.level === 4
+                          ? 'pl-9'
+                          : ''
+                    }
+                  >
                     <button
                       type="button"
-                      onClick={() => scrollToHeading(section.id)}
+                      onClick={() => scrollToHeading(item.id)}
                       className="text-left hover:text-brand-teal transition-colors cursor-pointer flex items-baseline gap-2"
                     >
-                      <span className="text-xs font-semibold text-slate-400">
-                        0{idx + 1}.
-                      </span>
-                      <span>{section.heading}</span>
+                      {item.level === 2 ? (
+                        <span className="text-xs font-semibold text-slate-400">
+                          {String(
+                            outlineItems
+                              .slice(0, idx + 1)
+                              .filter((h) => h.level === 2).length
+                          ).padStart(2, '0')}
+                          .
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">↳</span>
+                      )}
+                      <span>{item.text}</span>
                     </button>
                   </li>
                 ))}
@@ -442,7 +495,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           </Reveal>
         )}
 
-        {/* 9. Article Body */}
+        {/* 9. Article Body with H2/H3/H4, Rich Styling, Safe Links, and Inline Images */}
         <div className="space-y-10">
           {post.sections.map((section) => (
             <Reveal key={section.id} distance={28}>
@@ -450,11 +503,10 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                   {section.heading}
                 </h2>
-                <div className="space-y-4 text-base sm:text-[17px] text-slate-700 leading-[1.8]">
-                  {section.paragraphs.map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
-                  ))}
-                </div>
+                <RichArticleContent
+                  paragraphs={section.paragraphs}
+                  onNavigate={navigate}
+                />
               </section>
             </Reveal>
           ))}

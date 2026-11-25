@@ -43,6 +43,7 @@ export interface BlogPost {
   id: string;
   slug: string;
   title: string;
+  h1Title?: string;
   spot: string;
   categoryKey: BlogCategoryKey;
   categoryLabel: string;
@@ -59,6 +60,9 @@ export interface BlogPost {
     sizeKb: number;
   };
   featured?: boolean;
+  scheduled?: boolean;
+  trashed?: boolean;
+  trashedAt?: string;
   sections: BlogSection[];
 }
 

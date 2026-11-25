@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import SeoHead, { upsertMetaTag } from './components/SeoHead';
 import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 import MobileBottomBar from './components/MobileBottomBar';
+import ErrorBoundary from './components/ErrorBoundary';
 import {
   EXECUTIVE_EASE,
   PAGE_TRANSITION_VARIANTS,
@@ -185,11 +186,13 @@ export default function App() {
       transition={{ duration: 0.44, ease: EXECUTIVE_EASE }}
     >
       <LanguageProvider>
-        <BlogProvider>
-          <RouterProvider>
-            <AppShell />
-          </RouterProvider>
-        </BlogProvider>
+        <ErrorBoundary>
+          <BlogProvider>
+            <RouterProvider>
+              <AppShell />
+            </RouterProvider>
+          </BlogProvider>
+        </ErrorBoundary>
       </LanguageProvider>
     </MotionConfig>
   );

@@ -1,0 +1,245 @@
+{
+  "entities": {
+    "BlogPostRecord": {
+      "title": "BlogPostRecord",
+      "description": "Custom or edited built-in blog article persisted permanently in Firestore.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique document and post identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL-safe slug derived from H1 title or custom edited.",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Article display/card title.",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "h1Title": {
+          "type": "string",
+          "description": "SEO H1 heading shown on the article page and used as default URL slug source.",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "spot": {
+          "type": "string",
+          "description": "Short summary / lead paragraph.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "categoryKey": {
+          "type": "string",
+          "enum": [
+            "dijital-donusum",
+            "insurtech",
+            "yapay-zeka",
+            "dijital-pazarlama",
+            "strateji-yonetim"
+          ]
+        },
+        "categoryLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "tags": {
+          "type": "array",
+          "description": "Up to 15 topic tags."
+        },
+        "publishedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "publishedIso": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "readingTime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "coverTheme": {
+          "type": "string",
+          "enum": [
+            "photo",
+            "transformation",
+            "insurtech",
+            "ai",
+            "growth",
+            "strategy"
+          ]
+        },
+        "coverImage": {
+          "type": "string",
+          "description": "Optional base64 JPEG/PNG or HTTPS cover image URL.",
+          "maxLength": 750000
+        },
+        "coverImageMeta": {
+          "type": "object",
+          "description": "Metadata for uploaded cover image dimensions and size."
+        },
+        "featured": {
+          "type": "boolean"
+        },
+        "scheduled": {
+          "type": "boolean",
+          "description": "When true and publishedIso is in the future, hides post publicly until publishedIso arrives."
+        },
+        "trashed": {
+          "type": "boolean",
+          "description": "Soft-delete flag allowing recovery from Trash."
+        },
+        "trashedAt": {
+          "type": "string",
+          "description": "ISO timestamp when the article was moved to Trash.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "sections": {
+          "type": "array",
+          "description": "Structured article sections with rich text formatting, H3/H4 subheadings, links, and inline images."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the publishing admin.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "slug",
+        "title",
+        "spot",
+        "categoryKey",
+        "categoryLabel",
+        "tags",
+        "publishedAt",
+        "publishedIso",
+        "readingTime",
+        "coverTheme",
+        "sections",
+        "authorId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DeletedBlogMarker": {
+      "title": "DeletedBlogMarker",
+      "description": "Tracks built-in blog IDs moved to Trash by an admin.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "deletedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["postId", "deletedBy", "createdAt"]
+    },
+    "SiteSettingFeaturedBlog": {
+      "title": "SiteSettingFeaturedBlog",
+      "description": "Global site setting selecting which blog article is featured.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "featuredPostId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "featuredPostId", "updatedBy", "updatedAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized content administrator record.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "role", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/blogPosts/{postId}": {
+      "schema": { "$ref": "#/entities/BlogPostRecord" },
+      "description": "Publicly readable blog articles (custom posts and overridden built-in posts), writable only by verified admins."
+    },
+    "/deletedBlogIds/{postId}": {
+      "schema": { "$ref": "#/entities/DeletedBlogMarker" },
+      "description": "Publicly readable markers for built-in articles moved to Trash via the admin dashboard, writable only by verified admins."
+    },
+    "/siteSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSettingFeaturedBlog" },
+      "description": "Publicly readable site configuration (featured blog post selection), writable only by verified admins."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin role documents managed by the bootstrapped owner."
+    }
+  }
+}

@@ -10,13 +10,14 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowUpRight,
+  Calendar,
   Check,
   CheckCircle2,
+  Clock,
   Copy,
-  Eye,
-  EyeOff,
   FilePlus2,
   FileText,
+  Heading1,
   ImagePlus,
   Link2,
   Lock,
@@ -25,6 +26,7 @@ import {
   RefreshCw,
   RotateCcw,
   Search,
+  Star,
   Trash2,
   Upload,
   X,
@@ -32,18 +34,23 @@ import {
 import { BlogCategoryKey, BlogPost } from '../types';
 import {
   ensureUniqueSlug,
+  formatTurkishDateFromIso,
+  getTodayIso,
   sectionsToBodyText,
   slugifyTurkish,
   useBlog,
 } from '../context/BlogContext';
-import { getBlogData } from '../data/blogPostsEn';
 import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import BrandLogo from '../components/BrandLogo';
+import RichTextToolbarEditor, {
+  expandMediaTokensInBody,
+  extractInlineDataImagesToTokens,
+  type InlineMediaEntry,
+} from '../components/RichTextToolbarEditor';
 
-const DASHBOARD_PASSCODE = '2027';
-const SESSION_AUTH_KEY = 'tu_dashboard_unlocked';
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_FIRESTORE_IMAGE_CHARS = 550_000; // Fits safely inside Firestore 1 MB document limit
 const RECOMMENDED_WIDTH = 1200;
 const RECOMMENDED_HEIGHT = 675;
 const MIN_WIDTH = 800;
@@ -73,15 +80,6 @@ const COVER_OPTIONS: { value: BlogPost['coverTheme']; labelTr: string; labelEn: 
   { value: 'growth', labelTr: 'Büyüme & Pazarlama', labelEn: 'Growth & Marketing' },
   { value: 'strategy', labelTr: 'Strateji & Yönetim', labelEn: 'Strategy & Leadership' },
 ];
-
-function isInitiallyUnlocked(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    return window.sessionStorage.getItem(SESSION_AUTH_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
 
 interface ProcessedImageResult {
   dataUrl: string;
@@ -159,7 +157,6 @@ function processUploadedImage(
             : `Yüklenen görsel dikey (${origW} × ${origH} px). 16:9 yatay alana ortalanarak kırpılacaktır; 1200 × 675 px yatay görsel en iyi sonucu verir.`;
         }
 
-        // Resize cleanly if wider than 1200px to keep page load & storage fast
         const maxWidth = RECOMMENDED_WIDTH;
         const scale = origW > maxWidth ? maxWidth / origW : 1;
         const targetW = Math.round(origW * scale);
@@ -195,10 +192,9 @@ function processUploadedImage(
           : 'image/jpeg';
         let outputDataUrl = isPng
           ? canvas.toDataURL('image/png')
-          : canvas.toDataURL('image/jpeg', 0.86);
+          : canvas.toDataURL('image/jpeg', 0.84);
 
-        // If a large PNG produces a very heavy data URL (> 700 KB), keep crisp quality via high-quality JPEG fallback
-        if (isPng && outputDataUrl.length > 950_000) {
+        if (outputDataUrl.length > MAX_FIRESTORE_IMAGE_CHARS) {
           const jpegCanvas = document.createElement('canvas');
           jpegCanvas.width = targetW;
           jpegCanvas.height = targetH;
@@ -207,7 +203,10 @@ function processUploadedImage(
             jCtx.fillStyle = '#ffffff';
             jCtx.fillRect(0, 0, targetW, targetH);
             jCtx.drawImage(img, 0, 0, targetW, targetH);
-            outputDataUrl = jpegCanvas.toDataURL('image/jpeg', 0.88);
+            outputDataUrl = jpegCanvas.toDataURL('image/jpeg', 0.8);
+            if (outputDataUrl.length > MAX_FIRESTORE_IMAGE_CHARS) {
+              outputDataUrl = jpegCanvas.toDataURL('image/jpeg', 0.68);
+            }
             outputMime = 'image/jpeg';
           }
         }
@@ -238,27 +237,40 @@ export default function AdminDashboardPage() {
   const isEn = lang === 'en';
   const {
     customPosts,
-    deletedBaseIds,
+    authUser,
+    authReady,
+    isAdmin,
+    unsyncedLocalCount,
+    signInAdminWithGoogle,
+    signOutAdmin,
+    syncPendingLocalPosts,
     getPosts,
+    getTrashedPosts,
+    getFeaturedPost,
     isBuiltInPost,
     isModifiedBuiltInPost,
     addPost,
     updatePost,
     deletePost,
+    restorePost,
+    permanentlyDeletePost,
     resetBuiltInPost,
+    setFeaturedPost,
   } = useBlog();
 
-  // Passcode Gate State
-  const [unlocked, setUnlocked] = useState<boolean>(() => isInitiallyUnlocked());
-  const [codeInput, setCodeInput] = useState('');
-  const [showCode, setShowCode] = useState(false);
-  const [codeError, setCodeError] = useState(false);
+  // Auth Gate State
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Editor State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
+  const [h1Title, setH1Title] = useState('');
   const [customSlug, setCustomSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [publishedIso, setPublishedIso] = useState<string>(() => getTodayIso());
+  const [scheduled, setScheduled] = useState(false);
+  const [isFeaturedSelected, setIsFeaturedSelected] = useState(false);
   const [spot, setSpot] = useState('');
   const [categoryKey, setCategoryKey] = useState<BlogCategoryKey>('dijital-donusum');
   const [tagsText, setTagsText] = useState('');
@@ -270,50 +282,56 @@ export default function AdminDashboardPage() {
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [processingImage, setProcessingImage] = useState(false);
   const [bodyText, setBodyText] = useState('');
+  const [inlineMedia, setInlineMedia] = useState<InlineMediaEntry[]>([]);
   const [saving, setSaving] = useState(false);
+  const [featuredUpdatingId, setFeaturedUpdatingId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [savedPost, setSavedPost] = useState<{ post: BlogPost; wasEdit: boolean } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmPermanentDeleteId, setConfirmPermanentDeleteId] = useState<string | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [listFilter, setListFilter] = useState<'all' | 'builtin' | 'custom'>('all');
+  const [listFilter, setListFilter] = useState<'all' | 'builtin' | 'custom' | 'scheduled'>('all');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const allPosts = getPosts(lang);
-  const allTrPosts = getPosts('tr');
+  const todayIso = getTodayIso();
+  const allPosts = getPosts(lang, { includeScheduled: true });
+  const publicPosts = getPosts(lang, { includeScheduled: false });
+  const allTrPosts = getPosts('tr', { includeScheduled: true });
+  const trashedPosts = getTrashedPosts(lang);
+  const activeFeaturedPost = getFeaturedPost(lang);
 
   const newCustomCount = useMemo(
-    () => customPosts.filter((p) => !isBuiltInPost(p.id)).length,
+    () => customPosts.filter((p) => !p.trashed && !isBuiltInPost(p.id)).length,
     [customPosts, isBuiltInPost]
   );
 
   const editedBuiltInCount = useMemo(
-    () => customPosts.filter((p) => isBuiltInPost(p.id)).length,
+    () => customPosts.filter((p) => !p.trashed && isBuiltInPost(p.id)).length,
     [customPosts, isBuiltInPost]
   );
-
-  const deletedBuiltInPosts = useMemo(() => {
-    if (deletedBaseIds.length === 0) return [];
-    const deletedSet = new Set(deletedBaseIds);
-    return getBlogData(lang).posts.filter((p) => deletedSet.has(p.id));
-  }, [deletedBaseIds, lang]);
 
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return allPosts.filter((post) => {
       if (listFilter === 'builtin' && !isBuiltInPost(post.id)) return false;
       if (listFilter === 'custom' && isBuiltInPost(post.id)) return false;
+      if (listFilter === 'scheduled' && !(post.scheduled && post.publishedIso > todayIso)) {
+        return false;
+      }
       if (!q) return true;
       return (
         post.title.toLowerCase().includes(q) ||
+        (post.h1Title || '').toLowerCase().includes(q) ||
         post.slug.toLowerCase().includes(q) ||
         post.categoryLabel.toLowerCase().includes(q) ||
         post.tags.some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [allPosts, isBuiltInPost, listFilter, searchQuery]);
+  }, [allPosts, isBuiltInPost, listFilter, searchQuery, todayIso]);
 
-  // Compute unique preview slug in real time across all active posts excluding the post currently being edited
+  // Compute unique preview slug from H1 Title (NOT Makale Başlığı) unless manually overridden
   const existingSlugsForCheck = useMemo(() => {
     return new Set(
       allTrPosts.filter((p) => p.id !== editingId).map((p) => p.slug)
@@ -321,43 +339,43 @@ export default function AdminDashboardPage() {
   }, [allTrPosts, editingId]);
 
   const resolvedPreviewSlug = useMemo(() => {
-    const source = slugManuallyEdited && customSlug.trim() ? customSlug : title;
-    if (!source.trim()) return 'yeni-blog-yazisi';
+    const source = slugManuallyEdited && customSlug.trim() ? customSlug : h1Title;
+    if (!source.trim()) return 'h1-basligina-gore-olusacak';
     return ensureUniqueSlug(source, existingSlugsForCheck);
-  }, [slugManuallyEdited, customSlug, title, existingSlugsForCheck]);
+  }, [slugManuallyEdited, customSlug, h1Title, existingSlugsForCheck]);
 
-  const handleUnlock = (e: FormEvent) => {
-    e.preventDefault();
-    if (codeInput.trim() === DASHBOARD_PASSCODE) {
-      setUnlocked(true);
-      setCodeError(false);
-      setCodeInput('');
-      try {
-        window.sessionStorage.setItem(SESSION_AUTH_KEY, '1');
-      } catch {
-        // Ignore sessionStorage errors
-      }
-    } else {
-      setCodeError(true);
+  const handleGoogleSignIn = async () => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      await signInAdminWithGoogle();
+    } catch (err) {
+      setAuthError(
+        err instanceof Error && err.message
+          ? err.message
+          : isEn
+            ? 'Google sign-in failed or was cancelled.'
+            : 'Google ile giriş tamamlanamadı veya iptal edildi.'
+      );
+    } finally {
+      setAuthLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setUnlocked(false);
-    setCodeInput('');
-    setCodeError(false);
-    try {
-      window.sessionStorage.removeItem(SESSION_AUTH_KEY);
-    } catch {
-      // Ignore
-    }
+  const handleLogout = async () => {
+    setAuthError(null);
+    await signOutAdmin();
   };
 
   const resetForm = () => {
     setEditingId(null);
     setTitle('');
+    setH1Title('');
     setCustomSlug('');
     setSlugManuallyEdited(false);
+    setPublishedIso(getTodayIso());
+    setScheduled(false);
+    setIsFeaturedSelected(false);
     setSpot('');
     setCategoryKey('dijital-donusum');
     setTagsText('');
@@ -367,16 +385,24 @@ export default function AdminDashboardPage() {
     setImageError(null);
     setImageWarning(null);
     setBodyText('');
+    setInlineMedia([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const handleStartEdit = (post: BlogPost) => {
+    const rawBody = sectionsToBodyText(post.sections);
+    const { tokenizedBody, mediaEntries } = extractInlineDataImagesToTokens(rawBody);
+
     setEditingId(post.id);
     setTitle(post.title);
+    setH1Title(post.h1Title || post.title);
     setCustomSlug(post.slug);
     setSlugManuallyEdited(true);
+    setPublishedIso(post.publishedIso || getTodayIso());
+    setScheduled(Boolean(post.scheduled));
+    setIsFeaturedSelected(activeFeaturedPost?.id === post.id);
     setSpot(post.spot);
     setCategoryKey(post.categoryKey);
     setTagsText(post.tags.join(', '));
@@ -385,7 +411,8 @@ export default function AdminDashboardPage() {
     setCoverImageMeta(post.coverImageMeta);
     setImageError(null);
     setImageWarning(null);
-    setBodyText(sectionsToBodyText(post.sections));
+    setBodyText(tokenizedBody);
+    setInlineMedia(mediaEntries);
     setSavedPost(null);
     setConfirmDeleteId(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -439,7 +466,7 @@ export default function AdminDashboardPage() {
 
   const handleCopyArticleUrl = async (slug: string) => {
     const origin =
-      typeof window !== 'undefined' ? window.location.origin : 'https://tugceutku.com';
+      typeof window !== 'undefined' ? window.location.origin : 'https://www.tugceutku.com';
     const fullUrl = `${origin}/blog/${slug}`;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -455,56 +482,158 @@ export default function AdminDashboardPage() {
 
   const handleSubmitPost = async (e: FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !spot.trim() || !bodyText.trim() || saving) return;
+    if (!title.trim() || !h1Title.trim() || !spot.trim() || !bodyText.trim() || saving) {
+      return;
+    }
 
     setSaving(true);
+    setSaveError(null);
     try {
       const parsedTags = tagsText
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean);
 
+      const expandedBody = expandMediaTokensInBody(bodyText.trim(), inlineMedia);
+
       const input = {
         title: title.trim(),
-        slug: slugManuallyEdited && customSlug.trim() ? customSlug.trim() : title.trim(),
+        h1Title: h1Title.trim(),
+        slug: slugManuallyEdited && customSlug.trim() ? customSlug.trim() : h1Title.trim(),
         spot: spot.trim(),
         categoryKey,
         tags: parsedTags,
         coverTheme,
         coverImage: coverImage || undefined,
         coverImageMeta: coverImage ? coverImageMeta : undefined,
-        bodyText: bodyText.trim(),
+        publishedIso: publishedIso || getTodayIso(),
+        scheduled,
+        featured: isFeaturedSelected,
+        bodyText: expandedBody,
       };
 
       const wasEdit = Boolean(editingId);
       const result = editingId
-        ? await updatePost(editingId, input, DASHBOARD_PASSCODE)
-        : await addPost(input, DASHBOARD_PASSCODE);
+        ? await updatePost(editingId, input)
+        : await addPost(input);
 
       setSavedPost({ post: result, wasEdit });
       resetForm();
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : isEn
+            ? 'Could not save the article to the database.'
+            : 'Yazı kalıcı veritabanına kaydedilemedi. Lütfen tekrar deneyin.'
+      );
     } finally {
       setSaving(false);
     }
   };
 
+  const handleChangeFeaturedPost = async (postId: string) => {
+    if (!postId) return;
+    setFeaturedUpdatingId(postId);
+    setSaveError(null);
+    try {
+      await setFeaturedPost(postId);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : isEn
+            ? 'Could not update featured article.'
+            : 'Öne çıkan yazı değiştirilemedi.'
+      );
+    } finally {
+      setFeaturedUpdatingId(null);
+    }
+  };
+
   const handleConfirmDelete = async (id: string) => {
-    await deletePost(id, DASHBOARD_PASSCODE);
-    setConfirmDeleteId(null);
-    if (editingId === id) {
-      resetForm();
+    setSaveError(null);
+    try {
+      await deletePost(id);
+      setConfirmDeleteId(null);
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : isEn
+            ? 'Could not move article to trash.'
+            : 'Yazı çöp kutusuna taşınamadı. Lütfen tekrar deneyin.'
+      );
+    }
+  };
+
+  const handleRestorePost = async (id: string) => {
+    setSaveError(null);
+    try {
+      await restorePost(id);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : isEn
+            ? 'Could not restore the article.'
+            : 'Yazı geri yüklenemedi.'
+      );
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    setSaveError(null);
+    try {
+      await permanentlyDeletePost(id);
+      setConfirmPermanentDeleteId(null);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : isEn
+            ? 'Could not permanently delete the article.'
+            : 'Yazı kalıcı olarak silinemedi.'
+      );
     }
   };
 
   const handleResetBuiltIn = async (id: string) => {
-    await resetBuiltInPost(id, DASHBOARD_PASSCODE);
-    if (editingId === id) {
-      resetForm();
+    setSaveError(null);
+    try {
+      await resetBuiltInPost(id);
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (err) {
+      setSaveError(
+        err instanceof Error
+          ? err.message
+          : isEn
+            ? 'Could not reset the article.'
+            : 'Yazı varsayılana sıfırlanamadı.'
+      );
     }
   };
 
-  // PASSCODE GATE SCREEN
-  if (!unlocked) {
+  // ADMIN AUTH GATE SCREEN
+  if (!authReady) {
+    return (
+      <section className="min-h-[72vh] bg-transparent flex items-center justify-center px-5 py-16">
+        <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs p-8 text-center space-y-3">
+          <div className="w-8 h-8 mx-auto rounded-full border-2 border-brand-teal border-t-transparent animate-spin" />
+          <p className="text-sm text-slate-600">
+            {isEn ? 'Checking admin session...' : 'Yönetici oturumu doğrulanıyor...'}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!authUser || !isAdmin) {
     return (
       <section className="min-h-[72vh] bg-transparent flex items-center justify-center px-5 py-16">
         <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs p-7 sm:p-9 space-y-6">
@@ -519,65 +648,61 @@ export default function AdminDashboardPage() {
               </h1>
               <p className="text-sm text-slate-500">
                 {isEn
-                  ? 'Enter your passcode to add and manage blog articles.'
-                  : 'Yeni blog yazısı eklemek ve yönetmek için geçiş kodunu girin.'}
+                  ? 'Sign in with your authorized Google account to permanently publish and manage articles.'
+                  : 'Yazıların kalıcı veritabanına kaydedilmesi için yetkili Google hesabınızla giriş yapın.'}
               </p>
             </div>
           </div>
 
-          <form onSubmit={handleUnlock} className="space-y-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="dashboard-passcode"
-                className="block text-sm font-medium text-slate-700"
-              >
-                {isEn ? 'Passcode' : 'Geçiş Kodu'}
-              </label>
-              <div className="relative">
-                <input
-                  id="dashboard-passcode"
-                  type={showCode ? 'text' : 'password'}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  autoFocus
-                  required
-                  value={codeInput}
-                  onChange={(e) => {
-                    setCodeInput(e.target.value);
-                    if (codeError) setCodeError(false);
-                  }}
-                  placeholder={isEn ? 'Enter passcode' : 'Geçiş kodunu girin'}
-                  className={`w-full pl-4 pr-11 py-3 text-base tracking-widest rounded-xl border bg-slate-50 focus:bg-white focus:outline-none transition-colors ${
-                    codeError
-                      ? 'border-red-400 focus:border-red-500'
-                      : 'border-slate-200 focus:border-brand-teal'
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCode((prev) => !prev)}
-                  aria-label={showCode ? 'Gizle' : 'Göster'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-700 cursor-pointer"
-                >
-                  {showCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {codeError && (
-                <p className="text-xs font-medium text-red-600 pt-1">
-                  {isEn
-                    ? 'Incorrect passcode. Please try again.'
-                    : 'Geçiş kodu hatalı. Lütfen tekrar deneyin.'}
-                </p>
-              )}
+          {authUser && !isAdmin && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 space-y-1">
+              <p className="font-semibold">
+                {isEn ? 'Unauthorized Google account' : 'Yetkisiz Google hesabı'}
+              </p>
+              <p>
+                {isEn
+                  ? `${authUser.email || 'This account'} does not have admin publishing rights.`
+                  : `${authUser.email || 'Bu hesap'} için içerik yayınlama yetkisi bulunmuyor.`}
+              </p>
             </div>
+          )}
 
+          {authError && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
+              {authError}
+            </div>
+          )}
+
+          <div className="space-y-3">
             <button
-              type="submit"
-              className="w-full py-3 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-sm font-semibold transition-colors cursor-pointer"
+              type="button"
+              disabled={authLoading}
+              onClick={handleGoogleSignIn}
+              className="w-full py-3 px-4 rounded-xl bg-brand-navy hover:bg-brand-navy-hover disabled:opacity-60 text-white text-sm font-semibold transition-colors cursor-pointer"
             >
-              {isEn ? 'Sign In' : 'Giriş Yap'}
+              {authLoading
+                ? isEn
+                  ? 'Signing in...'
+                  : 'Giriş yapılıyor...'
+                : authUser && !isAdmin
+                  ? isEn
+                    ? 'Switch Google Account'
+                    : 'Farklı Google Hesabı ile Giriş Yap'
+                  : isEn
+                    ? 'Sign in with Google'
+                    : 'Google ile Giriş Yap'}
             </button>
-          </form>
+
+            {authUser && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
+              >
+                {isEn ? 'Sign Out' : 'Oturumu Kapat'}
+              </button>
+            )}
+          </div>
 
           <div className="pt-2 text-center">
             <button
@@ -599,6 +724,8 @@ export default function AdminDashboardPage() {
     .map((t) => t.trim())
     .filter(Boolean);
 
+  const isFutureScheduled = scheduled && publishedIso > todayIso;
+
   // UNLOCKED DASHBOARD
   return (
     <div className="bg-transparent min-h-[80vh]">
@@ -614,8 +741,8 @@ export default function AdminDashboardPage() {
             </h1>
             <p className="text-sm text-slate-500">
               {isEn
-                ? `${allPosts.length} total articles (${newCustomCount} newly added · ${editedBuiltInCount} edited)`
-                : `Toplam ${allPosts.length} yazı (${newCustomCount} yeni eklendi · ${editedBuiltInCount} mevcut yazı düzenlendi)`}
+                ? `${allPosts.length} active articles (${newCustomCount} newly added · ${editedBuiltInCount} edited · ${trashedPosts.length} in trash)`
+                : `Toplam ${allPosts.length} aktif yazı (${newCustomCount} yeni eklendi · ${editedBuiltInCount} mevcut yazı düzenlendi · ${trashedPosts.length} çöp kutusunda)`}
             </p>
           </div>
 
@@ -671,6 +798,30 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
+            {saveError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-2.5 text-sm text-red-800">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <div>{saveError}</div>
+              </div>
+            )}
+
+            {unsyncedLocalCount > 0 && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex flex-wrap items-center justify-between gap-3 text-xs text-amber-900">
+                <span>
+                  {isEn
+                    ? `${unsyncedLocalCount} browser-saved article(s) waiting to sync to database.`
+                    : `Tarayıcı önbelleğinde kalıcı veritabanına aktarılmayı bekleyen ${unsyncedLocalCount} yazı var.`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void syncPendingLocalPosts()}
+                  className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-semibold cursor-pointer"
+                >
+                  {isEn ? 'Sync Now' : 'Şimdi Aktar'}
+                </button>
+              </div>
+            )}
+
             {savedPost && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
                 <div className="flex items-start gap-2.5">
@@ -681,15 +832,19 @@ export default function AdminDashboardPage() {
                         ? isEn
                           ? 'Changes saved!'
                           : 'Değişiklikler kaydedildi!'
-                        : isEn
-                          ? 'Article published!'
-                          : 'Yazı yayınlandı!'}
+                        : savedPost.post.scheduled && savedPost.post.publishedIso > todayIso
+                          ? isEn
+                            ? 'Scheduled article saved!'
+                            : 'Zamanlı yazı kaydedildi!'
+                          : isEn
+                            ? 'Article published!'
+                            : 'Yazı yayınlandı!'}
                     </p>
                     <p className="text-xs text-emerald-800 mt-0.5 font-medium">
-                      {savedPost.post.title}
+                      {savedPost.post.h1Title || savedPost.post.title}
                     </p>
                     <p className="text-xs text-emerald-700 font-mono truncate mt-1">
-                      /blog/{savedPost.post.slug}
+                      /blog/{savedPost.post.slug} · {savedPost.post.publishedAt}
                     </p>
                   </div>
                 </div>
@@ -724,13 +879,13 @@ export default function AdminDashboardPage() {
             )}
 
             <form onSubmit={handleSubmitPost} className="space-y-5">
-              {/* Title */}
+              {/* 1. Article Display Title (Makale Başlığı — does NOT alter Blog URL) */}
               <div className="space-y-1.5">
                 <label
                   htmlFor="post-title"
                   className="block text-sm font-medium text-slate-700"
                 >
-                  {isEn ? 'Article Title' : 'Makale Başlığı'}{' '}
+                  {isEn ? 'Article Title (Card & SEO Title)' : 'Makale Başlığı (Kart & Meta Başlık)'}{' '}
                   <span className="text-brand-teal">*</span>
                 </label>
                 <input
@@ -738,13 +893,7 @@ export default function AdminDashboardPage() {
                   type="text"
                   required
                   value={title}
-                  onChange={(e) => {
-                    const nextTitle = e.target.value;
-                    setTitle(nextTitle);
-                    if (!slugManuallyEdited) {
-                      setCustomSlug(slugifyTurkish(nextTitle));
-                    }
-                  }}
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder={
                     isEn
                       ? 'e.g. Digital Transformation Priorities for 2027'
@@ -754,7 +903,47 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              {/* Automatic Title-Matching Unique URL (Slug) */}
+              {/* 2. H1 Heading right under Article Title (URL source) */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="post-h1-title"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700"
+                >
+                  <Heading1 className="w-4 h-4 text-brand-teal" />
+                  <span>
+                    {isEn
+                      ? 'H1 Heading (Main Page H1 & Blog URL Source)'
+                      : 'H1 Başlığı (Sayfa Ana Başlığı & URL Kaynağı)'}
+                  </span>{' '}
+                  <span className="text-brand-teal">*</span>
+                </label>
+                <input
+                  id="post-h1-title"
+                  type="text"
+                  required
+                  value={h1Title}
+                  onChange={(e) => {
+                    const nextH1 = e.target.value;
+                    setH1Title(nextH1);
+                    if (!slugManuallyEdited) {
+                      setCustomSlug(slugifyTurkish(nextH1));
+                    }
+                  }}
+                  placeholder={
+                    isEn
+                      ? 'e.g. How Insurance Companies Structure Digital Transformation'
+                      : 'ör. Sigorta Şirketleri Dijital Dönüşümü Nasıl Kurgulamalı?'
+                  }
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal"
+                />
+                <p className="text-[11px] text-slate-500">
+                  {isEn
+                    ? 'Rendered as the semantic <h1> on the article page and used to auto-generate the Blog URL.'
+                    : 'Yazı detay sayfasında tek ana <h1> başlığı olarak görünür ve Blog URL adresi bu alandan otomatik oluşturulur.'}
+                </p>
+              </div>
+
+              {/* 3. H1-Driven Editable Unique URL (Slug) */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <label
@@ -764,8 +953,8 @@ export default function AdminDashboardPage() {
                     <Link2 className="w-3.5 h-3.5 text-brand-teal" />
                     <span>
                       {isEn
-                        ? 'Article URL (auto-generated from title)'
-                        : 'Blog URL Adresi (başlığa göre otomatik oluşur)'}
+                        ? 'Blog URL (auto-generated from H1 · editable)'
+                        : 'Blog URL Adresi (H1 başlığından oluşur · düzenlenebilir)'}
                     </span>
                   </label>
                   {slugManuallyEdited && (
@@ -773,12 +962,12 @@ export default function AdminDashboardPage() {
                       type="button"
                       onClick={() => {
                         setSlugManuallyEdited(false);
-                        setCustomSlug(slugifyTurkish(title));
+                        setCustomSlug(slugifyTurkish(h1Title));
                       }}
                       className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal hover:underline cursor-pointer"
                     >
                       <RefreshCw className="w-3 h-3" />
-                      <span>{isEn ? 'Sync with title' : 'Başlıktan yenile'}</span>
+                      <span>{isEn ? 'Sync with H1' : 'H1 başlığından yenile'}</span>
                     </button>
                   )}
                 </div>
@@ -800,7 +989,7 @@ export default function AdminDashboardPage() {
                         setCustomSlug(slugifyTurkish(customSlug));
                       }
                     }}
-                    placeholder="ornek-blog-basligi"
+                    placeholder="h1-basligina-uygun-url"
                     className="w-full px-3 py-2 text-xs font-mono text-slate-800 bg-transparent focus:outline-none"
                   />
                 </div>
@@ -811,15 +1000,94 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
 
-              {/* Blog Cover Image Upload (JPEG / PNG) */}
+              {/* 4. Custom Publish Date (Past / Future) & Scheduling + Featured Toggle */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="post-date"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700"
+                    >
+                      <Calendar className="w-4 h-4 text-brand-teal" />
+                      <span>{isEn ? 'Publish Date' : 'Yayın Tarihi'}</span>
+                    </label>
+                    <input
+                      id="post-date"
+                      type="date"
+                      value={publishedIso}
+                      onChange={(e) => setPublishedIso(e.target.value || getTodayIso())}
+                      className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-brand-teal"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      {isEn ? 'Formatted date:' : 'Görünecek tarih:'}{' '}
+                      <strong className="text-slate-700">
+                        {formatTurkishDateFromIso(publishedIso)}
+                      </strong>
+                    </p>
+                  </div>
+
+                  <div className="space-y-2.5 sm:pt-6">
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={scheduled}
+                        onChange={(e) => setScheduled(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-teal focus:ring-brand-teal cursor-pointer"
+                      />
+                      <span className="text-xs text-slate-700 leading-snug">
+                        <span className="font-semibold block">
+                          {isEn ? 'Schedule for future date' : 'Zamanlı Yayın (tarihi gelince aç)'}
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          {isEn
+                            ? 'Hide from visitors until selected date arrives.'
+                            : 'İşaretlenirse seçilen tarihe kadar sitede gizli kalır; işaretlenmezse ileri/geri tarihle hemen yayınlanır.'}
+                        </span>
+                      </span>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={isFeaturedSelected}
+                        onChange={(e) => setIsFeaturedSelected(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <span className="text-xs text-slate-700 leading-snug">
+                        <span className="font-semibold block">
+                          {isEn ? 'Set as Featured Blog Post' : 'Öne Çıkan Blog Yazısı Yap'}
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          {isEn
+                            ? 'Pin this article in the featured hero card on /blog.'
+                            : 'Blog sayfasının üst kısmındaki büyük öne çıkan kartta gösterilir.'}
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {isFutureScheduled && (
+                  <div className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-2 text-xs text-indigo-800">
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span>
+                      {isEn
+                        ? `This post is scheduled for ${formatTurkishDateFromIso(publishedIso)} and will stay hidden publicly until that date.`
+                        : `Bu yazı ${formatTurkishDateFromIso(publishedIso)} tarihine zamanlandı; o tarih gelene kadar ziyaretçilere gizli kalacaktır.`}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Blog Cover Image Upload (JPEG / PNG) */}
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
                     <ImagePlus className="w-4 h-4 text-brand-teal" />
                     <span>
                       {isEn
-                        ? 'Blog Cover Image (JPEG / PNG)'
-                        : 'Blog Kapak Görseli (JPEG / PNG)'}
+                        ? 'Blog Cover Image (JPEG / PNG · Used for Social Share)'
+                        : 'Blog Kapak Görseli (JPEG / PNG · Sosyal Medya Paylaşımında Görünür)'}
                     </span>
                   </label>
                   <span className="text-xs font-medium text-slate-500">
@@ -840,7 +1108,7 @@ export default function AdminDashboardPage() {
                     <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200">
                       <img
                         src={coverImage}
-                        alt={title || 'Blog görseli ön izleme'}
+                        alt={h1Title || title || 'Blog görseli ön izleme'}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -855,8 +1123,8 @@ export default function AdminDashboardPage() {
                         )}
                         <p className="text-[11px] text-slate-500">
                           {isEn
-                            ? 'Displayed in 16:9 aspect ratio on homepage, blog list, and article header.'
-                            : 'Ana sayfa, blog listesi ve yazı üst alanında 16:9 oranında gösterilir.'}
+                            ? 'Displayed on cards, article hero, and LinkedIn / X / WhatsApp link previews.'
+                            : 'Kartlarda, yazı detayında ve LinkedIn / X / WhatsApp paylaşımlarında bu görsel gösterilir.'}
                         </p>
                       </div>
 
@@ -1054,7 +1322,7 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* Body Text */}
+              {/* Rich Article Content Editor */}
               <div className="space-y-1.5">
                 <label
                   htmlFor="post-body"
@@ -1063,18 +1331,14 @@ export default function AdminDashboardPage() {
                   {isEn ? 'Article Content' : 'Makale İçeriği'}{' '}
                   <span className="text-brand-teal">*</span>
                 </label>
-                <textarea
-                  id="post-body"
-                  required
-                  rows={9}
+                <RichTextToolbarEditor
                   value={bodyText}
-                  onChange={(e) => setBodyText(e.target.value)}
-                  placeholder={
-                    isEn
-                      ? 'Write your paragraphs here. Tip: Start a line with "## " to create a section heading for the Table of Contents.'
-                      : 'Paragraflarınızı buraya yazın. İpucu: Satır başına "## " ekleyerek İçindekiler bölümünde görünecek alt başlıklar oluşturabilirsiniz.'
-                  }
-                  className="w-full px-3.5 py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal resize-y leading-relaxed"
+                  onChange={setBodyText}
+                  mediaEntries={inlineMedia}
+                  onMediaEntriesChange={setInlineMedia}
+                  h1Title={h1Title}
+                  fallbackTitle={title}
+                  isEn={isEn}
                 />
               </div>
 
@@ -1090,17 +1354,61 @@ export default function AdminDashboardPage() {
                       ? isEn
                         ? 'Save Changes'
                         : 'Değişiklikleri Kaydet'
-                      : isEn
-                        ? 'Publish Article'
-                        : 'Yazıyı Yayınla'}
+                      : isFutureScheduled
+                        ? isEn
+                          ? 'Save Scheduled Article'
+                          : 'Zamanlı Yazıyı Kaydet'
+                        : isEn
+                          ? 'Publish Article'
+                          : 'Yazıyı Yayınla'}
                   </span>
                 </button>
               </div>
             </form>
           </div>
 
-          {/* Right: Unified All Articles Management List */}
+          {/* Right: Featured Blog Switcher + All Articles Management + Trash Recovery */}
           <div className="lg:col-span-5 space-y-6">
+            {/* Featured Blog Quick Selector */}
+            <div className="bg-white rounded-2xl border border-amber-200/80 p-5 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                  <h2 className="text-sm font-bold text-slate-900">
+                    {isEn ? 'Featured Blog Article' : 'Öne Çıkan Blog Yazısı'}
+                  </h2>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-amber-50 text-[11px] font-semibold text-amber-700">
+                  {isEn ? 'Pinned' : 'Sabit'}
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="featured-post-select"
+                  className="block text-xs text-slate-500"
+                >
+                  {isEn
+                    ? 'Choose which published article appears in the featured banner on /blog:'
+                    : 'Blog sayfasının üstündeki öne çıkan alanda gösterilecek yazıyı seçin:'}
+                </label>
+                <select
+                  id="featured-post-select"
+                  value={activeFeaturedPost?.id || ''}
+                  disabled={Boolean(featuredUpdatingId) || publicPosts.length === 0}
+                  onChange={(e) => void handleChangeFeaturedPost(e.target.value)}
+                  className="w-full px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white focus:border-brand-teal"
+                >
+                  {publicPosts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} ({p.publishedAt})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Unified All Articles Management List */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
               <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
@@ -1124,8 +1432,8 @@ export default function AdminDashboardPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={
                       isEn
-                        ? 'Search by title, category, or URL...'
-                        : 'Başlık, kategori veya URL ara...'
+                        ? 'Search by title, H1, category, or URL...'
+                        : 'Başlık, H1, kategori veya URL ara...'
                     }
                     className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/70 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-brand-teal"
                   />
@@ -1141,12 +1449,13 @@ export default function AdminDashboardPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
                   {(
                     [
                       { key: 'all', labelTr: 'Tümü', labelEn: 'All' },
                       { key: 'builtin', labelTr: 'Mevcut Yazılar', labelEn: 'Existing' },
                       { key: 'custom', labelTr: 'Yeni Eklenen', labelEn: 'Added' },
+                      { key: 'scheduled', labelTr: 'Zamanlı', labelEn: 'Scheduled' },
                     ] as const
                   ).map((tab) => (
                     <button
@@ -1172,11 +1481,15 @@ export default function AdminDashboardPage() {
                     : 'Aramanıza veya seçili filtreye uygun yazı bulunamadı.'}
                 </p>
               ) : (
-                <div className="max-h-[760px] overflow-y-auto divide-y divide-slate-100 pr-1">
+                <div className="max-h-[700px] overflow-y-auto divide-y divide-slate-100 pr-1">
                   {filteredPosts.map((post) => {
                     const isBuiltIn = isBuiltInPost(post.id);
                     const isModified = isModifiedBuiltInPost(post.id);
                     const isEditingThis = editingId === post.id;
+                    const isCurrentlyFeatured = activeFeaturedPost?.id === post.id;
+                    const isScheduledHidden = Boolean(
+                      post.scheduled && post.publishedIso > todayIso
+                    );
 
                     return (
                       <div
@@ -1200,12 +1513,24 @@ export default function AdminDashboardPage() {
                               <span className="text-[11px] font-medium text-brand-teal">
                                 {post.categoryLabel} · {post.publishedAt}
                               </span>
+                              {isCurrentlyFeatured && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-[10px] font-bold text-amber-800">
+                                  <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-600" />
+                                  <span>{isEn ? 'Featured' : 'Öne Çıkan'}</span>
+                                </span>
+                              )}
+                              {isScheduledHidden && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-indigo-100 text-[10px] font-semibold text-indigo-800">
+                                  <Clock className="w-2.5 h-2.5" />
+                                  <span>{isEn ? 'Scheduled' : 'Zamanlandı'}</span>
+                                </span>
+                              )}
                               {!isBuiltIn ? (
                                 <span className="px-1.5 py-0.5 rounded bg-brand-teal-light text-[10px] font-semibold text-brand-teal">
                                   {isEn ? 'New' : 'Yeni'}
                                 </span>
                               ) : isModified ? (
-                                <span className="px-1.5 py-0.5 rounded bg-amber-100 text-[10px] font-semibold text-amber-800">
+                                <span className="px-1.5 py-0.5 rounded bg-amber-50 text-[10px] font-semibold text-amber-800">
                                   {isEn ? 'Edited' : 'Düzenlendi'}
                                 </span>
                               ) : (
@@ -1217,6 +1542,11 @@ export default function AdminDashboardPage() {
                             <h3 className="text-sm font-semibold text-slate-900 leading-snug">
                               {post.title}
                             </h3>
+                            {post.h1Title && post.h1Title !== post.title && (
+                              <p className="text-[11px] text-slate-500 truncate">
+                                H1: {post.h1Title}
+                              </p>
+                            )}
                             <p className="text-[11px] font-mono text-slate-400 truncate">
                               /blog/{post.slug}
                             </p>
@@ -1244,6 +1574,43 @@ export default function AdminDashboardPage() {
                                   : 'Düzenle'}
                             </span>
                           </button>
+
+                          {!isScheduledHidden && (
+                            <button
+                              type="button"
+                              disabled={isCurrentlyFeatured || featuredUpdatingId === post.id}
+                              onClick={() => void handleChangeFeaturedPost(post.id)}
+                              title={
+                                isCurrentlyFeatured
+                                  ? isEn
+                                    ? 'Currently featured article'
+                                    : 'Şu an öne çıkan yazı'
+                                  : isEn
+                                    ? 'Feature this article'
+                                    : 'Bu yazıyı öne çıkar'
+                              }
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                isCurrentlyFeatured
+                                  ? 'bg-amber-100 text-amber-800 cursor-default'
+                                  : 'bg-amber-50 hover:bg-amber-100 text-amber-700 cursor-pointer'
+                              }`}
+                            >
+                              <Star
+                                className={`w-3 h-3 ${
+                                  isCurrentlyFeatured ? 'fill-amber-500 text-amber-600' : ''
+                                }`}
+                              />
+                              <span>
+                                {isCurrentlyFeatured
+                                  ? isEn
+                                    ? 'Featured'
+                                    : 'Öne Çıkan'
+                                  : isEn
+                                    ? 'Feature'
+                                    : 'Öne Çıkar'}
+                              </span>
+                            </button>
+                          )}
 
                           <button
                             type="button"
@@ -1297,7 +1664,7 @@ export default function AdminDashboardPage() {
                                 onClick={() => handleConfirmDelete(post.id)}
                                 className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-semibold text-white cursor-pointer"
                               >
-                                {isEn ? 'Confirm Delete' : 'Evet, Sil'}
+                                {isEn ? 'Move to Trash' : 'Çöpe Taşı'}
                               </button>
                               <button
                                 type="button"
@@ -1325,36 +1692,105 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            {deletedBuiltInPosts.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+            {/* Trash / Recovery Bin (ALL Deleted Articles: Custom + Built-in) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Trash2 className="w-4 h-4 text-slate-500" />
                   <h3 className="text-sm font-bold text-slate-800">
-                    {isEn ? 'Removed Built-in Articles' : 'Kaldırılan Mevcut Yazılar'}
+                    {isEn ? 'Trash & Recovery Bin' : 'Çöp Kutusu / Silinen Yazılar'}
                   </h3>
-                  <span className="text-xs font-medium text-slate-500">
-                    {deletedBuiltInPosts.length}
-                  </span>
                 </div>
-                <div className="divide-y divide-slate-100">
-                  {deletedBuiltInPosts.map((post) => (
-                    <div
-                      key={post.id}
-                      className="py-2 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
-                    >
-                      <p className="text-xs text-slate-600 truncate">{post.title}</p>
-                      <button
-                        type="button"
-                        onClick={() => handleResetBuiltIn(post.id)}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand-teal hover:underline shrink-0 cursor-pointer"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>{isEn ? 'Restore' : 'Geri Yükle'}</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
+                  {trashedPosts.length}
+                </span>
               </div>
-            )}
+
+              {trashedPosts.length === 0 ? (
+                <p className="text-xs text-slate-500 leading-relaxed py-2">
+                  {isEn
+                    ? 'Deleted articles are stored here so you can restore them anytime.'
+                    : 'Sildiğiniz yazılar doğrudan kaybolmaz; istediğiniz zaman buradan geri alabilirsiniz.'}
+                </p>
+              ) : (
+                <div className="divide-y divide-slate-100 max-h-[360px] overflow-y-auto pr-1">
+                  {trashedPosts.map((post) => {
+                    const isBuiltIn = isBuiltInPost(post.id);
+                    const deletedDateLabel = post.trashedAt
+                      ? formatTurkishDateFromIso(post.trashedAt.slice(0, 10))
+                      : post.publishedAt;
+
+                    return (
+                      <div key={post.id} className="py-3 first:pt-1 last:pb-0 space-y-2">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                              {isBuiltIn
+                                ? isEn
+                                  ? 'Built-in'
+                                  : 'Mevcut Yazı'
+                                : isEn
+                                  ? 'Custom'
+                                  : 'Yeni Eklenen'}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {deletedDateLabel}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-slate-800 truncate">
+                            {post.title}
+                          </p>
+                          <p className="text-[11px] font-mono text-slate-400 truncate">
+                            /blog/{post.slug}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void handleRestorePost(post.id)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-teal-light hover:bg-brand-teal-soft text-xs font-semibold text-brand-teal cursor-pointer"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>{isEn ? 'Restore' : 'Geri Al'}</span>
+                          </button>
+
+                          {!isBuiltIn && (
+                            confirmPermanentDeleteId === post.id ? (
+                              <div className="inline-flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => void handlePermanentDelete(post.id)}
+                                  className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-semibold text-white cursor-pointer"
+                                >
+                                  {isEn ? 'Delete Forever' : 'Kalıcı Sil'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmPermanentDeleteId(null)}
+                                  className="px-2 py-1 rounded-lg text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                                >
+                                  {isEn ? 'Cancel' : 'Vazgeç'}
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setConfirmPermanentDeleteId(post.id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 cursor-pointer"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>{isEn ? 'Remove Permanently' : 'Kalıcı Sil'}</span>
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
