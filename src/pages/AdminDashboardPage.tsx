@@ -237,11 +237,9 @@ export default function AdminDashboardPage() {
   const isEn = lang === 'en';
   const {
     customPosts,
-    authUser,
-    authReady,
     isAdmin,
     unsyncedLocalCount,
-    signInAdminWithGoogle,
+    verifyAdminPasscode,
     signOutAdmin,
     syncPendingLocalPosts,
     getPosts,
@@ -259,8 +257,8 @@ export default function AdminDashboardPage() {
   } = useBlog();
 
   // Auth Gate State
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [passcodeVal, setPasscodeVal] = useState('');
+  const [passcodeError, setPasscodeError] = useState<string | null>(null);
 
   // Editor State
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -344,27 +342,24 @@ export default function AdminDashboardPage() {
     return ensureUniqueSlug(source, existingSlugsForCheck);
   }, [slugManuallyEdited, customSlug, h1Title, existingSlugsForCheck]);
 
-  const handleGoogleSignIn = async () => {
-    setAuthLoading(true);
-    setAuthError(null);
-    try {
-      await signInAdminWithGoogle();
-    } catch (err) {
-      setAuthError(
-        err instanceof Error && err.message
-          ? err.message
-          : isEn
-            ? 'Google sign-in failed or was cancelled.'
-            : 'Google ile giriş tamamlanamadı veya iptal edildi.'
+  const handlePasscodeSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setPasscodeError(null);
+    const ok = verifyAdminPasscode(passcodeVal);
+    if (!ok) {
+      setPasscodeError(
+        isEn
+          ? 'Incorrect passcode. Please enter 1411.'
+          : 'Geçiş kodu hatalı. Lütfen 1411 giriniz.'
       );
-    } finally {
-      setAuthLoading(false);
+    } else {
+      setPasscodeVal('');
     }
   };
 
-  const handleLogout = async () => {
-    setAuthError(null);
-    await signOutAdmin();
+  const handleLogout = () => {
+    setPasscodeError(null);
+    signOutAdmin();
   };
 
   const resetForm = () => {
@@ -619,21 +614,8 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // ADMIN AUTH GATE SCREEN
-  if (!authReady) {
-    return (
-      <section className="min-h-[72vh] bg-transparent flex items-center justify-center px-5 py-16">
-        <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs p-8 text-center space-y-3">
-          <div className="w-8 h-8 mx-auto rounded-full border-2 border-brand-teal border-t-transparent animate-spin" />
-          <p className="text-sm text-slate-600">
-            {isEn ? 'Checking admin session...' : 'Yönetici oturumu doğrulanıyor...'}
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!authUser || !isAdmin) {
+  // ADMIN AUTH GATE SCREEN (PASSCODE 1411)
+  if (!isAdmin) {
     return (
       <section className="min-h-[72vh] bg-transparent flex items-center justify-center px-5 py-16">
         <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs p-7 sm:p-9 space-y-6">
@@ -644,65 +626,45 @@ export default function AdminDashboardPage() {
             </div>
             <div className="space-y-1">
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                {isEn ? 'Blog Dashboard Login' : 'Blog Yönetim Paneli'}
+                {isEn ? 'Blog Dashboard Access' : 'Blog Yönetim Paneli'}
               </h1>
               <p className="text-sm text-slate-500">
                 {isEn
-                  ? 'Sign in with your authorized Google account to permanently publish and manage articles.'
-                  : 'Yazıların kalıcı veritabanına kaydedilmesi için yetkili Google hesabınızla giriş yapın.'}
+                  ? 'Enter the admin passcode (1411) to manage and publish articles.'
+                  : 'Yazıları yönetmek ve yayınlamak için yönetici geçiş kodunu (1411) girin.'}
               </p>
             </div>
           </div>
 
-          {authUser && !isAdmin && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 space-y-1">
-              <p className="font-semibold">
-                {isEn ? 'Unauthorized Google account' : 'Yetkisiz Google hesabı'}
-              </p>
-              <p>
-                {isEn
-                  ? `${authUser.email || 'This account'} does not have admin publishing rights.`
-                  : `${authUser.email || 'Bu hesap'} için içerik yayınlama yetkisi bulunmuyor.`}
-              </p>
-            </div>
-          )}
-
-          {authError && (
+          {passcodeError && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
-              {authError}
+              {passcodeError}
             </div>
           )}
 
-          <div className="space-y-3">
+          <form onSubmit={handlePasscodeSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">
+                {isEn ? 'Admin Passcode (1411)' : 'Geçiş Kodu (1411)'}
+              </label>
+              <input
+                type="password"
+                inputMode="numeric"
+                value={passcodeVal}
+                onChange={(e) => setPasscodeVal(e.target.value)}
+                placeholder="1411"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 text-sm outline-none tracking-widest text-center"
+                autoFocus
+                required
+              />
+            </div>
             <button
-              type="button"
-              disabled={authLoading}
-              onClick={handleGoogleSignIn}
-              className="w-full py-3 px-4 rounded-xl bg-brand-navy hover:bg-brand-navy-hover disabled:opacity-60 text-white text-sm font-semibold transition-colors cursor-pointer"
+              type="submit"
+              className="w-full py-3 px-4 rounded-xl bg-brand-navy hover:bg-brand-navy-hover text-white text-sm font-semibold transition-colors cursor-pointer"
             >
-              {authLoading
-                ? isEn
-                  ? 'Signing in...'
-                  : 'Giriş yapılıyor...'
-                : authUser && !isAdmin
-                  ? isEn
-                    ? 'Switch Google Account'
-                    : 'Farklı Google Hesabı ile Giriş Yap'
-                  : isEn
-                    ? 'Sign in with Google'
-                    : 'Google ile Giriş Yap'}
+              {isEn ? 'Unlock Dashboard' : 'Paneli Aç'}
             </button>
-
-            {authUser && (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
-              >
-                {isEn ? 'Sign Out' : 'Oturumu Kapat'}
-              </button>
-            )}
-          </div>
+          </form>
 
           <div className="pt-2 text-center">
             <button

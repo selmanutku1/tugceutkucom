@@ -8,12 +8,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut,
-  type User,
-} from 'firebase/auth';
-import {
   collection,
   deleteDoc,
   deleteField,
@@ -28,10 +22,7 @@ import { BlogCategoryKey, BlogPost, BlogSection } from '../types';
 import { getBlogData } from '../data/blogPostsEn';
 import type { Language } from './LanguageContext';
 import {
-  auth,
-  checkIsUserAdmin,
   db,
-  googleProvider,
   handleFirestoreError,
   OperationType,
 } from '../firebase';
@@ -71,12 +62,10 @@ interface BlogContextValue {
   deletedBaseIds: string[];
   featuredPostId: string | null;
   isLoading: boolean;
-  authUser: User | null;
-  authReady: boolean;
   isAdmin: boolean;
   unsyncedLocalCount: number;
-  signInAdminWithGoogle: () => Promise<User>;
-  signOutAdmin: () => Promise<void>;
+  verifyAdminPasscode: (passcode: string) => boolean;
+  signOutAdmin: () => void;
   syncPendingLocalPosts: () => Promise<number>;
   getPosts: (lang: Language, options?: GetPostsOptions) => BlogPost[];
   getTrashedPosts: (lang: Language) => BlogPost[];
@@ -97,14 +86,10 @@ const BlogContext = createContext<BlogContextValue>({
   deletedBaseIds: [],
   featuredPostId: null,
   isLoading: false,
-  authUser: null,
-  authReady: false,
   isAdmin: false,
   unsyncedLocalCount: 0,
-  signInAdminWithGoogle: async () => {
-    throw new Error('BlogProvider not mounted');
-  },
-  signOutAdmin: async () => {},
+  verifyAdminPasscode: () => false,
+  signOutAdmin: () => {},
   syncPendingLocalPosts: async () => 0,
   getPosts: (lang) => getBlogData(lang).posts,
   getTrashedPosts: () => [],
@@ -446,23 +431,23 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   );
   const [firestorePostIds, setFirestorePostIds] = useState<Set<string> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [authUser, setAuthUser] = useState<User | null>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('tu_admin_passcode_verified_v1') === 'true';
+  });
 
-  // Track Firebase Auth state
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setAuthUser(user);
-      if (user) {
-        const adminOk = await checkIsUserAdmin(user);
-        setIsAdmin(adminOk);
-      } else {
-        setIsAdmin(false);
-      }
-      setAuthReady(true);
-    });
-    return () => unsubscribe();
+  const verifyAdminPasscode = useCallback((passcode: string): boolean => {
+    if (passcode.trim() === '1411') {
+      setIsAdmin(true);
+      sessionStorage.setItem('tu_admin_passcode_verified_v1', 'true');
+      return true;
+    }
+    return false;
+  }, []);
+
+  const signOutAdmin = useCallback(() => {
+    setIsAdmin(false);
+    sessionStorage.removeItem('tu_admin_passcode_verified_v1');
   }, []);
 
   // Subscribe to persistent Firestore blogPosts, deletedBlogIds, and siteSettings/featuredBlog
@@ -573,8 +558,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     : 0;
 
   const syncPendingLocalPosts = useCallback(async (): Promise<number> => {
-    const user = auth.currentUser;
-    if (!user || !isAdmin || !firestorePostIds) return 0;
+    if (!isAdmin || !firestorePostIds) return 0;
 
     const toSync = initialLocalPostsRef.current.filter(
       (p) => !firestorePostIds.has(p.id) && !BUILT_IN_POST_IDS.has(p.id)
@@ -588,7 +572,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         const sanitized = sanitizePostPayload(post);
         await setDoc(doc(db, 'blogPosts', String(sanitized.id)), {
           ...sanitized,
-          authorId: user.uid,
+          authorId: 'admin_1411',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -605,24 +589,12 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   }, [firestorePostIds, isAdmin]);
 
   useEffect(() => {
-    if (authReady && isAdmin && unsyncedLocalCount > 0) {
+    if (isAdmin && unsyncedLocalCount > 0) {
       void syncPendingLocalPosts().catch((err) => {
         console.warn('Auto-sync of local posts paused:', err);
       });
     }
-  }, [authReady, isAdmin, syncPendingLocalPosts, unsyncedLocalCount]);
-
-  const signInAdminWithGoogle = useCallback(async () => {
-    const cred = await signInWithPopup(auth, googleProvider);
-    const adminOk = await checkIsUserAdmin(cred.user);
-    setIsAdmin(adminOk);
-    return cred.user;
-  }, []);
-
-  const signOutAdmin = useCallback(async () => {
-    await signOut(auth);
-    setIsAdmin(false);
-  }, []);
+  }, [isAdmin, syncPendingLocalPosts, unsyncedLocalCount]);
 
   const isBuiltInPost = useCallback((id: string) => BUILT_IN_POST_IDS.has(id), []);
 
@@ -708,9 +680,8 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   );
 
   const setFeaturedPost = useCallback(async (postId: string | null) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error('Öne çıkan yazıyı değiştirmek için yönetici Google hesabınızla giriş yapmalısınız.');
+    if (!isAdmin) {
+      throw new Error('Öne çıkan yazıyı değiştirmek için yönetici geçiş kodu ile giriş yapmalısınız.');
     }
 
     const docRef = doc(db, 'siteSettings', 'featuredBlog');
@@ -733,27 +704,26 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       if (existingSnap.exists()) {
         await updateDoc(docRef, {
           featuredPostId: cleanId,
-          updatedBy: user.uid,
+          updatedBy: 'admin_1411',
           updatedAt: serverTimestamp(),
         });
       } else {
         await setDoc(docRef, {
           id: 'featuredBlog',
           featuredPostId: cleanId,
-          updatedBy: user.uid,
+          updatedBy: 'admin_1411',
           updatedAt: serverTimestamp(),
         });
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
-  }, []);
+  }, [isAdmin]);
 
   const addPost = useCallback(
     async (input: BlogPostInput): Promise<BlogPost> => {
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error('Yazı kaydetmek için yönetici Google hesabınızla giriş yapmalısınız.');
+      if (!isAdmin) {
+        throw new Error('Yazı kaydetmek için yönetici geçiş kodu ile giriş yapmalısınız.');
       }
 
       const deletedSet = new Set(deletedBaseIds);
@@ -774,7 +744,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       try {
         await setDoc(doc(db, 'blogPosts', docId), {
           ...sanitized,
-          authorId: user.uid,
+          authorId: 'admin_1411',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -787,14 +757,13 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
       return { ...candidate, id: docId, slug: String(sanitized.slug) };
     },
-    [customPosts, deletedBaseIds, setFeaturedPost]
+    [customPosts, deletedBaseIds, isAdmin, setFeaturedPost]
   );
 
   const updatePost = useCallback(
     async (id: string, input: BlogPostInput): Promise<BlogPost> => {
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error('Yazı güncellemek için yönetici Google hesabınızla giriş yapmalısınız.');
+      if (!isAdmin) {
+        throw new Error('Yazı güncellemek için yönetici geçiş kodu ile giriş yapmalısınız.');
       }
 
       const existing =
@@ -824,7 +793,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         if (!existingSnap.exists()) {
           await setDoc(docRef, {
             ...sanitized,
-            authorId: user.uid,
+            authorId: 'admin_1411',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });
@@ -875,14 +844,13 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
       return { ...updated, id: docId, slug: String(sanitized.slug) };
     },
-    [customPosts, deletedBaseIds, featuredPostId, setFeaturedPost]
+    [customPosts, deletedBaseIds, featuredPostId, isAdmin, setFeaturedPost]
   );
 
   const deletePost = useCallback(
     async (id: string) => {
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error('Yazı silmek için yönetici Google hesabınızla giriş yapmalısınız.');
+      if (!isAdmin) {
+        throw new Error('Yazı silmek için yönetici geçiş kodu ile giriş yapmalısınız.');
       }
 
       const trashedAt = new Date().toISOString();
@@ -903,7 +871,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
             const sanitized = sanitizePostPayload({ ...localMatch, trashed: true, trashedAt });
             await setDoc(docRef, {
               ...sanitized,
-              authorId: user.uid,
+              authorId: 'admin_1411',
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
             });
@@ -919,7 +887,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         try {
           await setDoc(doc(db, 'deletedBlogIds', id), {
             postId: id,
-            deletedBy: user.uid,
+            deletedBy: 'admin_1411',
             createdAt: serverTimestamp(),
           });
         } catch (error) {
@@ -931,13 +899,12 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         await setFeaturedPost(null);
       }
     },
-    [featuredPostId, setFeaturedPost]
+    [featuredPostId, isAdmin, setFeaturedPost]
   );
 
   const restorePost = useCallback(async (id: string) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error('Yazıyı geri yüklemek için yönetici Google hesabınızla giriş yapmalısınız.');
+    if (!isAdmin) {
+      throw new Error('Yazıyı geri yüklemek için yönetici geçiş kodu ile giriş yapmalısınız.');
     }
 
     const docRef = doc(db, 'blogPosts', id);
@@ -963,12 +930,11 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         handleFirestoreError(error, OperationType.DELETE, deletedPath);
       }
     }
-  }, []);
+  }, [isAdmin]);
 
   const permanentlyDeletePost = useCallback(async (id: string) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error('Yazıyı kalıcı olarak silmek için yönetici Google hesabınızla giriş yapmalısınız.');
+    if (!isAdmin) {
+      throw new Error('Yazıyı kalıcı olarak silmek için yönetici geçiş kodu ile giriş yapmalısınız.');
     }
 
     initialLocalPostsRef.current = initialLocalPostsRef.current.filter((p) => p.id !== id);
@@ -978,12 +944,11 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, path);
     }
-  }, []);
+  }, [isAdmin]);
 
   const resetBuiltInPost = useCallback(async (id: string) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error('Yazıyı sıfırlamak için yönetici Google hesabınızla giriş yapmalısınız.');
+    if (!isAdmin) {
+      throw new Error('Yazıyı sıfırlamak için yönetici geçiş kodu ile giriş yapmalısınız.');
     }
 
     const path = `blogPosts/${id}`;
@@ -999,7 +964,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, deletedPath);
     }
-  }, []);
+  }, [isAdmin]);
 
   return (
     <BlogContext.Provider
@@ -1008,11 +973,9 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         deletedBaseIds,
         featuredPostId,
         isLoading,
-        authUser,
-        authReady,
         isAdmin,
         unsyncedLocalCount,
-        signInAdminWithGoogle,
+        verifyAdminPasscode,
         signOutAdmin,
         syncPendingLocalPosts,
         getPosts,

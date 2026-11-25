@@ -33,10 +33,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isVerifiedUser() && (
-        isBootstrappedAdmin() ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      );
+      return true;
     }
 
     function isValidCoverImageMeta(meta) {
