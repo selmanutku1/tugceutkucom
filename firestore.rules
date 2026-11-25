@@ -142,14 +142,14 @@ service cloud.firestore {
       allow get: if true;
     }
 
-    // Publicly readable blog posts (no PII), writable strictly by verified admins
+    // Publicly readable blog posts (no PII), writable strictly by admins
     match /blogPosts/{postId} {
       allow get: if isValidId(postId);
       allow list: if true;
       allow create: if isAdmin()
         && isValidId(postId)
         && isValidBlogPost(incoming(), postId)
-        && incoming().authorId == request.auth.uid
+        && isValidId(incoming().authorId)
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time;
       allow update: if isAdmin()
@@ -183,33 +183,33 @@ service cloud.firestore {
       allow delete: if isAdmin() && isValidId(postId);
     }
 
-    // Publicly readable markers for deleted built-in posts, writable strictly by verified admins
+    // Publicly readable markers for deleted built-in posts, writable strictly by admins
     match /deletedBlogIds/{postId} {
       allow get: if isValidId(postId);
       allow list: if true;
       allow create: if isAdmin()
         && isValidId(postId)
         && isValidDeletedMarker(incoming(), postId)
-        && incoming().deletedBy == request.auth.uid
+        && isValidId(incoming().deletedBy)
         && incoming().createdAt == request.time;
       allow update: if false;
       allow delete: if isAdmin() && isValidId(postId);
     }
 
-    // Publicly readable site settings (featured blog post selection), writable strictly by verified admins
+    // Publicly readable site settings (featured blog post selection), writable strictly by admins
     match /siteSettings/{settingId} {
       allow get: if isValidId(settingId);
       allow list: if false;
       allow create: if isAdmin()
         && isValidId(settingId)
         && isValidFeaturedBlogSetting(incoming(), settingId)
-        && incoming().updatedBy == request.auth.uid
+        && isValidId(incoming().updatedBy)
         && incoming().updatedAt == request.time;
       allow update: if isAdmin()
         && isValidId(settingId)
         && isValidFeaturedBlogSetting(incoming(), settingId)
         && incoming().id == existing().id
-        && incoming().updatedBy == request.auth.uid
+        && isValidId(incoming().updatedBy)
         && incoming().updatedAt == request.time
         && incoming().diff(existing()).affectedKeys().hasOnly([
           'featuredPostId',
