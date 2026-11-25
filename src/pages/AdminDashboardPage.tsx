@@ -630,8 +630,8 @@ export default function AdminDashboardPage() {
               </h1>
               <p className="text-sm text-slate-500">
                 {isEn
-                  ? 'Enter the admin passcode (1411) to manage and publish articles.'
-                  : 'Yazıları yönetmek ve yayınlamak için yönetici geçiş kodunu (1411) girin.'}
+                  ? 'Enter your admin passcode to manage and publish articles.'
+                  : 'Yazıları yönetmek ve yayınlamak için yönetici şifresini girin.'}
               </p>
             </div>
           </div>
@@ -645,14 +645,14 @@ export default function AdminDashboardPage() {
           <form onSubmit={handlePasscodeSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-700">
-                {isEn ? 'Admin Passcode (1411)' : 'Geçiş Kodu (1411)'}
+                {isEn ? 'Admin Passcode' : 'Yönetici Şifresi'}
               </label>
               <input
                 type="password"
                 inputMode="numeric"
                 value={passcodeVal}
                 onChange={(e) => setPasscodeVal(e.target.value)}
-                placeholder="1411"
+                placeholder="••••"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 text-sm outline-none tracking-widest text-center"
                 autoFocus
                 required
