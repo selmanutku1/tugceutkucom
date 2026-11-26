@@ -363,7 +363,7 @@ export default function SeoHead({ description }: SeoHeadProps) {
           url: `${origin}/blog/${post.slug}`,
           item: {
             '@type': 'BlogPosting',
-            headline: post.title,
+            headline: post.h1Title?.trim() || post.title,
             description: post.spot,
             datePublished: post.publishedIso,
             url: `${origin}/blog/${post.slug}`,

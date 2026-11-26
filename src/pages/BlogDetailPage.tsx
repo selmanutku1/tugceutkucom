@@ -437,7 +437,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           <BlogCoverVisual
             theme={post.coverTheme}
             coverImage={post.coverImage}
-            title={post.title}
+            title={displayH1}
             categoryLabel={post.categoryLabel}
             slug={post.slug}
             variant="hero"
@@ -661,7 +661,9 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
             </div>
 
             <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedPosts.map((related) => (
+              {relatedPosts.map((related) => {
+                const relatedHeadline = related.h1Title?.trim() || related.title;
+                return (
                 <StaggerItem key={related.id} className="h-full">
                   <article className="group h-full bg-white rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_14px_30px_-14px_rgba(15,23,42,0.14)] overflow-hidden flex flex-col">
                     <a
@@ -675,7 +677,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                       <BlogCoverVisual
                         theme={related.coverTheme}
                         coverImage={related.coverImage}
-                        title={related.title}
+                        title={relatedHeadline}
                         categoryLabel={related.categoryLabel}
                         slug={related.slug}
                       />
@@ -694,7 +696,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                             }}
                             className="hover:text-brand-navy transition-colors"
                           >
-                            {related.title}
+                            {relatedHeadline}
                           </a>
                         </h3>
                       </div>
@@ -712,7 +714,8 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
                     </div>
                   </article>
                 </StaggerItem>
-              ))}
+                );
+              })}
             </StaggerGroup>
           </div>
         </section>

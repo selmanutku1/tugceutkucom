@@ -1363,7 +1363,7 @@ export default function AdminDashboardPage() {
                 >
                   {publicPosts.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.title} ({p.publishedAt})
+                      {p.h1Title?.trim() || p.title} ({p.publishedAt})
                     </option>
                   ))}
                 </select>
@@ -1466,7 +1466,7 @@ export default function AdminDashboardPage() {
                           {post.coverImage && (
                             <img
                               src={post.coverImage}
-                              alt={post.title}
+                              alt={post.h1Title?.trim() || post.title}
                               className="w-16 h-10 rounded-lg object-cover border border-slate-200 shrink-0 mt-0.5"
                             />
                           )}
@@ -1502,11 +1502,11 @@ export default function AdminDashboardPage() {
                               )}
                             </div>
                             <h3 className="text-sm font-semibold text-slate-900 leading-snug">
-                              {post.title}
+                              {post.h1Title?.trim() || post.title}
                             </h3>
-                            {post.h1Title && post.h1Title !== post.title && (
+                            {post.h1Title?.trim() && post.h1Title.trim() !== post.title.trim() && (
                               <p className="text-[11px] text-slate-500 truncate">
-                                H1: {post.h1Title}
+                                Title: {post.title}
                               </p>
                             )}
                             <p className="text-[11px] font-mono text-slate-400 truncate">
@@ -1700,7 +1700,7 @@ export default function AdminDashboardPage() {
                             </span>
                           </div>
                           <p className="text-xs font-semibold text-slate-800 truncate">
-                            {post.title}
+                            {post.h1Title?.trim() || post.title}
                           </p>
                           <p className="text-[11px] font-mono text-slate-400 truncate">
                             /blog/{post.slug}

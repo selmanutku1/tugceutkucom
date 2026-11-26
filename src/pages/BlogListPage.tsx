@@ -273,7 +273,7 @@ export default function BlogListPage() {
                 <BlogCoverVisual
                   theme={featuredPost.coverTheme}
                   coverImage={featuredPost.coverImage}
-                  title={featuredPost.title}
+                  title={featuredPost.h1Title?.trim() || featuredPost.title}
                   categoryLabel={featuredPost.categoryLabel}
                   slug={featuredPost.slug}
                   variant="featured"
@@ -302,7 +302,7 @@ export default function BlogListPage() {
                       }}
                       className="hover:text-brand-navy transition-colors"
                     >
-                      {featuredPost.title}
+                      {featuredPost.h1Title?.trim() || featuredPost.title}
                     </a>
                   </h2>
 
@@ -346,8 +346,8 @@ export default function BlogListPage() {
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#0A66C2] transition-colors"
                     aria-label={
                       isEn
-                        ? `Share ${featuredPost.title} on LinkedIn`
-                        : `${featuredPost.title} yazısını LinkedIn'de paylaş`
+                        ? `Share ${featuredPost.h1Title?.trim() || featuredPost.title} on LinkedIn`
+                        : `${featuredPost.h1Title?.trim() || featuredPost.title} yazısını LinkedIn'de paylaş`
                     }
                   >
                     <Linkedin className="w-3.5 h-3.5" />
@@ -423,7 +423,9 @@ export default function BlogListPage() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               <AnimatePresence mode="popLayout">
-                {paginatedPosts.map((post, idx) => (
+                {paginatedPosts.map((post, idx) => {
+                  const cardHeadline = post.h1Title?.trim() || post.title;
+                  return (
                   <motion.article
                     key={post.id}
                     layout
@@ -448,7 +450,7 @@ export default function BlogListPage() {
                     <BlogCoverVisual
                       theme={post.coverTheme}
                       coverImage={post.coverImage}
-                      title={post.title}
+                      title={cardHeadline}
                       categoryLabel={post.categoryLabel}
                       slug={post.slug}
                     />
@@ -472,7 +474,7 @@ export default function BlogListPage() {
                           }}
                           className="hover:text-brand-navy transition-colors"
                         >
-                          {post.title}
+                          {cardHeadline}
                         </a>
                       </h3>
 
@@ -527,8 +529,8 @@ export default function BlogListPage() {
                         className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-[#0A66C2] transition-colors"
                         aria-label={
                           isEn
-                            ? `Share ${post.title} on LinkedIn`
-                            : `${post.title} yazısını LinkedIn'de paylaş`
+                            ? `Share ${cardHeadline} on LinkedIn`
+                            : `${cardHeadline} yazısını LinkedIn'de paylaş`
                         }
                       >
                         <Linkedin className="w-3.5 h-3.5" />
@@ -537,7 +539,8 @@ export default function BlogListPage() {
                     </div>
                   </div>
                 </motion.article>
-                ))}
+                  );
+                })}
               </AnimatePresence>
             </motion.div>
           ) : (

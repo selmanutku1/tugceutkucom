@@ -1138,7 +1138,7 @@ async function startServer() {
   async function renderDynamicBlogCoverJpg(
     post: StoredCustomBlog
   ): Promise<Buffer | null> {
-    const title = (post.title || '').trim();
+    const title = (post.h1Title || post.title || '').trim();
     if (!title) return null;
 
     const categoryLabel = (post.categoryLabel || 'Blog').trim();
@@ -1399,7 +1399,9 @@ async function startServer() {
       hasCustomUploadedImage || Boolean(post.isOverriddenOrCustom) || lang === 'en';
     const coverHash = crypto
       .createHash('sha1')
-      .update(`${resolvedSlug}|${post.title}|${post.coverTheme || ''}|${post.coverImage?.length || 0}`)
+      .update(
+        `${resolvedSlug}|${post.h1Title?.trim() || post.title}|${post.coverTheme || ''}|${post.coverImage?.length || 0}`
+      )
       .digest('hex')
       .slice(0, 8);
     const imageUrl = needsDynamicCover

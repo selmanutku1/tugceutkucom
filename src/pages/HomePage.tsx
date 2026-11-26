@@ -466,7 +466,9 @@ export default function HomePage() {
           </Reveal>
 
           <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {latestPosts.map((post) => (
+            {latestPosts.map((post) => {
+              const cardHeadline = post.h1Title?.trim() || post.title;
+              return (
               <StaggerItem key={post.id} className="h-full">
                 <article className="group h-full bg-white/85 backdrop-blur-md rounded-2xl border border-[#012253]/8 overflow-hidden flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:bg-white hover:border-brand-teal/25 hover:shadow-[0_14px_30px_-14px_rgba(1,34,83,0.16)]">
                   <div>
@@ -481,7 +483,7 @@ export default function HomePage() {
                       <BlogCoverVisual
                         theme={post.coverTheme}
                         coverImage={post.coverImage}
-                        title={post.title}
+                        title={cardHeadline}
                         categoryLabel={post.categoryLabel}
                         slug={post.slug}
                       />
@@ -504,7 +506,7 @@ export default function HomePage() {
                             navigate(`/blog/${post.slug}`);
                           }}
                         >
-                          {post.title}
+                          {cardHeadline}
                         </a>
                       </h3>
 
@@ -529,7 +531,8 @@ export default function HomePage() {
                   </div>
                 </article>
               </StaggerItem>
-            ))}
+              );
+            })}
           </StaggerGroup>
         </div>
       </section>
