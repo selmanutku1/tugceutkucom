@@ -159,6 +159,19 @@ function getOrigin(req: IncomingMessage): string {
   return `${proto}://${host}`;
 }
 
+function slugifyTr(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function injectBlogMeta(
   html: string,
   origin: string,
@@ -166,8 +179,8 @@ function injectBlogMeta(
   post?: BlogMetaEntry
 ): string {
   const headline = post?.h1Title?.trim() || post?.title;
-  const title = post
-    ? `${post.title} | Tuğçe Utku`
+  const title = post && headline
+    ? `${headline} | Tuğçe Utku`
     : 'Blog ve İçgörüler | Tuğçe Utku';
   const description = post
     ? post.spot
@@ -187,7 +200,7 @@ function injectBlogMeta(
       : 'transformation';
 
   const hasUploadedDataCover = Boolean(
-    post?.coverImage && post.coverImage.startsWith('data:image/')
+    post?.coverImage && post?.coverImage.startsWith('data:image/')
   );
   const hasHttpsCover = Boolean(
     post?.coverImage && /^https:\/\//i.test(post.coverImage)
@@ -312,14 +325,18 @@ export default async function handler(
   const firestoreHit = firestorePosts.find(
     (item) =>
       isPubliclyVisibleFirestorePost(item, deletedSet, item.id) &&
-      item.slug.toLowerCase() === cleanSlug
+      (item.slug.toLowerCase() === cleanSlug ||
+        slugifyTr(item.title) === cleanSlug ||
+        (item.h1Title && slugifyTr(item.h1Title) === cleanSlug))
   );
   const overriddenIds = new Set(firestorePosts.map((p) => p.id));
   const builtInHit = !firestoreHit
     ? BLOG_META_LIST.find(
         (item) =>
           (!item.id || (!deletedSet.has(item.id) && !overriddenIds.has(item.id))) &&
-          item.slug.toLowerCase() === cleanSlug
+          (item.slug.toLowerCase() === cleanSlug ||
+            slugifyTr(item.title) === cleanSlug ||
+            (item.h1Title && slugifyTr(item.h1Title) === cleanSlug))
       )
     : undefined;
   const post: BlogMetaEntry | undefined = firestoreHit

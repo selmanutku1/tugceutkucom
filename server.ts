@@ -1280,6 +1280,19 @@ async function startServer() {
     }
   }
 
+  function slugifyTr(str: string): string {
+    return str
+      .toLowerCase()
+      .replace(/ğ/g, 'g')
+      .replace(/ü/g, 'u')
+      .replace(/ş/g, 's')
+      .replace(/ı/g, 'i')
+      .replace(/ö/g, 'o')
+      .replace(/ç/g, 'c')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   async function findBlogMetaBySlug(
     rawSlug: string,
     lang: 'tr' | 'en' = 'tr'
@@ -1295,7 +1308,11 @@ async function startServer() {
     const customPosts = posts as StoredCustomBlog[];
     const deletedSet = new Set(deletedIds);
     const customHit = customPosts.find(
-      (p) => !deletedSet.has(p.id || '') && (p.slug || '').toLowerCase() === clean
+      (p) =>
+        !deletedSet.has(p.id || '') &&
+        ((p.slug || '').toLowerCase() === clean ||
+          slugifyTr(p.title) === clean ||
+          (p.h1Title && slugifyTr(p.h1Title) === clean))
     );
     if (customHit) {
       return { ...customHit, isOverriddenOrCustom: true };
@@ -1306,7 +1323,9 @@ async function startServer() {
       (p) =>
         !deletedSet.has(p.id) &&
         !overriddenIds.has(p.id) &&
-        p.slug.toLowerCase() === clean
+        (p.slug.toLowerCase() === clean ||
+          slugifyTr(p.title) === clean ||
+          (p.h1Title && slugifyTr(p.h1Title) === clean))
     );
     return baseHit ? { ...baseHit, isOverriddenOrCustom: false } : undefined;
   }
@@ -1383,8 +1402,9 @@ async function startServer() {
     post?: StoredCustomBlog,
     lang: 'tr' | 'en' = 'tr'
   ): string {
-    if (!post || !post.title) return html;
-    const title = `${post.title} | Tuğçe Utku`;
+    if (!post || (!post.title && !post.h1Title)) return html;
+    const headline = post.h1Title?.trim() || post.title;
+    const title = `${headline} | Tuğçe Utku`;
     const description =
       post.spot ||
       (lang === 'en'
